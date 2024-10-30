@@ -9,7 +9,7 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-Route::post('/send-email', [RabbitMQController::class, 'send']);
+Route::post('/send-to-queue', [RabbitMQController::class, 'sendToQueue']);
 
 Route::get('/file/{filename}', function ($filename) {
     $path = storage_path('app/public/assets/' . $filename);
