@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Controllers\ApplicationController;
-use App\Http\Controllers\RabbitMQController;
+use App\Http\Controllers\EmailQueueController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -9,17 +9,10 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-Route::post('/send-to-queue', [RabbitMQController::class, 'sendToQueue']);
+Route::post('/send-to-queue', [EmailQueueController::class, 'sendEmails']);
 
-Route::get('/file/{filename}', function ($filename) {
-    $path = storage_path('app/public/assets/' . $filename);
-
-    if (!File::exists($path)) {
-        return response()->json(['error' => 'File not found.'], 404);
-    }
-
-    return response()->file($path);
-});
+Route::get('/extract-email/{id}', [EmailQueueController::class, 'extractEmailData']);
+Route::get('/extract-email', [EmailQueueController::class, 'extractAllEmailData']);
 
 Route::prefix('applications')->group(function () {
     Route::post('/', [ApplicationController::class, 'store']);
