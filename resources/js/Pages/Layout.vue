@@ -178,7 +178,7 @@
                         <input
                             type="text"
                             placeholder="Type here..."
-                            class="w-64 pl-10 pr-4 py-2 text-sm bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
+                            class="w-64 py-2 pl-10 pr-4 text-sm border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
                         />
                     </div>
 
@@ -194,7 +194,7 @@
                                 class="top-0 left-7 absolute w-3.5 h-3.5 bg-green-400 border-2 border-white dark:border-gray-800 rounded-full"
                             ></span>
                         </div>
-                        <span class="text-sm font-medium">Admin</span>
+                        <span class="text-sm font-medium">{{user.name}}</span>
                         <div class="relative">
                             <button
                                 @click="toggleAdminMenu"
@@ -214,7 +214,7 @@
                             <!-- Dropdown Menu -->
                             <div
                                 v-if="showAdminMenu"
-                                class="absolute right-0 w-48 py-2 mt-2 bg-white rounded-lg shadow-lg border border-gray-100"
+                                class="absolute right-0 w-48 py-2 mt-2 bg-white border border-gray-100 rounded-lg shadow-lg"
                             >
                                 <a
                                     href="/profile"
@@ -222,7 +222,7 @@
                                 >
                                     Profile Settings
                                 </a>
-                                <form method="POST" action="/logout">
+                                <form @submit.prevent="submit">
                                     <input
                                         type="hidden"
                                         name="_token"
@@ -269,11 +269,20 @@
 
 <script setup>
 import { ref, computed } from "vue";
+import { usePage, useForm } from '@inertiajs/vue3'
+
 
 const showAdminMenu = ref(false);
-const csrf_token = document
-    .querySelector('meta[name="csrf-token"]')
-    ?.getAttribute("content");
+const page = usePage()
+const user = page.props.auth.user
+
+const form = useForm({
+    _token: page.props.csrf_token,
+})
+
+function submit() {
+    form.post('/logout')
+}
 
 // Get current path for active navigation
 const currentPath = computed(() => {

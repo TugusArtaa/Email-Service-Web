@@ -9,7 +9,7 @@ Route::get('/login', function () {
     return Inertia::render('Login');
 })->name('login')->middleware('guest');
 
-Route::get('/logout', function (Request $request) {
+Route::post('/logout', function (Request $request) {
     Auth::logout();
  
     $request->session()->invalidate();
@@ -22,5 +22,5 @@ Route::get('/logout', function (Request $request) {
 Route::post('/login', [AuthenticationController::class, 'authenticate']);
 
 Route::get('/', function () {
-    return Inertia::render('Dashboard');
+    return Inertia::render('Home');
 })->middleware('auth');
