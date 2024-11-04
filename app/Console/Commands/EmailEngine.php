@@ -3,100 +3,62 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use PhpAmqpLib\Connection\AMQPStreamConnection;
+use App\Models\Application;
+use App\Services\RabbitMQService;
+use App\Services\EmailService;
+use App\Services\EmailLogService;
 use PhpAmqpLib\Message\AMQPMessage;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Validator;
+use Exception;
 
 class EmailEngine extends Command
 {
     protected $signature = 'rabbitmq:consume';
-    protected $description = 'Consume messages from RabbitMQ and send emails';
+    protected $description = 'Send emails from RabbitMQ queues and log the result';
+
+    private $rabbitMQService;
+    private $emailService;
+    private $emailLogService;
+
+    public function __construct(RabbitMQService $rabbitMQService, EmailService $emailService, EmailLogService $emailLogService)
+    {
+        parent::__construct();
+
+        $this->rabbitMQService = $rabbitMQService;
+        $this->emailService = $emailService;
+        $this->emailLogService = $emailLogService;
+    }
 
     public function handle()
     {
-        // Connect to RabbitMQ
-        $connection = new AMQPStreamConnection('localhost', 5672, 'guest', 'guest');
-        $channel = $connection->channel();
+        $this->rabbitMQService->consume('email_high_priority', [$this, 'processEmail']);
+        $this->rabbitMQService->consume('email_medium_priority', [$this, 'processEmail']);
+        $this->rabbitMQService->consume('email_low_priority', [$this, 'processEmail']);
 
-        // Declare and consume from each queue
-        $queues = ['email_high_priority', 'email_low_priority', 'email_medium_priority'];
-        foreach ($queues as $queue) {
-            $callback = function (AMQPMessage $msg) use ($channel) {
-                $data = json_decode($msg->getBody(), true);
+        $this->rabbitMQService->wait();
+    }
 
-                // Initialize retry count if not present
-                $retryCount = isset($data['retry_count']) ? $data['retry_count'] : 0;
+    public function processEmail(AMQPMessage $msg)
+    {
+        $data = json_decode($msg->getBody(), true);
 
-                // Validate that data contains the expected structure
-                $validator = Validator::make($data, [
-                    'to' => 'required|email',
-                    'subject' => 'required|string',
-                    'content' => 'required|string',
-                    'attachment' => 'array',
-                    'attachment.*' => 'url',
-                ]);
-
-                // If validation fails, log the error and reject the message
-                if ($validator->fails()) {
-                    $this->error('Validation failed for message: ' . json_encode($validator->errors()));
-                    // Acknowledge without requeuing
-                    $channel->basic_ack($msg->getDeliveryTag());
-                    return;
-                }
-
-                try {
-                    // Send email with raw content
-                    Mail::send([], [], function ($message) use ($data) {
-                        $message->to($data['to'])
-                                ->subject($data['subject'])
-                                ->html($data['content']);
-                
-                        // Handle attachments if any
-                        if (!empty($data['attachment'])) {
-                            foreach ($data['attachment'] as $attachment) {
-                                // Ensure each attachment is added correctly
-                                $message->attach($attachment);
-                            }
-                        }
-                    });
-                    
-                    $this->info("Email sent to {$data['to']} with subject: {$data['subject']}");
-                    // Acknowledge the message after successful processing
-                    $channel->basic_ack($msg->getDeliveryTag());
-                } catch (\Exception $e) {
-                    // Log the exception
-                    $this->error('Failed to send email: ' . $e->getMessage());
-                
-                    // Increment the retry count
-                    $retryCount++;
-                
-                    // Check if retry count exceeds the threshold
-                    if ($retryCount > 1) {
-                        // Acknowledge without requeuing if max retries reached
-                        $this->error('Max retry limit reached for message: ' . json_encode($data));
-                        $channel->basic_ack($msg->getDeliveryTag());
-                    } else {
-                        // Update retry count and requeue the message
-                        $data['retry_count'] = $retryCount;
-                        $msg->setBody(json_encode($data)); // Update the message body
-                        $channel->basic_nack($msg->getDeliveryTag(), false, false); // Nack without requeue
-                        $channel->basic_publish($msg, '', $msg->getRoutingKey()); // Requeue
-                    }
-                }
-            };
-
-            // Consume messages from the specified queue
-            $channel->basic_consume($queue, '', false, false, false, false, $callback);
+        $application = Application::where('secret_key', $data['secret'])->first();
+        if (!$application) {
+            $this->emailLogService->logEmail($data, 'failed', 'Invalid secret key');
+            return;
         }
 
-        // Keep consuming messages until stopped
-        while ($channel->is_consuming()) {
-            $channel->wait();
+        try {
+            $this->emailService->sendEmail($data);
+            $this->emailLogService->logEmail($data, 'success', null, $application->id);
+            $this->info("Email sent to: " . $data['to']);
+        } catch (Exception $e) {
+            $this->emailLogService->logEmail($data, 'failed', $e->getMessage(), $application->id);
+            $this->error("Failed to send email to: " . $data['to'] . " - " . $e->getMessage());
         }
+    }
 
-        // Close connection when done
-        $channel->close();
-        $connection->close();
+    public function __destruct()
+    {
+        $this->rabbitMQService->close();
     }
 }
