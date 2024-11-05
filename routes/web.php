@@ -12,16 +12,14 @@ Route::get('/login', function () {
 
 Route::post('/logout', function (Request $request) {
     Auth::logout();
- 
+
     $request->session()->invalidate();
- 
+
     $request->session()->regenerateToken();
- 
+
     return redirect('/');
 })->name('logout');
 
 Route::post('/login', [AuthenticationController::class, 'authenticate']);
 
-Route::get('/', function () {
-    return Inertia::render('Home');
-})->middleware('auth');
+Route::get('/', [EmailLogController::class, 'index'])->middleware('auth');

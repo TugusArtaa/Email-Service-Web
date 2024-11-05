@@ -159,29 +159,6 @@
 
                 <!-- Search and Admin Section -->
                 <div class="flex items-center gap-6">
-                    <!-- Search -->
-                    <div class="relative">
-                        <div
-                            class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"
-                        >
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                class="w-4 h-4 text-gray-400"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                            >
-                                <circle cx="11" cy="11" r="8" />
-                                <path d="M21 21l-4.35-4.35" />
-                            </svg>
-                        </div>
-                        <input
-                            type="text"
-                            placeholder="Type here..."
-                            class="w-64 py-2 pl-10 pr-4 text-sm border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
-                        />
-                    </div>
-
                     <!-- Admin Menu -->
                     <div class="flex items-center gap-3">
                         <div class="relative">

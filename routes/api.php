@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\EmailQueueController;
+use App\Http\Controllers\EmailLogController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -12,6 +13,8 @@ Route::get('/user', function (Request $request) {
 Route::post('/send-to-queue', [EmailQueueController::class, 'sendEmails']);
 Route::get('/extract-email/{id}', [EmailQueueController::class, 'extractEmailData']);
 Route::get('/extract-email', [EmailQueueController::class, 'extractAllEmailData']);
+
+Route::get('/email-logs', [EmailLogController::class, 'index']);
 
 Route::prefix('applications')->group(function () {
     Route::post('/', [ApplicationController::class, 'store']);
