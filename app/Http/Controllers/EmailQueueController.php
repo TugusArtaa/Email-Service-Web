@@ -17,10 +17,13 @@ class EmailQueueController extends Controller
     public function sendEmails(SendEmailRequest $request)
     {
         $data = $request->json()->all();
-        $result = $this->emailService->processAndQueueEmails($data['mail'], $data['secret']);
         
         if (isset($result['error'])) {
             return errorResponse($result['error']['message'], 422);
+        }
+        $result = $this->emailService->processAndQueueEmails($data['mail'], $data['secret']);
+        if (isset($result['error'])) {
+            return errorResponse($result['error'], 422);
         }
         
         return responseWithData('Email message(s) sent to queue', $result['messages']);
