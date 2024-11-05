@@ -10,7 +10,6 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 Route::post('/send-to-queue', [EmailQueueController::class, 'sendEmails']);
-
 Route::get('/extract-email/{id}', [EmailQueueController::class, 'extractEmailData']);
 Route::get('/extract-email', [EmailQueueController::class, 'extractAllEmailData']);
 
