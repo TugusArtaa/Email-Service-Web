@@ -2,12 +2,24 @@
     <div class="flex min-h-screen bg-gray-50">
         <!-- Sidebar -->
         <aside
-            class="fixed top-0 left-0 z-40 w-64 h-screen transition-transform bg-white"
+            :class="[
+                'fixed top-0 left-0 z-40 h-screen transition-all duration-300 ease-in-out bg-white',
+                isSidebarOpen ? 'w-64' : 'w-0 -translate-x-full',
+            ]"
         >
             <!-- Logo Section -->
             <div class="flex items-center gap-2 px-6 py-5">
-                <img :src="'/bpd.png'" alt="Logo" class="w-8 h-8" />
-                <span class="text-base font-bold whitespace-nowrap"
+                <img
+                    :src="'/bpd.png'"
+                    alt="Logo"
+                    class="w-8 h-8"
+                    :class="{ hidden: !isSidebarOpen }"
+                />
+                <span
+                    :class="[
+                        'text-base font-bold whitespace-nowrap transition-opacity duration-300',
+                        isSidebarOpen ? 'opacity-100' : 'hidden',
+                    ]"
                     >S-MEBB DASHBOARD</span
                 >
             </div>
@@ -23,6 +35,7 @@
                             currentPath === '/'
                                 ? 'text-green-600 bg-green-50'
                                 : 'text-gray-600 hover:bg-gray-50',
+                            !isSidebarOpen && 'hidden',
                         ]"
                     >
                         <div class="w-5 h-5">
@@ -57,7 +70,7 @@
                                 />
                             </svg>
                         </div>
-                        Dashboard
+                        <span>Dashboard</span>
                     </a>
 
                     <!-- Integrasi -->
@@ -68,6 +81,7 @@
                             currentPath === '/integrasi'
                                 ? 'text-green-600 bg-green-50'
                                 : 'text-gray-600 hover:bg-gray-50',
+                            !isSidebarOpen && 'hidden',
                         ]"
                     >
                         <div class="w-5 h-5">
@@ -83,7 +97,7 @@
                                 />
                             </svg>
                         </div>
-                        Integrasi
+                        <span>Integrasi</span>
                     </a>
 
                     <!-- Manajemen Aplikasi -->
@@ -94,6 +108,7 @@
                             currentPath === '/manajemen-aplikasi'
                                 ? 'text-green-600 bg-green-50'
                                 : 'text-gray-600 hover:bg-gray-50',
+                            !isSidebarOpen && 'hidden',
                         ]"
                     >
                         <div class="w-5 h-5">
@@ -107,12 +122,12 @@
                                 <path d="M4 7h16M4 12h16M4 17h16" />
                             </svg>
                         </div>
-                        Manajemen Aplikasi
+                        <span>Manajemen Aplikasi</span>
                     </a>
                 </nav>
 
                 <!-- Account Section -->
-                <div class="mt-8">
+                <div :class="['mt-8', !isSidebarOpen && 'hidden']">
                     <h3
                         class="px-4 text-xs font-semibold text-gray-400 uppercase"
                     >
@@ -140,7 +155,7 @@
                                     <path d="M20 21a8 8 0 1 0-16 0" />
                                 </svg>
                             </div>
-                            Profile
+                            <span>Profile</span>
                         </a>
                     </nav>
                 </div>
@@ -148,16 +163,36 @@
         </aside>
 
         <!-- Main Content -->
-        <div class="flex-1 ml-64">
+        <div
+            :class="[
+                'flex-1 transition-all duration-300',
+                isSidebarOpen ? 'ml-64' : 'ml-0',
+            ]"
+        >
             <!-- Top Navigation -->
             <header
                 class="sticky top-0 z-30 flex items-center justify-between h-16 px-6 bg-white border-b border-gray-200"
             >
-                <div class="flex items-center flex-1">
+                <div class="flex items-center flex-1 gap-4">
+                    <!-- Toggle Sidebar Button -->
+                    <button
+                        @click="toggleSidebar"
+                        class="p-2 rounded-lg hover:bg-gray-100"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="w-5 h-5"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            :class="{ 'rotate-180': !isSidebarOpen }"
+                        >
+                            <path d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
                     <h1 class="text-lg font-semibold">{{ pageTitle }}</h1>
                 </div>
 
-                <!-- Search and Admin Section -->
                 <div class="flex items-center gap-6">
                     <!-- Admin Menu -->
                     <div class="flex items-center gap-3">
@@ -171,7 +206,7 @@
                                 class="top-0 left-7 absolute w-3.5 h-3.5 bg-green-400 border-2 border-white dark:border-gray-800 rounded-full"
                             ></span>
                         </div>
-                        <span class="text-sm font-medium">{{user.name}}</span>
+                        <span class="text-sm font-medium">{{ user.name }}</span>
                         <div class="relative">
                             <button
                                 @click="toggleAdminMenu"
@@ -246,19 +281,19 @@
 
 <script setup>
 import { ref, computed } from "vue";
-import { usePage, useForm } from '@inertiajs/vue3'
-
+import { usePage, useForm } from "@inertiajs/vue3";
 
 const showAdminMenu = ref(false);
-const page = usePage()
-const user = page.props.auth.user
+const isSidebarOpen = ref(true);
+const page = usePage();
+const user = page.props.auth.user;
 
 const form = useForm({
     _token: page.props.csrf_token,
-})
+});
 
 function submit() {
-    form.post('/logout')
+    form.post("/logout");
 }
 
 // Get current path for active navigation
@@ -284,5 +319,9 @@ const pageTitle = computed(() => {
 
 const toggleAdminMenu = () => {
     showAdminMenu.value = !showAdminMenu.value;
+};
+
+const toggleSidebar = () => {
+    isSidebarOpen.value = !isSidebarOpen.value;
 };
 </script>

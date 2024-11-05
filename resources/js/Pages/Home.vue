@@ -260,15 +260,15 @@ const formatTimestamp = (isoString) => {
             </div>
 
             <div class="overflow-x-auto">
-                <table class="w-full">
+                <table class="w-full table-fixed border-separate border-spacing-0">
                     <thead>
                         <tr class="text-sm font-medium text-gray-500 border-b">
-                            <th class="px-6 py-3 text-left">
+                            <th class="w-[15%] px-6 py-3 text-left">
                                 <div
                                     class="flex items-center cursor-pointer"
                                     @click="toggleSort('application')"
                                 >
-                                    NAMA APLIKASI
+                                    <span class="whitespace-nowrap">NAMA APLIKASI</span>
                                     <span class="ml-2">
                                         <svg
                                             xmlns="http://www.w3.org/2000/svg"
@@ -302,15 +302,21 @@ const formatTimestamp = (isoString) => {
                                     </span>
                                 </div>
                             </th>
-                            <th class="px-6 py-3 text-left">EMAIL PENERIMA</th>
-                            <th class="px-6 py-3 text-left">SUBJECT</th>
-                            <th class="px-6 py-3 text-left">STATUS</th>
-                            <th class="px-6 py-3 text-left">
+                            <th class="w-[20%] px-6 py-3 text-left">
+                                <span class="whitespace-nowrap">EMAIL PENERIMA</span>
+                            </th>
+                            <th class="w-[10%] px-6 py-3 text-left">
+                                <span class="whitespace-nowrap">SUBJECT</span>
+                            </th>
+                            <th class="w-[10%] px-6 py-3 text-left">
+                                <span class="whitespace-nowrap">STATUS</span>
+                            </th>
+                            <th class="w-[15%] px-6 py-3 text-left">
                                 <div
                                     class="flex items-center cursor-pointer"
                                     @click="toggleSort('created_at')"
                                 >
-                                    TIMESTAMP
+                                    <span class="whitespace-nowrap">TIMESTAMP</span>
                                     <span class="ml-2">
                                         <svg
                                             xmlns="http://www.w3.org/2000/svg"
@@ -344,14 +350,16 @@ const formatTimestamp = (isoString) => {
                                     </span>
                                 </div>
                             </th>
-                            <th class="px-6 py-3 text-left">ERROR MESSAGE</th>
+                            <th class="w-[30%] px-6 py-3 text-left">
+                                <span class="whitespace-nowrap">ERROR MESSAGE</span>
+                            </th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
                         <tr
                             v-for="data in paginatedData"
                             :key="data.id"
-                            class="text-sm text-gray-800"
+                            class="text-sm text-gray-800 hover:bg-gray-50"
                         >
                             <td class="px-6 py-4 font-medium">
                                 {{ data.application.name }}
@@ -373,7 +381,7 @@ const formatTimestamp = (isoString) => {
                             <td class="px-6 py-4">
                                 <span
                                     :class="[
-                                        'px-3 py-1 text-xs font-medium rounded-full',
+                                        'px-3 py-1 text-xs font-medium rounded-full whitespace-nowrap',
                                         data.status === 'success'
                                             ? 'text-green-700 bg-green-100'
                                             : 'text-red-700 bg-red-100',
@@ -386,14 +394,13 @@ const formatTimestamp = (isoString) => {
                                     }}
                                 </span>
                             </td>
-                            <td class="px-6 py-4 text-gray-500">
+                            <td class="px-6 py-4 text-gray-500 whitespace-nowrap">
                                 {{ formatTimestamp(data.created_at) }}
                             </td>
                             <td class="px-6 py-4 text-red-500">
                                 {{ data.error_message || "-" }}
                             </td>
                         </tr>
-                        <!-- Pesan Error Ges -->
                         <tr v-if="paginatedData.length === 0">
                             <td
                                 colspan="6"
