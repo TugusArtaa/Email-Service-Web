@@ -15,6 +15,7 @@ class EmailQueueService
         $this->channel = $RabbitMQService->connect();
     }
 
+//Method untuk memproses dan memasukan email ke dalam queue
     public function processAndQueueEmails(array $emails, string $secret)
     {
         $application = Application::where('secret_key', $secret)->first();
@@ -25,8 +26,11 @@ class EmailQueueService
         $messages = [];
         foreach ($emails as $mail) {
             try {
+                // Get the priority from the mail data or set it to 3 (medium) by default
                 $priority = $mail['priority'] ?? 3;
-                $routingKey = $this->getRoutingKey($priority);
+
+                // Ensure priority is between 1 and 20
+                $priority = min(max($priority, 1), 20); 
 
                 $messageData = [
                     'to' => $mail['to'],
@@ -37,14 +41,17 @@ class EmailQueueService
                     'secret' => $secret 
                 ];
 
+                // Create a message with the priority value
                 $msg = new AMQPMessage(
                     json_encode($messageData),
                     [
-                        'delivery_mode' => 2, 
+                        'delivery_mode' => 2, // Make message persistent
+                        'priority' => $priority // Set priority here directly
                     ]
                 );
 
-                $this->channel->basic_publish($msg, 'email_exchange', $routingKey);
+                // Publish the message to the single queue with the routing key 'email'
+                $this->channel->basic_publish($msg, 'email_exchange', 'email');
                 $messages[] = array_merge($messageData, ['priority' => $priority]);
             } catch (\Exception $e) {
                 return ['error' => 'Queue error: ' . $e->getMessage()];
@@ -54,6 +61,7 @@ class EmailQueueService
         return ['messages' => $messages];
     }
 
+//Method untuk mengekstrak data email log berdasarkan ID
     public function extractEmailLogData($id)
     {
         $emailLog = EmailLog::find($id);
@@ -82,6 +90,7 @@ class EmailQueueService
         }
     }
 
+//Method untuk mengekstrak data json dari email log dalam databse
     public function extractAllEmailLogData()
     {
         try {
@@ -113,13 +122,5 @@ class EmailQueueService
             return queueError('Error processing email log data.');
         }
     }
-        
-    private function getRoutingKey(int $priority): string
-    {
-        return match (true) {
-            $priority >= 15 => 'email.high_priority',
-            $priority >= 8 => 'email.medium_priority',
-            default => 'email.low_priority'
-        };
-    }
 }
+

@@ -8,11 +8,13 @@ use Illuminate\Database\Eloquent\Collection;
 
 class ApplicationService
 {
+// Method untuk mendapatkan aplikasi dalam database
     public function getAllApplications(): Collection
     {
         return Application::select('id', 'name', 'description', 'created_at')->get();
     }
 
+// Function untuk membuat dan store data aplikasi di database
     public function createApplication(array $validated): Application
     {
         return Application::create([
@@ -23,11 +25,13 @@ class ApplicationService
         ]);
     }
 
+// Function untuk mengecek apakah aplikasi sudah ada di database
     public function checkApplicationExists(string $name): bool
     {
         return Application::where('name', $name)->exists();
     }
 
+    //Function untuk regenerasi ulang secret key aplikasi
     public function regenerateSecretKey(Application $application, string $password): ?string
     {
         if (!Hash::check($password, $application->password)) {
@@ -40,6 +44,7 @@ class ApplicationService
         return $newSecretKey;
     }
 
+//Untuk mengatur format response aplikasi
     public function formatApplicationResponse(Application $application, ?string $secretKey = null): array
     {
         $response = [

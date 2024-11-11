@@ -8,6 +8,7 @@ use Inertia\Inertia;
 
 class EmailLogController extends Controller
 {
+    // Method untuk menampilkan data email yang tersimpan dalam log database
     public function index()
     {
         // Ambil semua data EmailLog dan relasi dengan tabel application

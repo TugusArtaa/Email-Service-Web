@@ -9,9 +9,7 @@ use Illuminate\Support\Facades\Auth;
 
 class AuthenticationController extends Controller
 {
-    /**
-     * Handle an authentication attempt.
-     */
+    //Method untuk mengautentikasi user
     public function authenticate(Request $request): RedirectResponse
     {
         $credentials = $request->validate([

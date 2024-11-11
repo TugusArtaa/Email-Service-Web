@@ -1,0 +1,15 @@
+filebeat.inputs:
+  - type: log
+    enable: true
+    paths:
+      - /var/log/Laravel/email-*.log
+
+output.logstash:
+  hosts: ["logstash:5044"]
+
+logging.json: true
+logging.metrics.enable: false
+
+logging:
+  files:
+    rotationeverybytes: 12582912
