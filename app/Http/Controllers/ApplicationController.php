@@ -10,11 +10,12 @@ class ApplicationController extends Controller
 {
     protected $applicationService;
 
+    // Constructor untuk memanggil ApplicationService
     public function __construct(ApplicationService $applicationService)
     {
         $this->applicationService = $applicationService;
     }
-
+//Method untuk menampilkan semua data aplikasi
     public function index()
     {
         $applications = $this->applicationService->getAllApplications();
@@ -24,7 +25,7 @@ class ApplicationController extends Controller
             ['applications' => $applications]
         );
     }
-
+//  Method untuk menyimpan data aplikasi
     public function store(ApplicationRequest $request)
     {
         $validated = $request->validated();
@@ -40,7 +41,7 @@ class ApplicationController extends Controller
             $this->applicationService->formatApplicationResponse($application, $application->secret_key)
         )->setStatusCode(201);
     }
-
+//Method untuk menampilkan detail aplikasi berdasarkan id
     public function show(Application $application)
     {
         return responseWithData(
@@ -48,7 +49,7 @@ class ApplicationController extends Controller
             $this->applicationService->formatApplicationResponse($application)
         );
     }
-
+//Method untuk regenerate secret key aplikasi
     public function regenerateSecret(Request $request, Application $application)
     {
         $request->validate(['password' => 'required']);

@@ -28,9 +28,7 @@ class EmailEngine extends Command
 
     public function handle()
     {
-        $this->RabbitMQService->consume('email_high_priority', [$this, 'processEmail']);
-        $this->RabbitMQService->consume('email_medium_priority', [$this, 'processEmail']);
-        $this->RabbitMQService->consume('email_low_priority', [$this, 'processEmail']);
+        $this->RabbitMQService->consume('email_queue', [$this, 'processEmail']);
 
         $this->RabbitMQService->wait();
     }

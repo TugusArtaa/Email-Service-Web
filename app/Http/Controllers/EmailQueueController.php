@@ -8,12 +8,11 @@ use App\Services\EmailQueueService;
 class EmailQueueController extends Controller
 {
     private $emailService;
-    
     public function __construct(EmailQueueService $emailService)
     {
         $this->emailService = $emailService;
     }
-
+//Method untuk mengirim email ke dalam queue RabbitMQ
     public function sendEmails(SendEmailRequest $request)
     {
         $data = $request->json()->all();
@@ -28,12 +27,12 @@ class EmailQueueController extends Controller
         
         return responseWithData('Email message(s) sent to queue', $result['messages']);
     }
-
+//Method untuk mengambil data email log berdasarkan id
     public function extractEmailData($id)
     {
         return $this->emailService->extractEmailLogData($id);
     }  
-
+//Method untuk mengambil semua data email log
     public function extractAllEmailData()
     {
         return $this->emailService->extractAllEmailLogData();
