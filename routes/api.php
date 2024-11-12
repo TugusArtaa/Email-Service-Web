@@ -29,3 +29,6 @@ Route::prefix('applications')->group(function () {
     Route::get('/{application}', [ApplicationController::class, 'show']);
     Route::post('/{application}/regenerate-secret', [ApplicationController::class, 'regenerateSecret']);
 });
+
+Route::delete('/email-logs/delete-id', [EmailLogController::class, 'deleteAll']);
+Route::delete('/email-logs/delete-date', [EmailLogController::class, 'bulkDelete']);
