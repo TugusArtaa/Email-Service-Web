@@ -177,7 +177,7 @@
                     <!-- Toggle Sidebar Button -->
                     <button
                         @click="toggleSidebar"
-                        class="p-2 rounded-lg hover:bg-gray-100"
+                        class="p-2 rounded-lg hover:bg-green-200"
                     >
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
