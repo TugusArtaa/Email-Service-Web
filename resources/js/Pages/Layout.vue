@@ -102,7 +102,7 @@
 
                     <!-- Manajemen Aplikasi -->
                     <a
-                        href="/manajemen-aplikasi"
+                        href="/application"
                         :class="[
                             'flex items-center gap-4 px-4 py-3 text-sm font-medium rounded-lg',
                             currentPath === '/manajemen-aplikasi'
@@ -308,7 +308,7 @@ const pageTitle = computed(() => {
             return "Dashboard";
         case "/integrasi":
             return "Integrasi";
-        case "/manajemen-aplikasi":
+        case "/application":
             return "Manajemen Aplikasi";
         case "/profile":
             return "Profile";

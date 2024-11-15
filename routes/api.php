@@ -15,20 +15,19 @@ Route::prefix('email-queue')->group(function () {
     Route::post('/send', [EmailQueueController::class, 'sendEmails']);
     Route::get('/extract/{id}', [EmailQueueController::class, 'extractEmailData']);
     Route::get('/extract', [EmailQueueController::class, 'extractAllEmailData']);
-});
+})->middleware('auth:sanctum');
 
 //Route untuk mengakses controller EmailLogController
 Route::prefix('email-logs')->group(function () {
     Route::get('/', [EmailLogController::class, 'index']);
-});
+    Route::delete('/delete-id', [EmailLogController::class, 'deleteAll']);
+    Route::delete('/delete-date', [EmailLogController::class, 'bulkDelete']);
+})->middleware('auth:sanctum');
 
 //Route untuk mengakses controller ApplicationController
 Route::prefix('applications')->group(function () {
     Route::post('/', [ApplicationController::class, 'store']);
-    Route::get('/', [ApplicationController::class, 'index']);
+    Route::get('/', [ApplicationController::class, 'getData']);
     Route::get('/{application}', [ApplicationController::class, 'show']);
     Route::post('/{application}/regenerate-secret', [ApplicationController::class, 'regenerateSecret']);
-});
-
-Route::delete('/email-logs/delete-id', [EmailLogController::class, 'deleteAll']);
-Route::delete('/email-logs/delete-date', [EmailLogController::class, 'bulkDelete']);
+})->middleware('auth:sanctum');

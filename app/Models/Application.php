@@ -14,10 +14,6 @@ class Application extends Model
         'secret_key',
     ];
 
-    protected $hidden = [
-        'password',
-    ];
-
     public static function generateSecretKey(): string
     {
         return Str::random(24);

@@ -7,7 +7,7 @@
     },
     "devDependencies": {
         "autoprefixer": "^10.4.20",
-        "axios": "^1.7.4",
+        "axios": "^1.7.7",
         "concurrently": "^9.0.1",
         "laravel-vite-plugin": "^1.0",
         "postcss": "^8.4.47",
@@ -16,6 +16,9 @@
     },
     "dependencies": {
         "@inertiajs/vue3": "^1.2.0",
-        "@vitejs/plugin-vue": "^5.1.4"
+        "@vitejs/plugin-vue": "^5.1.4",
+        "@vueuse/components": "^11.2.0",
+        "@vueuse/core": "^11.2.0",
+        "lodash": "^4.17.21"
     }
 }
