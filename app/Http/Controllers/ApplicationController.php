@@ -57,10 +57,12 @@ class ApplicationController extends Controller
 
         $application = $this->applicationService->createApplication($validated);
 
-        return responseWithData(
-            'Application registered successfully',
-            $this->applicationService->formatApplicationResponse($application, $application->secret_key)
-        )->setStatusCode(201);
+
+        return redirect()->back()->with('message', 'Aplikasi berhasil didaftarkan');
+        // return responseWithData(
+        //     'Application registered successfully',
+        //     $this->applicationService->formatApplicationResponse($application, $application->secret_key)
+        // )->setStatusCode(201);
     }
     //Method untuk menampilkan detail aplikasi berdasarkan id
     public function show(Application $application)
@@ -81,12 +83,29 @@ class ApplicationController extends Controller
         );
 
         if (!$newSecretKey) {
-            return errorResponse('Invalid password', 401);
+            return redirect()->back()->with('error', 'Invalid password');
+            // return errorResponse('Invalid password', 401);
         }
 
-        return responseWithData(
-            'Secret key regenerated successfully',
-            ['secret_key' => $newSecretKey]
-        );
+        return redirect()->back()->with('message', 'Secret key regenerated successfully');
+        // return responseWithData(
+        //     'Secret key regenerated successfully',
+        //     ['secret_key' => $newSecretKey]
+        // );
+    }
+
+    //Method untuk menghapus aplikasi
+    public function delete(Application $application, Request $request)
+    {
+        $request->validate(['ids' => 'required']);
+
+        $this->applicationService->deleteApplications($request->ids);
+
+        return redirect()->back()->with('message', 'Applications deleted successfully');
+
+        // return responseWithData(
+        //     'Applications deleted successfully',
+        //     []
+        // )->setStatusCode(200);
     }
 }

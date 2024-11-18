@@ -65,7 +65,7 @@ const emit = defineEmits(['page-change']);
                     </button>
                 </li>
                 <li v-for="page in pages" :key="page">
-                    <button @click="emit('page-change', page)" :class="isCurrent(page) ? 'bg-green-600 text-white hover:bg-green-700 hover:text-white' : ''" class="flex items-center justify-center h-8 px-3 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
+                    <button @click="emit('page-change', page)" :class="isCurrent(page) ? 'bg-green-600 text-white hover:bg-green-700 hover:text-white' : 'bg-white'" class="flex items-center justify-center h-8 px-3 leading-tight text-gray-500 border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
                         {{ page }}
                     </button>
                 </li>

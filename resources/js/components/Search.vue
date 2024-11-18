@@ -1,8 +1,9 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { debounce } from 'lodash';
 
-const searchQuery = ref('');
+const searchQuery = ref();
+
 const emit = defineEmits(['search']);
 
 const emitSearch = debounce((query) => {

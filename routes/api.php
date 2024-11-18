@@ -28,6 +28,7 @@ Route::prefix('email-logs')->group(function () {
 Route::prefix('applications')->group(function () {
     Route::post('/', [ApplicationController::class, 'store']);
     Route::get('/', [ApplicationController::class, 'getData']);
+    Route::delete('/delete', [ApplicationController::class, 'delete']);
     Route::get('/{application}', [ApplicationController::class, 'show']);
     Route::post('/{application}/regenerate-secret', [ApplicationController::class, 'regenerateSecret']);
 })->middleware('auth:sanctum');

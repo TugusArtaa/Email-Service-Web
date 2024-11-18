@@ -62,6 +62,7 @@ class ApplicationService
                 'name' => $application->name,
                 'description' => $application->description,
                 'created_at' => $application->created_at,
+                'secret_key' => $application->secret_key
             ]
         ];
 
@@ -70,5 +71,10 @@ class ApplicationService
         }
 
         return $response;
+    }
+
+    public function deleteApplications(array $ids): void
+    {
+        Application::whereIn('id', $ids)->delete();
     }
 }

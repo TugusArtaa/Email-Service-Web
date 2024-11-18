@@ -25,11 +25,17 @@ Route::post('/logout', function (Request $request) {
 
 Route::post('/login', [AuthenticationController::class, 'authenticate']);
 
-Route::get('/', [EmailLogController::class, 'index'])->middleware('auth');
+Route::get('/', [EmailLogController::class, 'index'])->middleware('auth')->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
 });
-Route::get('/application', [ApplicationController::class, 'index'])->middleware('auth');
+
+Route::prefix('application')->group(function () {
+    Route::get('/', [ApplicationController::class, 'index'])->name('application.index');
+    Route::post('/', [ApplicationController::class, 'store'])->name('application.index');
+    Route::delete('/delete', [ApplicationController::class, 'delete'])->name('application.delete');
+    Route::post('/{application}/regenerate-secret', [ApplicationController::class, 'regenerateSecret'])->name('application.delete');
+})->middleware('auth');

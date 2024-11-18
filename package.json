@@ -19,6 +19,7 @@
         "@vitejs/plugin-vue": "^5.1.4",
         "@vueuse/components": "^11.2.0",
         "@vueuse/core": "^11.2.0",
-        "lodash": "^4.17.21"
+        "lodash": "^4.17.21",
+        "vue-tippy": "^6.5.0"
     }
 }
