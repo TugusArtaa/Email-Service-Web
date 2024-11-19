@@ -26,6 +26,9 @@ Route::post('/logout', function (Request $request) {
 Route::post('/login', [AuthenticationController::class, 'authenticate']);
 
 Route::get('/', [EmailLogController::class, 'index'])->middleware('auth')->name('dashboard');
+Route::get('/integrasi', function(){
+    return Inertia::render('Integrasi');
+})->middleware('auth')->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

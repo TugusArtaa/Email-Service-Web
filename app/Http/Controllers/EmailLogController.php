@@ -26,6 +26,19 @@ class EmailLogController extends Controller
             'data' => $emailLogs,
         ]);
     }
+    public function integrasi(Request $request)
+    {
+        $search = $request->query('search', '');
+        $orderBy = $request->query('orderBy', 'desc');
+        // Ambil semua data EmailLog dari service
+        $emailLogs = $this->emailLogService->getEmailLogs(search: $search, orderBy: $orderBy);
+
+        // Render halaman 'Home' menggunakan Inertia.js dan mengirimkan data emailLogs sebagai 'data'
+        return responseWithData(
+            $emailLogs->isEmpty() ? 'No email logs found' : 'Email logs retrieved successfully',
+            ['emailLogs' => $emailLogs]
+        );
+    }
     // Method untuk bulk delete email logs berdasarkan filter tanggal dan application_id
     public function bulkDelete(Request $request)
     {

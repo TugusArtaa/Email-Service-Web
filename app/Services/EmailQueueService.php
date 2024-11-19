@@ -51,7 +51,7 @@ class EmailQueueService
                 );
 
                 // Publish the message to the single queue with the routing key 'email'
-                $this->channel->basic_publish($msg, 'email_exchange', 'email');
+                $this->channel->basic_publish($msg, 'email', 'email');
                 $messages[] = array_merge($messageData, ['priority' => $priority]);
             } catch (\Exception $e) {
                 return ['error' => 'Queue error: ' . $e->getMessage()];

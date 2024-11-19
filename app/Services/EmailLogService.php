@@ -13,16 +13,28 @@ class EmailLogService
             ->get();
     }
 
+    public function getEmailLogs($perPage = 2, $search = null, $orderBy = 'desc')
+    {
+        $query = EmailLog::with('application');
+
+        if ($search) {
+            $query->where('status', 'like', '%' . $search . '%');
+        }
+
+        return $query->orderBy('created_at', $orderBy)
+            ->paginate($perPage);
+    }
+
     public function deleteEmailLogs($startDate, $endDate)
     {
         $query = EmailLog::query();
-    
+
         if ($startDate && $endDate) {
             $query->whereBetween('created_at', [$startDate, $endDate]);
         }
         return $query->delete();
     }
-    
+
     public function deleteEmailLogsByIds(array $ids)
     {
         return EmailLog::whereIn('id', $ids)->delete();

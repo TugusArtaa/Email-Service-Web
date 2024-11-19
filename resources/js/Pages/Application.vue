@@ -77,7 +77,7 @@ onClickOutside(deleteModal, event => {
     showDeleteModal.value = false;
 })
 
-const thead = ref(["", "No", "Application name", "Secret Key", "Created At", "Aksi"]);
+const thead = ref(["", "No", "Application name", "Secret Key", "Created At", "Action"]);
 
 // proses delete
 const pageInertia = usePage()

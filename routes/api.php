@@ -19,7 +19,7 @@ Route::prefix('email-queue')->group(function () {
 
 //Route untuk mengakses controller EmailLogController
 Route::prefix('email-logs')->group(function () {
-    Route::get('/', [EmailLogController::class, 'index']);
+    Route::get('/', [EmailLogController::class, 'integrasi']);
     Route::delete('/delete-id', [EmailLogController::class, 'deleteAll']);
     Route::delete('/delete-date', [EmailLogController::class, 'bulkDelete']);
 })->middleware('auth:sanctum');
