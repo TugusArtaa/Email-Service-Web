@@ -13,6 +13,7 @@ Route::get('/user', function (Request $request) {
 //Route untuk mengakses controller EmailQueueController
 Route::prefix('email-queue')->group(function () {
     Route::post('/send', [EmailQueueController::class, 'sendEmails']);
+    Route::post('/retry', [EmailQueueController::class, 'retryEmails']);
     Route::get('/extract/{id}', [EmailQueueController::class, 'extractEmailData']);
     Route::get('/extract', [EmailQueueController::class, 'extractAllEmailData']);
 })->middleware('auth:sanctum');

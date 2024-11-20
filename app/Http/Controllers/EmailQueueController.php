@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\RetryEmailRequest;
 use App\Http\Requests\SendEmailRequest;
 use App\Services\EmailQueueService;
 
@@ -27,6 +28,31 @@ class EmailQueueController extends Controller
         
         return responseWithData('Email message(s) sent to queue', $result['messages']);
     }
+
+    //Method untuk mencoba ulang mengirim email yang gagal
+    public function retryEmails(RetryEmailRequest $request)
+    {
+        $data = $request->json()->all();
+        
+        if (empty($data['id'])) {
+            return errorResponse('Email log ID required.', 422);
+        }
+    
+        // Ensure the mail data is included in the request
+        if (empty($data['mail']) || !is_array($data['mail'])) {
+            return errorResponse('Email data is required to resend.', 422);
+        }
+    
+        // Pass the entire $data array (id and mail) for retrying
+        $result = $this->emailService->retryFailedEmails($data);
+    
+        if (isset($result['error'])) {
+            return errorResponse($result['error'], 422);
+        }
+    
+        return responseWithData('Failed email retried successfully.', $result);
+    }     
+
 //Method untuk mengambil data email log berdasarkan id
     public function extractEmailData($id)
     {
