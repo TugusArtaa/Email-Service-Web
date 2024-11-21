@@ -61,6 +61,69 @@ class EmailQueueService
         return ['messages' => $messages];
     }
 
+    //Method untuk mencoba ulang mengirim email yang gagal
+    public function retryFailedEmails(array $payload)
+    {
+        $emailLogId = $payload['id'] ?? null;
+        if (!$emailLogId) {
+            return ['error' => 'Email log ID is required.'];
+        }
+    
+        // Retrieve the email log from the database
+        $emailLog = EmailLog::find($emailLogId);
+        if (!$emailLog || $emailLog->status !== 'failed') {
+            return ['error' => 'Invalid email log ID or the email is not marked as failed.'];
+        }
+    
+        // Decode the original email data from the log (stored request)
+        $emailData = json_decode($emailLog->request, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return ['error' => 'Invalid JSON format in email log data.'];
+        }
+    
+        // Now, we want to use the new email data from the payload, overriding the stored data
+        $newMailData = $payload['mail'][0] ?? null;
+        if ($newMailData) {
+            // Fully replace the email data with the new one
+            $emailData = $newMailData;
+        }
+    
+        // Ensure the application ID is still correct (retrieve using email log's application ID)
+        $application = Application::find($emailLog->application_id);
+        if (!$application) {
+            return ['error' => 'Application not found for the stored application ID.'];
+        }
+    
+        // Add the correct secret key
+        $emailData['secret'] = $application->secret_key;
+    
+        // Add the email log ID to the message data for retry
+        $emailData['id'] = $emailLog->id;
+    
+        // Retry logic: process and requeue the email with the updated data
+        try {
+            // Extract priority from the email data, default to 3 if not provided
+            $priority = $emailData['priority'] ?? 3;
+            $priority = min(max($priority, 1), 20); // Ensure priority is between 1 and 20
+    
+            // Prepare the message for RabbitMQ
+            $msg = new AMQPMessage(
+                json_encode($emailData),
+                [
+                    'delivery_mode' => 2, // Persistent
+                    'priority' => $priority,
+                ]
+            );
+    
+            // Publish the message to RabbitMQ
+            $this->channel->basic_publish($msg, 'email_exchange', 'email');
+    
+            return ['messages' => [$emailData]];
+        } catch (\Exception $e) {
+            return ['error' => 'Retry error: ' . $e->getMessage()];
+        }
+    }    
+
 //Method untuk mengekstrak data email log berdasarkan ID
     public function extractEmailLogData($id)
     {
