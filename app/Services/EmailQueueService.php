@@ -116,7 +116,7 @@ class EmailQueueService
             );
     
             // Publish the message to RabbitMQ
-            $this->channel->basic_publish($msg, 'email_exchange', 'email');
+            $this->channel->basic_publish($msg, 'email', 'email');
     
             return ['messages' => [$emailData]];
         } catch (\Exception $e) {

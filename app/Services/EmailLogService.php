@@ -13,7 +13,7 @@ class EmailLogService
             ->get();
     }
 
-    public function getEmailLogs($perPage = 2, $search = null, $orderBy = 'desc')
+    public function getEmailLogs($perPage = 10, $search = null, $orderBy = 'desc')
     {
         $query = EmailLog::with('application');
 

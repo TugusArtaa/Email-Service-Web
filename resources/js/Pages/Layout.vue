@@ -105,7 +105,7 @@
                         href="/application"
                         :class="[
                             'flex items-center gap-4 px-4 py-3 text-sm font-medium rounded-lg',
-                            currentPath === '/manajemen-aplikasi'
+                            currentPath === '/application'
                                 ? 'text-green-600 bg-green-50'
                                 : 'text-gray-600 hover:bg-gray-50',
                             !isSidebarOpen && 'hidden',

@@ -22,6 +22,7 @@ const secret = ref('');
 const thead = ref(["", "Application name", "Recipient Email", "Subject", "Status", "Date", "Action"]);
 const logs = ref([]);
 const fetchData = ref(false);
+const currentPage = ref(1);
 
 const search = ref('');
 const orderBy = useStorage('integrasi-orderBy', 'desc');
@@ -91,6 +92,7 @@ const handleCheckbox = (checked) => {
 
 function refreshData(page = 1) {
     // fetch data
+    currentPage.value = page;
     const { data, isFetching } = useFetch(`${baseUrl}/api/email-logs?orderBy=${orderBy.value}&search=${search.value}&page=${page}`, { refetch: true }).get().json()
     // Akses data langsung
     watch(data, (newData) => {
@@ -105,7 +107,24 @@ function refreshData(page = 1) {
     });
 }
 
-function handleDelete() {
+function refreshDataWithoutFetchLoad(){
+    // fetch data
+    const { data } = useFetch(`${baseUrl}/api/email-logs?orderBy=${orderBy.value}&search=${search.value}&page=${currentPage.value}`, { refetch: true }).get().json()
+    // Akses data langsung
+    watch(data, (newData) => {
+        if (newData) {
+            logs.value = [];
+            logs.value = newData.data.emailLogs;
+        }
+    });
+}
+
+// Refresh data every 5 seconds without fetching
+setInterval(() => {
+    refreshDataWithoutFetchLoad();
+}, 2000);
+
+function handleRefresh() {
     refreshData();
 }
 
@@ -163,9 +182,6 @@ function handleAddEmail() {
     );
     formAdd.reset();
     formAdd.secret = '';
-    setTimeout(() => {
-        refreshData();
-    }, 3000);
     showAddModal.value = false;
 }
 
@@ -312,7 +328,7 @@ refreshData();
                 </div>
             </section>
             <!-- table body -->
-            <Table :thead="thead" :fetch="fetchData" :logs="logs" @checkbox="handleCheckbox" @delete="handleDelete" />
+            <Table :thead="thead" :fetch="fetchData" :logs="logs" @checkbox="handleCheckbox" @refresh="handleRefresh" />
             <!-- table footer -->
             <Pagination @page-change="handlePageChange" :current="logs.current_page" :last="logs.last_page"
                 :from="logs.from" :to="logs.to" :total="logs.total" />
