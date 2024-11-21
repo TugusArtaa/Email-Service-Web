@@ -83,7 +83,9 @@ class EmailQueueService
                 'content' => $emailData['content'] ?? '',
                 'priority' => $emailData['priority'] ?? '',
                 'attachment' => $emailData['attachment'] ?? [],
-                'secret' => $emailData['secret'] ?? ''
+                'secret' => $emailData['secret'] ?? '',
+                'status' => $emailLog['status'] ?? '',
+                'error_message' => $emailLog['error_message'] ?? ''
             ]);
         } catch (\Exception $e) {
             return queueError('Error processing email log data.');

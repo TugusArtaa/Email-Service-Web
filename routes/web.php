@@ -1,13 +1,14 @@
 <?php
 
-use App\Http\Controllers\ApplicationController;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AuthenticationController;
-use App\Http\Controllers\EmailLogController;
-use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\EmailLogController;
+use App\Http\Controllers\EmailQueueController;
+use App\Http\Controllers\ApplicationController;
+use App\Http\Controllers\AuthenticationController;
 
 Route::get('/login', function () {
     return Inertia::render('Login');
@@ -26,9 +27,16 @@ Route::post('/logout', function (Request $request) {
 Route::post('/login', [AuthenticationController::class, 'authenticate']);
 
 Route::get('/', [EmailLogController::class, 'index'])->middleware('auth')->name('dashboard');
-Route::get('/integrasi', function(){
-    return Inertia::render('Integrasi');
-})->middleware('auth')->name('dashboard');
+
+Route::prefix('integrasi')->group(function () {
+    Route::get('/', function(){
+        return Inertia::render('Integrasi');
+    })->name('integrasi.index');
+    Route::post('/send', [EmailQueueController::class, 'sendEmails']);
+    Route::delete('/delete', [EmailLogController::class, 'deleteAll'])->name('application.delete');
+    Route::delete('/delete-date', [EmailLogController::class, 'bulkDelete'])->name('application.deleteDate');
+
+})->middleware('auth');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

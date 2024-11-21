@@ -24,6 +24,7 @@ class SendEmailRequest extends FormRequest
 
     protected function failedValidation(Validator $validator)
     {
-        throw new HttpResponseException(response()->json(validationError($validator->errors()->toArray()), 422));
+        return redirect()->back()->with('error', $validator->errors()->first());
+        // throw new HttpResponseException(response()->json(validationError($validator->errors()->toArray()), 422));
     }  
 }

@@ -52,7 +52,7 @@ class EmailLogController extends Controller
         $endDate = $request->input('end_date') 
             ? \Carbon\Carbon::parse($request->input('end_date'))->endOfDay()->toDateTimeString()
             : \Carbon\Carbon::parse($startDate)->endOfDay()->toDateTimeString();
-    
+        // dd($startDate, $endDate);
         try {
             $deletedCount = $this->emailLogService->deleteEmailLogs(
                 $startDate,
@@ -60,12 +60,15 @@ class EmailLogController extends Controller
             );
     
             if ($deletedCount === 0) {
-                return errorResponse("No email logs found for the given criteria.", 404);
+                // return errorResponse("No email logs found for the given criteria.", 404);
+                return redirect()->back()->with('error', 'No email logs found for the given criteria.');
             }
-    
-            return responseSuccess("Deleted $deletedCount email logs successfully.");
+            
+            return redirect()->back()->with('success', "Deleted $deletedCount email logs successfully.");
+            // return responseSuccess("Deleted $deletedCount email logs successfully.");
         } catch (\Exception $e) {
-            return errorResponse("An error occurred while deleting email logs: " . $e->getMessage(), 500);
+            return redirect()->back()->with('error', "An error occurred while deleting email logs: " . $e->getMessage());
+            // return errorResponse("An error occurred while deleting email logs: " . $e->getMessage(), 500);
         }
     }
 
@@ -74,12 +77,11 @@ class EmailLogController extends Controller
     {
         $request->validate([
             'ids' => 'required|array',
-            'ids.*' => 'exists:email_logs,id',
         ]);
 
         $ids = $request->input('ids');
         $this->emailLogService->deleteEmailLogsByIds($ids);
-
-        return responseSuccess('Selected email logs deleted successfully.');
+        return redirect()->back()->with('success', 'Selected email logs deleted successfully.');
+        // return responseSuccess('Selected email logs deleted successfully.');
    }
 }

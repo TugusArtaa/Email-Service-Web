@@ -110,7 +110,6 @@ function refreshData() {
 const handleCheckbox = (newChecked) => {
     checked.value = newChecked;
     form.ids = checked.value;
-    console.log(form)
 };
 
 // proses add
@@ -189,7 +188,7 @@ function addApplication(){
                                     Add Application
                                 </button>
                                 <div class="flex items-center w-full space-x-3 md:w-auto">
-                                    <button id="actionsDropdownButton" data-dropdown-toggle="actionsDropdown"
+                                    <button data-dropdown-toggle="actionsDropdown"
                                         @click="checked.length > 0 && (showDeleteModal = true)"
                                         :class="{ 'cursor-not-allowed': checked.length === 0 }"
                                         class="flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-red-700 bg-white border border-red-700 rounded-lg md:w-auto focus:outline-none hover:bg-red-800 hover:text-white focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
@@ -204,7 +203,7 @@ function addApplication(){
                                         Mass Delete
                                     </button>
                                     <div class="relative">
-                                        <button ref="btnOrder" id="filterDropdownButton"
+                                        <button ref="btnOrder"
                                             data-dropdown-toggle="filterDropdown"
                                             @click="orderDropdown = !orderDropdown"
                                             class="flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg md:w-auto focus:outline-none hover:bg-gray-100 hover:text-green-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
@@ -224,7 +223,7 @@ function addApplication(){
                                             </svg>
                                         </button>
                                         <!-- dropdown -->
-                                        <div id="actionsDropdown" v-show="orderDropdown" ref="modalOrder"
+                                        <div v-show="orderDropdown" ref="modalOrder"
                                             class="absolute left-0 right-0 z-10 w-full overflow-hidden bg-white divide-y divide-gray-100 rounded shadow top-11 dark:bg-gray-700 dark:divide-gray-600">
                                             <div class="py-1">
                                                 <button href="#" @click="order('created_at', 'desc')"
@@ -323,7 +322,7 @@ function addApplication(){
                             <label for="name"
                                 class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Application
                                 name</label>
-                            <input type="text" name="name" id="name" v-model="appName"
+                            <input type="text" name="name" v-model="appName"
                                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                                 placeholder="Type product name" required="">
                         </div>
@@ -344,12 +343,12 @@ function addApplication(){
                         </div>
                     </div>
                     <button @click="addApplication" data-modal-hide="popup-modal" type="submit"
-                        class="text-white bg-yellow-600 hover:bg-yellow-800 mt-3 focus:ring-4 focus:outline-none focus:ring-yellow-300 dark:focus:ring-yellow-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center">
-                        Yes, I'm sure
+                        class="text-white bg-green-600 hover:bg-green-800 mt-3 focus:ring-4 focus:outline-none focus:ring-green-300 dark:focus:ring-green-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center">
+                        Create
                     </button>
                     <button @click="showAddModal = false" data-modal-hide="popup-modal" type="button"
-                        class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">No,
-                        cancel</button>
+                        class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
+                        Cancel</button>
                 </form>
             </div>
         </div>

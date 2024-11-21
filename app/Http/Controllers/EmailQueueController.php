@@ -15,7 +15,7 @@ class EmailQueueController extends Controller
 //Method untuk mengirim email ke dalam queue RabbitMQ
     public function sendEmails(SendEmailRequest $request)
     {
-        $data = $request->json()->all();
+        $data = $request->validated();
         
         if (isset($result['error'])) {
             return errorResponse($result['error']['message'], 422);
@@ -24,8 +24,9 @@ class EmailQueueController extends Controller
         if (isset($result['error'])) {
             return errorResponse($result['error'], 422);
         }
-        
-        return responseWithData('Email message(s) sent to queue', $result['messages']);
+
+        return redirect()->back()->with('success', 'Email message(s) sent to queue');
+        // return responseWithData('Email message(s) sent to queue', $result['messages']);
     }
 //Method untuk mengambil data email log berdasarkan id
     public function extractEmailData($id)
