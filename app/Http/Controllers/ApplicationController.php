@@ -58,11 +58,11 @@ class ApplicationController extends Controller
         $application = $this->applicationService->createApplication($validated);
 
 
-        return redirect()->back()->with('message', 'Aplikasi berhasil didaftarkan');
-        // return responseWithData(
-        //     'Application registered successfully',
-        //     $this->applicationService->formatApplicationResponse($application, $application->secret_key)
-        // )->setStatusCode(201);
+        // return redirect()->back()->with('message', 'Aplikasi berhasil didaftarkan');
+        return responseWithData(
+            'Application registered successfully',
+            $this->applicationService->formatApplicationResponse($application, $application->secret_key)
+        )->setStatusCode(201);
     }
     //Method untuk menampilkan detail aplikasi berdasarkan id
     public function show(Application $application)
