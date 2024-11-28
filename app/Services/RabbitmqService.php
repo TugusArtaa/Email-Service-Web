@@ -24,7 +24,7 @@ class RabbitMQService
         return $this->channel;
     }
 
-//Untuk menginisialisasi exchange dan queue di RabbitMQ
+    //Untuk menginisialisasi exchange dan queue di RabbitMQ
     public function initializeEmailQueue()
     {
         try {
@@ -44,13 +44,13 @@ class RabbitMQService
         }
     }
 
-//Untuk mengonsumsi pesan dari RabbitMQ
+    //Untuk mengonsumsi pesan dari RabbitMQ
     public function consume(string $queue, callable $callback)
     {
         $this->channel->basic_consume($queue, '', false, true, false, false, $callback);
     }
 
-//Sebagai mekanisme agar kode menunggu jika ada message yang masuk di queue
+    //Sebagai mekanisme agar kode menunggu jika ada message yang masuk di queue
     public function wait()
     {
         while ($this->channel->is_consuming()) {
@@ -58,7 +58,7 @@ class RabbitMQService
         }
     }
 
-//Untuk menutup koneksi ke RabbitMQ
+    //Untuk menutup koneksi ke RabbitMQ
     public function close()
     {
         $this->channel->close();

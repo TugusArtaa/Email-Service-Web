@@ -47,9 +47,9 @@ class EmailLogController extends Controller
             'end_date' => 'nullable|date',
             'application_id' => 'nullable|integer',
         ]);
-    
+
         $startDate = $request->input('start_date') ?? now()->startOfDay()->toDateString();
-        $endDate = $request->input('end_date') 
+        $endDate = $request->input('end_date')
             ? \Carbon\Carbon::parse($request->input('end_date'))->endOfDay()->toDateTimeString()
             : \Carbon\Carbon::parse($startDate)->endOfDay()->toDateTimeString();
         // dd($startDate, $endDate);
@@ -58,7 +58,7 @@ class EmailLogController extends Controller
                 $startDate,
                 $endDate,
             );
-    
+
             if ($deletedCount === 0) {
                 // return errorResponse("No email logs found for the given criteria.", 404);
                 return redirect()->back()->with('error', 'No email logs found for the given criteria.');

@@ -12,6 +12,7 @@ Route::get('/user', function (Request $request) {
 
 //Route untuk mengakses controller EmailQueueController
 Route::prefix('email-queue')->group(function () {
+    Route::post('/sendExcel', [EmailQueueController::class, 'sendEmailsFromExcel']);
     Route::post('/send', [EmailQueueController::class, 'sendEmails']);
     Route::post('/retry', [EmailQueueController::class, 'retryEmails']);
     Route::post('/extract', [EmailQueueController::class, 'extractEmailData']);

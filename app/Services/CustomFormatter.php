@@ -7,7 +7,7 @@ use Monolog\LogRecord;
 
 class CustomFormatter extends NormalizerFormatter
 {
-// Method untuk mengatur format log untuk elasticsearch
+    // Method untuk mengatur format log untuk elasticsearch
     public function format(LogRecord $record)
     {
         $result = parent::format($record);

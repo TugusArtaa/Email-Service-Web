@@ -14,9 +14,9 @@ class SendEmailRequest extends FormRequest
             'secret' => 'required|string',
             'mail' => 'required|array',
             'mail.*.to' => 'required|email',
-            'mail.*.content' => 'required|string',
-            'mail.*.subject' => 'required|string',
-            'mail.*.priority' => 'required|integer|between:1,20',
+            'mail.*.content' => 'nullable|string',
+            'mail.*.subject' => 'nullable|string',
+            'mail.*.priority' => 'required|string|in:low,medium,high',
             'mail.*.attachment' => 'nullable|array',
             'mail.*.attachment.*' => 'nullable|url'
         ];
@@ -24,7 +24,8 @@ class SendEmailRequest extends FormRequest
 
     protected function failedValidation(Validator $validator)
     {
-        return redirect()->back()->with('error', $validator->errors()->first());
-        // throw new HttpResponseException(response()->json(validationError($validator->errors()->toArray()), 422));
-    }  
+        throw new HttpResponseException(response()->json([
+            'errors' => $validator->errors()
+        ], 422));
+    }
 }

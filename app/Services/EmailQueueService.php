@@ -6,6 +6,7 @@ use App\Http\Requests\SendEmailRequest;
 use App\Models\Application;
 use PhpAmqpLib\Message\AMQPMessage;
 use App\Models\EmailLog;
+use Maatwebsite\Excel\Facades\Excel;
 
 class EmailQueueService
 {
@@ -16,10 +17,13 @@ class EmailQueueService
         $this->channel = $RabbitMQService->connect();
     }
 
-//Method untuk memproses dan memasukan email ke dalam queue
+    //Method untuk memproses dan memasukan email ke dalam queue
     public function processAndQueueEmails(array $emails, string $secret)
     {
-        $application = Application::where('secret_key', $secret)->first();
+        $application = Application::where('secret_key', $secret)
+        ->where('status', 'enabled')
+        ->first();
+
         if (!$application) {
             return ['error' => 'Invalid secret key'];
         }
@@ -27,33 +31,63 @@ class EmailQueueService
         $messages = [];
         foreach ($emails as $mail) {
             try {
-                // Get the priority from the mail data or set it to 3 (medium) by default
-                $priority = $mail['priority'] ?? 3;
-
-                // Ensure priority is between 1 and 20
-                $priority = min(max($priority, 1), 20); 
-
-                $messageData = [
-                    'to' => $mail['to'],
-                    'subject' => $mail['subject'],
-                    'content' => $mail['content'],
-                    'attachment' => $mail['attachment'] ?? [],
-                    'priority' => $priority,
-                    'secret' => $secret 
+                // Map priority strings to numerical values
+                $priorityMap = [
+                    'low' => 1,
+                    'medium' => 2,
+                    'high' => 3,
                 ];
 
-                // Create a message with the priority value
+                // Convert the priority string to a numerical value
+                $priority = $priorityMap[$mail['priority']] ?? 2; // Default to 'medium' if not provided or invalid
+
+                // Ensure subject and content are not null but empty if not provided
+                $subject = isset($mail['subject']) ? $mail['subject'] : '';
+                $content = isset($mail['content']) ? $mail['content'] : '';
+
+                // Prepare the data with the numeric priority for storing in the DB and RabbitMQ
+                // Map priority strings to numerical values
+                $priorityMap = [
+                    'low' => 1,
+                    'medium' => 2,
+                    'high' => 3,
+                ];
+
+                // Convert the priority string to a numerical value
+                $priority = $priorityMap[$mail['priority']] ?? 2; // Default to 'medium' if not provided or invalid
+
+                // Ensure subject and content are not null but empty if not provided
+                $subject = isset($mail['subject']) ? $mail['subject'] : '';
+                $content = isset($mail['content']) ? $mail['content'] : '';
+
+                // Prepare the data with the numeric priority for storing in the DB and RabbitMQ
+                $messageData = [
+                    'id' => $mail['id'],
+                    'to' => $mail['to'],
+                    'subject' => $subject,
+                    'content' => $content,
+                    'attachment' => $mail['attachment'] ?? [],
+                    'priority' => $priority, // Store the numerical value in the DB
+                    'secret' => $secret,
+                ];
+
+                // Create a message with the RabbitMQ-compatible priority value
                 $msg = new AMQPMessage(
                     json_encode($messageData),
                     [
                         'delivery_mode' => 2, // Make message persistent
-                        'priority' => $priority // Set priority here directly
+                        'priority' => $priority, // Use the numeric priority for RabbitMQ
                     ]
                 );
 
-                // Publish the message to the single queue with the routing key 'email'
-                $this->channel->basic_publish($msg, 'email', 'email');
-                $messages[] = array_merge($messageData, ['priority' => $priority]);
+                // Publish the message to RabbitMQ
+                $this->channel->basic_publish($msg, 'email_exchange', 'email');
+
+                $messageDataReturn = $messageData;
+                unset($messageDataReturn['id']);
+                unset($messageDataReturn['secret']);
+
+                $messages[] = $messageDataReturn; // Store the processed message data for response
             } catch (\Exception $e) {
                 return ['error' => 'Queue error: ' . $e->getMessage()];
             }
@@ -62,68 +96,114 @@ class EmailQueueService
         return ['messages' => $messages];
     }
 
-    //Method untuk mencoba ulang mengirim email yang gagal
-    public function retryFailedEmails(array $payload)
+    //Method untuk memproses email dari file excel
+    public function processEmailsFromExcel($file)
     {
-        $emailLogId = $payload['id'] ?? null;
-        if (!$emailLogId) {
-            return ['error' => 'Email log ID is required.'];
+        $data = Excel::toArray(new class implements \Maatwebsite\Excel\Concerns\ToArray {
+            public function array(array $array)
+            {
+                return $array;
+            }
+        }, $file);
+
+        if (empty($data) || !isset($data[0])) {
+            return ['error' => 'Invalid Excel file'];
         }
-    
-        // Retrieve the email log from the database
-        $emailLog = EmailLog::find($emailLogId);
-        if (!$emailLog || $emailLog->status !== 'failed') {
-            return ['error' => 'Invalid email log ID or the email is not marked as failed.'];
+
+        $rows = $data[0]; // First sheet
+        $messages = [];
+        $validationErrors = [];
+
+        // First pass: Validate all rows
+        foreach ($rows as $index => $row) {
+            // Skip the header row if present
+            if ($index === 0 && strcasecmp($row[0] ?? '', 'secret') === 0) {
+                continue;
+            }
+
+            // Skip entirely empty rows
+            if (empty(array_filter($row))) {
+                continue;
+            }
+
+            $processedRow = [
+                'secret' => trim($row[0] ?? null),
+                'to' => trim($row[1] ?? null),
+                'content' => $row[2] ?? '', // Default to empty string
+                'subject' => $row[3] ?? '', // Default to empty string
+                'priority' => strtolower(trim($row[4] ?? '')), // Ensure lowercase, trim whitespace
+                'attachment' => isset($row[5]) ? explode(',', $row[5]) : [], // Default to empty array
+            ];
+
+            // Validate the row
+            $errors = [];
+            if (empty($processedRow['secret'])) {
+                $errors[] = 'Secret is required';
+            }
+            if (empty($processedRow['to'])) {
+                $errors[] = 'Recipient email ("to") is required';
+            }
+            if (empty($processedRow['priority']) || !in_array($processedRow['priority'], ['low', 'medium', 'high'], true)) {
+                $errors[] = 'Priority is required and must be one of: low, medium, high';
+            }
+
+            if ($errors) {
+                $validationErrors[] = [
+                    'row' => $index + 1, // Excel rows are 1-based
+                    'errors' => $errors,
+                ];
+                continue;
+            }
+
+            // Check if the application exists
+            $application = Application::where('secret_key', $processedRow['secret'])
+            ->where('status', 'enabled')
+            ->first();
+
+            if (!$application) {
+                $validationErrors[] = [
+                    'row' => $index + 1,
+                    'errors' => ['Invalid secret key'],
+                ];
+                continue;
+            }
+
+            // Add valid data for processing
+            $processedRow['application_id'] = $application->id;
+            $messages[] = $processedRow;
         }
-    
-        // Decode the original email data from the log (stored request)
-        $emailData = json_decode($emailLog->request, true);
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            return ['error' => 'Invalid JSON format in email log data.'];
+
+        // If there are validation errors, return them and stop processing
+        if ($validationErrors) {
+            return ['validationErrors' => $validationErrors];
         }
-    
-        // Now, we want to use the new email data from the payload, overriding the stored data
-        $newMailData = $payload['mail'][0] ?? null;
-        if ($newMailData) {
-            // Fully replace the email data with the new one
-            $emailData = $newMailData;
+
+        // If no valid messages exist after validation, return an error
+        if (empty($messages)) {
+            return ['error' => 'No valid email data found in the Excel file'];
         }
-    
-        // Ensure the application ID is still correct (retrieve using email log's application ID)
-        $application = Application::find($emailLog->application_id);
-        if (!$application) {
-            return ['error' => 'Application not found for the stored application ID.'];
+
+        // Sort by priority
+        usort($messages, function ($a, $b) {
+            $priorityMap = ['low' => 1, 'medium' => 2, 'high' => 3];
+            return $priorityMap[$b['priority']] <=> $priorityMap[$a['priority']];
+        });
+
+        // Queue emails
+        foreach ($messages as &$message) {
+            // Create email log
+            $emailLog = app(EmailLogService::class)->logEmail($message, $message['application_id']);
+            $message['id'] = $emailLog->id;
         }
-    
-        // Add the correct secret key
-        $emailData['secret'] = $application->secret_key;
-    
-        // Add the email log ID to the message data for retry
-        $emailData['id'] = $emailLog->id;
-    
-        // Retry logic: process and requeue the email with the updated data
-        try {
-            // Extract priority from the email data, default to 3 if not provided
-            $priority = $emailData['priority'] ?? 3;
-            $priority = min(max($priority, 1), 20); // Ensure priority is between 1 and 20
-    
-            // Prepare the message for RabbitMQ
-            $msg = new AMQPMessage(
-                json_encode($emailData),
-                [
-                    'delivery_mode' => 2, // Persistent
-                    'priority' => $priority,
-                ]
-            );
-    
-            // Publish the message to RabbitMQ
-            $this->channel->basic_publish($msg, 'email', 'email');
-    
-            return ['messages' => [$emailData]];
-        } catch (\Exception $e) {
-            return ['error' => 'Retry error: ' . $e->getMessage()];
+
+        $result = $this->processAndQueueEmails($messages, $messages[0]['secret']);
+
+        if (isset($result['error'])) {
+            return ['error' => $result['error']];
         }
-    }    
+
+        return ['messages' => $result['messages']];
+    }
 
     //Method untuk mengekstrak data email log berdasarkan ID
     public function extractEmailLogData(SendEmailRequest $request)
@@ -137,6 +217,7 @@ class EmailQueueService
 
         try {
             $emailData = json_decode($emailLog->request, true);
+
 
             if (json_last_error() !== JSON_ERROR_NONE) {
                 return validationError(['Invalid JSON format in email log data.']);
@@ -156,6 +237,5 @@ class EmailQueueService
             return queueError('Error processing email log data.');
         }
     }
-
 }
 
