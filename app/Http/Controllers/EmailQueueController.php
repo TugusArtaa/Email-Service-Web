@@ -59,14 +59,14 @@ class EmailQueueController extends Controller
     }     
 
 //Method untuk mengambil data email log berdasarkan id
-    public function extractEmailData($id)
+    public function extractEmailData(SendEmailRequest $request)
     {
-        return $this->emailService->extractEmailLogData($id);
+        return $this->emailService->extractEmailLogData($request);
     }  
 //Method untuk mengambil semua data email log
-    public function extractAllEmailData()
-    {
-        return $this->emailService->extractAllEmailLogData();
-    }
+    // public function extractAllEmailData()
+    // {
+    //     return $this->emailService->extractAllEmailLogData();
+    // }
 }
 

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Http\Requests\SendEmailRequest;
 use App\Models\Application;
 use PhpAmqpLib\Message\AMQPMessage;
 use App\Models\EmailLog;
@@ -124,22 +125,23 @@ class EmailQueueService
         }
     }    
 
-//Method untuk mengekstrak data email log berdasarkan ID
-    public function extractEmailLogData($id)
+    //Method untuk mengekstrak data email log berdasarkan ID
+    public function extractEmailLogData(SendEmailRequest $request)
     {
+        $id = $request->input('id');
         $emailLog = EmailLog::find($id);
-    
+
         if (!$emailLog) {
             return errorResponse('Email log entry not found.', 404);
         }
-    
+
         try {
             $emailData = json_decode($emailLog->request, true);
-    
+
             if (json_last_error() !== JSON_ERROR_NONE) {
                 return validationError(['Invalid JSON format in email log data.']);
             }
-    
+
             return responseWithData('Email log data extracted successfully', [
                 'to' => $emailData['to'] ?? '',
                 'subject' => $emailData['subject'] ?? '',
@@ -155,37 +157,5 @@ class EmailQueueService
         }
     }
 
-//Method untuk mengekstrak data json dari email log dalam databse
-    public function extractAllEmailLogData()
-    {
-        try {
-            $emailLogs = EmailLog::all();
-            $extractedData = [];
-    
-            foreach ($emailLogs as $emailLog) {
-                $emailData = json_decode($emailLog->request, true);
-    
-                // Periksa apakah JSON valid
-                if (json_last_error() !== JSON_ERROR_NONE) {
-                    return validationError(['Invalid JSON format in email log data.']);
-                }
-    
-                // Simpan data yang diekstrak
-                $extractedData[] = [
-                    'to' => $emailData['to'] ?? '',
-                    'subject' => $emailData['subject'] ?? '',
-                    'content' => $emailData['content'] ?? '',
-                    'priority' => $emailData['priority'] ?? '',
-                    'attachment' => $emailData['attachment'] ?? [],
-                    'secret' => $emailData['secret'] ?? ''
-                ];
-            }
-    
-            return responseWithData('Email log data extracted successfully', $extractedData);
-    
-        } catch (\Exception $e) {
-            return queueError('Error processing email log data.');
-        }
-    }
 }
 
