@@ -16,8 +16,9 @@ return new class extends Migration
             $table->id();
             $table->string('name')->unique();
             $table->text('description');
-            $table->string('password');
-            $table->string('secret_key');
+            $table->string('pic_name');
+            $table->enum('status', ['pending', 'enabled', 'disabled'])->default('pending');
+            $table->string('secret_key')->nullable();
             $table->timestamps();
         });
     }

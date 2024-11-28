@@ -2,7 +2,6 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rules\Password;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
@@ -18,14 +17,13 @@ class ApplicationRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255', 'unique:applications'],
             'description' => ['required', 'string'],
-            'password' => ['required', Password::min(8)],
+            'pic_name' => ['required', 'string'],
         ];
     }
 
     protected function failedValidation(Validator $validator)
     {
-        return redirect()->back()->withInput()->with('error', $validator->errors()->first());
-        // throw new HttpResponseException(response()->json(validationError($validator->errors()->toArray()), 422));
+        throw new HttpResponseException(response()->json(validationError($validator->errors()->toArray()), 422));
     }  
 
 }

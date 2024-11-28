@@ -7,15 +7,17 @@ use Illuminate\Support\Str;
 
 class Application extends Model
 {
+
     protected $fillable = [
         'name',
         'description',
-        'password',
+        'pic_name',
+        'status',
         'secret_key',
     ];
 
     public static function generateSecretKey(): string
     {
-        return Str::random(24);
+        return Str::random(56);
     }
 }

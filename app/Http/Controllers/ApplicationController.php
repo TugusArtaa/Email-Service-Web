@@ -4,6 +4,12 @@ namespace App\Http\Controllers;
 use App\Models\Application;
 use App\Services\ApplicationService;
 use App\Http\Requests\ApplicationRequest;
+use App\Http\Requests\ApproveApplicationRequest;
+use App\Http\Requests\RejectApplicationRequest;
+use App\Http\Requests\ChangeStatusToEnabledRequest;
+use App\Http\Requests\ChangeStatusToDisabledRequest;
+use App\Http\Requests\RejectRegenerateSecretKeyRequest;
+use App\Http\Requests\RequestRegenerateSecretKeyRequest;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -72,27 +78,6 @@ class ApplicationController extends Controller
             $this->applicationService->formatApplicationResponse($application)
         );
     }
-    //Method untuk regenerate secret key aplikasi
-    public function regenerateSecret(Request $request, Application $application)
-    {
-        $request->validate(['password' => 'required']);
-
-        $newSecretKey = $this->applicationService->regenerateSecretKey(
-            $application,
-            $request->password
-        );
-
-        if (!$newSecretKey) {
-            return redirect()->back()->with('error', 'Invalid password');
-            // return errorResponse('Invalid password', 401);
-        }
-
-        return redirect()->back()->with('message', 'Secret key regenerated successfully');
-        // return responseWithData(
-        //     'Secret key regenerated successfully',
-        //     ['secret_key' => $newSecretKey]
-        // );
-    }
 
     //Method untuk menghapus aplikasi
     public function delete(Application $application, Request $request)
@@ -107,5 +92,55 @@ class ApplicationController extends Controller
         //     'Applications deleted successfully',
         //     []
         // )->setStatusCode(200);
+    }
+
+    public function requestRegenerateSecretKey(RequestRegenerateSecretKeyRequest $Request)
+    {
+        // Panggil service untuk mengubah status menjadi pending
+        $result = $this->applicationService->requestRegenerateSecretKey($Request->id);
+
+        // Kembalikan response sesuai hasil dari service
+        return $result;
+    }
+
+    public function approveApplication(ApproveApplicationRequest $Request)
+    {
+        // Panggil service untuk memproses regenerasi secret key
+        $result = $this->applicationService->approveGenerateSecretKey($Request->id);
+
+        // Kembalikan response sesuai hasil dari service
+        return $result;
+    }
+    public function rejectApplication(RejectApplicationRequest $Request)
+    {
+        // Panggil service untuk memproses regenerasi secret key
+        $result = $this->applicationService->rejectApplication($Request->id);
+
+        // Kembalikan response sesuai hasil dari service
+        return $result;
+    }
+    public function changeStatusToEnabled(ChangeStatusToEnabledRequest $Request)
+    {
+        // Panggil service untuk memproses regenerasi secret key
+        $result = $this->applicationService->changeStatusToEnabled($Request->id);
+
+        // Kembalikan response sesuai hasil dari service
+        return $result;
+    }
+    public function changeStatusToDisabled(ChangeStatusToDisabledRequest $Request)
+    {
+        // Panggil service untuk memproses regenerasi secret key
+        $result = $this->applicationService->changeStatusToDisabled($Request->id);
+
+        // Kembalikan response sesuai hasil dari service
+        return $result;
+    }
+    public function rejectRegenerateSecretKey(RejectRegenerateSecretKeyRequest $Request)
+    {
+        // Panggil service untuk memproses regenerasi secret key
+        $result = $this->applicationService->rejectRegenerateSecretKey($Request->id);
+
+        // Kembalikan response sesuai hasil dari service
+        return $result;
     }
 }
