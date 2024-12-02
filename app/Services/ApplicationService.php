@@ -49,7 +49,6 @@ class ApplicationService
                 'name' => $application->name,
                 'description' => $application->description,
                 'pic_name' => $application->pic_name,
-                'status' => $application->status,
                 'created_at' => $application->created_at,
                 'secret_key' => $application->secret_key
             ]
@@ -77,8 +76,8 @@ class ApplicationService
                 return errorResponse('Application not found', 404);
             }
     
-            // Pastikan status aplikasi pending
-            if ($application->status !== 'pending') {
+            // Pastikan status aplikasi pending atau register
+            if ($application->status !== 'pending' && $application->status !== 'request register') {
                 return errorResponse('Invalid status for approval', 400);
             }
     
