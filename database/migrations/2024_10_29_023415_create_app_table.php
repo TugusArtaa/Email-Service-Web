@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('name')->unique();
             $table->text('description');
             $table->string('pic_name');
-            $table->enum('status', ['pending', 'enabled', 'disabled'])->default('pending');
+            $table->enum('status', ['pending', 'enabled', 'disabled', 'request register'])->default('request register');
             $table->string('secret_key')->nullable();
             $table->timestamps();
         });
