@@ -32,10 +32,6 @@ Route::prefix('applications')->group(function () {
     Route::get('/', [ApplicationController::class, 'getData']);
     Route::delete('/delete', [ApplicationController::class, 'delete']);
     Route::get('/{application}', [ApplicationController::class, 'show']);
-    Route::post('/request-regenerate-secret-key', [ApplicationController::class, 'requestRegenerateSecretKey']); //untuk mengakses method requestRegenerateSecretKey
     Route::post('/approve-application', [ApplicationController::class, 'approveApplication']); //untuk melakukan approve saat requestRegenerateSecretKey dan addApplication
-    Route::post('/reject-application', [ApplicationController::class, 'rejectApplication']); //untuk melakukan reject saat request addApplication
-    Route::post('/change-status-to-enabled', [ApplicationController::class, 'changeStatusToEnabled']); //untuk mengubah status menjadi enabled
-    Route::post('/change-status-to-disabled', [ApplicationController::class, 'changeStatusToDisabled']); //untuk mengubah status menjadi disabled
-    Route::post('/reject-regenerate-secret-key', [ApplicationController::class, 'rejectRegenerateSecretKey']); //untuk melakukan reject saat requestRegenerateSecretKey
+    Route::post('/application-status-change', [ApplicationController::class, 'handleApplicationStatusChange']); //untuk mengubah status aplikasi
 })->middleware('auth:sanctum');

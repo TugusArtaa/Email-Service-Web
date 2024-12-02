@@ -105,27 +105,27 @@ class EmailQueueService
                 return $array;
             }
         }, $file);
-
+    
         if (empty($data) || !isset($data[0])) {
             return ['error' => 'Invalid Excel file'];
         }
-
+    
         $rows = $data[0]; // First sheet
         $messages = [];
         $validationErrors = [];
-
+    
         // First pass: Validate all rows
         foreach ($rows as $index => $row) {
             // Skip the header row if present
             if ($index === 0 && strcasecmp($row[0] ?? '', 'secret') === 0) {
                 continue;
             }
-
+    
             // Skip entirely empty rows
             if (empty(array_filter($row))) {
                 continue;
             }
-
+    
             $processedRow = [
                 'secret' => trim($row[0] ?? null),
                 'to' => trim($row[1] ?? null),
@@ -134,7 +134,7 @@ class EmailQueueService
                 'priority' => strtolower(trim($row[4] ?? '')), // Ensure lowercase, trim whitespace
                 'attachment' => isset($row[5]) ? explode(',', $row[5]) : [], // Default to empty array
             ];
-
+    
             // Validate the row
             $errors = [];
             if (empty($processedRow['secret'])) {
@@ -146,7 +146,20 @@ class EmailQueueService
             if (empty($processedRow['priority']) || !in_array($processedRow['priority'], ['low', 'medium', 'high'], true)) {
                 $errors[] = 'Priority is required and must be one of: low, medium, high';
             }
-
+    
+            // Check if the application exists
+            if (!empty($processedRow['secret'])) {
+                $application = Application::where('secret_key', $processedRow['secret'])
+                    ->where('status', 'enabled')
+                    ->first();
+    
+                if (!$application) {
+                    $errors[] = 'Invalid secret key';
+                } else {
+                    $processedRow['application_id'] = $application->id;
+                }
+            }
+    
             if ($errors) {
                 $validationErrors[] = [
                     'row' => $index + 1, // Excel rows are 1-based
@@ -154,54 +167,40 @@ class EmailQueueService
                 ];
                 continue;
             }
-
-            // Check if the application exists
-            $application = Application::where('secret_key', $processedRow['secret'])
-            ->where('status', 'enabled')
-            ->first();
-
-            if (!$application) {
-                $validationErrors[] = [
-                    'row' => $index + 1,
-                    'errors' => ['Invalid secret key'],
-                ];
-                continue;
-            }
-
+    
             // Add valid data for processing
-            $processedRow['application_id'] = $application->id;
             $messages[] = $processedRow;
         }
-
+    
         // If there are validation errors, return them and stop processing
         if ($validationErrors) {
             return ['validationErrors' => $validationErrors];
         }
-
+    
         // If no valid messages exist after validation, return an error
         if (empty($messages)) {
             return ['error' => 'No valid email data found in the Excel file'];
         }
-
+    
         // Sort by priority
         usort($messages, function ($a, $b) {
             $priorityMap = ['low' => 1, 'medium' => 2, 'high' => 3];
             return $priorityMap[$b['priority']] <=> $priorityMap[$a['priority']];
         });
-
+    
         // Queue emails
         foreach ($messages as &$message) {
             // Create email log
             $emailLog = app(EmailLogService::class)->logEmail($message, $message['application_id']);
             $message['id'] = $emailLog->id;
         }
-
+    
         $result = $this->processAndQueueEmails($messages, $messages[0]['secret']);
-
+    
         if (isset($result['error'])) {
             return ['error' => $result['error']];
         }
-
+    
         return ['messages' => $result['messages']];
     }
 
