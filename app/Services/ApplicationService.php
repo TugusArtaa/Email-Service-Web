@@ -3,8 +3,6 @@
 namespace App\Services;
 
 use App\Models\Application;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
@@ -68,33 +66,6 @@ class ApplicationService
     {
         Application::whereIn('id', $ids)->delete();
     }
-
-    public function requestRegenerateSecretKey($id)
-    {
-        try {
-            // Mencari aplikasi berdasarkan ID
-            $application = Application::find($id);
-    
-            if (!$application) {
-                return errorResponse('Application not found', 404);
-            }
-    
-            // Pastikan status aplikasi  pending 
-            if ($application->status === 'pending') {
-                return errorResponse('Secret key regeneration request already in progress', 400);
-            }
-    
-            // Update status aplikasi menjadi 'pending'
-            $application->status = 'pending';
-            $application->save();
-    
-            // Kembalikan response sukses
-            return responseSuccess('Secret key regeneration request is now pending.');
-        } catch (\Exception $e) {
-            // Kembalikan response error
-            return errorResponse('An error occurred while processing the request.', 500);
-        }
-    }
     
     public function approveGenerateSecretKey($id)
     {
@@ -128,114 +99,69 @@ class ApplicationService
             return errorResponse('An error occurred while approving the secret key.', 500);
         }
     }
-    
-    public function rejectApplication($id)
+
+    //Menangani perubahan status applikasi
+    public function handleApplicationStatusChange($id, $status)
     {
         try {
             // Mencari aplikasi berdasarkan ID
             $application = Application::find($id);
-    
+
             if (!$application) {
                 return errorResponse('Application not found', 404);
             }
-    
-            // Pastikan status aplikasi pending
-            if ($application->status !== 'pending') {
-                return errorResponse('Invalid status for rejection', 400);
+
+            switch ($status) {
+                //Jika status pending, metode ini memeriksa apakah status aplikasi saat ini sudah pending.
+                // Jika sudah, metode ini mengembalikan respons kesalahan yang menunjukkan bahwa permintaan regenerasi kunci rahasia sudah dalam proses.
+                // Jika tidak, metode ini memperbarui status aplikasi menjadi pending dan menyimpan perubahan tersebut.
+                case 'pending': 
+                    if ($application->status === 'pending') {
+                        return errorResponse('Secret key regeneration request already in progress', 400);
+                    }
+                    $application->status = 'pending';
+                    $application->save();
+                    return responseSuccess('Secret key regeneration request is now pending.');
+                // Jika status enabled, metode ini memeriksa apakah status aplikasi saat ini adalah disabled.
+                // Jika tidak, metode ini mengembalikan respons kesalahan yang menunjukkan status tidak valid untuk perubahan.
+                // Jika ya, metode ini memperbarui status aplikasi menjadi enabled 
+                case 'enabled':
+                    if ($application->status !== 'disabled') {
+                        return errorResponse('Invalid status for change', 400);
+                    }
+                    $application->status = 'enabled';
+                    $application->save();
+                    return responseSuccess('Application status is enabled.');
+                // Jika status adalah disabled, metode ini memeriksa apakah status aplikasi saat ini adalah enabled atau pending.
+                // Jika status saat ini adalah enabled, metode ini memperbarui status menjadi disabled 
+                // Jika status saat ini adalah pending, metode ini memperbarui status menjadi disabled yang menunjukkan bahwa permintaan regenerasi telah ditolak.
+                case 'disabled':
+                    if ($application->status === 'enabled') {
+                        $application->status = 'disabled';
+                        $application->save();
+                        return responseSuccess('Application status is disabled.');
+                    } elseif ($application->status === 'pending') {
+                        $application->status = 'disabled';
+                        $application->save();
+                        return responseSuccess('Regenerate request has been rejected.');
+                    } else {
+                        return errorResponse('Invalid status for change', 400);
+                    }
+                // Jika status adalah rejected, memeriksa apakah status aplikasi saat ini adalah pending dan apakah secret_key adalah null.
+                // Jika salah satu kondisi tidak terpenuhi, metode ini mengembalikan respons kesalahan yang menunjukkan status tidak valid untuk penolakan.
+                // Jika ya, metode ini menghapus aplikasi yang menunjukkan bahwa aplikasi telah ditolak.
+                case 'rejected':
+                    if ($application->status !== 'pending' || $application->secret_key !== null) {
+                        return errorResponse('Invalid status for rejection', 400);
+                    }
+                    $this->deleteApplications([$id]);
+                    return responseSuccess('Application has been rejected.');
+
+                default:
+                    return errorResponse('Invalid status', 400);
             }
-    
-            // hapus aplikasi yang di rejected
-            $this->deleteApplications([$id]);
-    
-            // Kembalikan response sukses
-            return responseSuccess('Application has been rejected.');
         } catch (\Exception $e) {
-            // Kembalikan response error
-            return errorResponse('An error occurred while rejecting/disabling the secret key.', 500);
-        }
-    }
-    
-    public function changeStatusToEnabled($id)
-    {
-        try {
-            // Mencari aplikasi berdasarkan ID
-            $application = Application::find($id);
-    
-            if (!$application) {
-                return errorResponse('Application not found', 404);
-            }
-    
-            // Pastikan status aplikasi disabled
-            if ($application->status !== 'disabled') {
-                return errorResponse('Invalid status for change', 400);
-            }
-    
-            // Update status aplikasi menjadi 'enabled'
-            $application->status = 'enabled';
-            
-            $application->save();
-    
-            // Kembalikan response sukses
-            return responseSuccess('Application status is enabled.');
-        } catch (\Exception $e) {
-            // Kembalikan response error
-            return errorResponse('An error occurred while enabling the app.', 500);
-        }
-    }
-    
-    public function changeStatusToDisabled($id)
-    {
-        try {
-            // Mencari aplikasi berdasarkan ID
-            $application = Application::find($id);
-    
-            if (!$application) {
-                return errorResponse('Application not found', 404);
-            }
-    
-            // Pastikan status aplikasi enabled
-            if ($application->status !== 'enabled') {
-                return errorResponse('Invalid status for change', 400);
-            }
-    
-            // Update status aplikasi menjadi 'disabled'
-            $application->status = 'disabled';
-            
-            $application->save();
-    
-            // Kembalikan response sukses
-            return responseSuccess('Application status is disabled.');
-        } catch (\Exception $e) {
-            // Kembalikan response error
-            return errorResponse('An error occurred while disabling the app.', 500);
-        }
-    }
-    
-    public function rejectRegenerateSecretKey($id)
-    {
-        try {
-            // Mencari aplikasi berdasarkan ID
-            $application = Application::find($id);
-    
-            if (!$application) {
-                return errorResponse('Application not found', 404);
-            }
-    
-            // Pastikan status aplikasi pending
-            if ($application->status !== 'pending') {
-                return errorResponse('Invalid status for rejection', 400);
-            }
-    
-            // Update status aplikasi menjadi 'disabled'
-            $application->status = 'disabled';
-            
-            $application->save();
-    
-            // Kembalikan response sukses
-            return responseSuccess('Regenerate request has been rejected.');
-        } catch (\Exception $e) {
-            // Kembalikan response error
-            return errorResponse('An error occurred while rejecting the request.', 500);
+            return errorResponse('An error occurred while processing the request.', 500);
         }
     }
 }
