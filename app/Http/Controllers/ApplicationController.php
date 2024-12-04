@@ -53,18 +53,27 @@ class ApplicationController extends Controller
     {
         $validated = $request->validated();
 
+        // if ($this->applicationService->checkApplicationExists($validated['name'])) {
+        //     return errorResponse('Aplikasi sudah terdaftar', 422);
+        // }
+
         if ($this->applicationService->checkApplicationExists($validated['name'])) {
-            return errorResponse('Aplikasi sudah terdaftar', 422);
+            return response()->json(['errors' => ['name' => ['Aplikasi sudah terdaftar']]], 422);
         }
 
         $application = $this->applicationService->createApplication($validated);
 
 
         // return redirect()->back()->with('message', 'Aplikasi berhasil didaftarkan');
-        return responseWithData(
-            'Application registered successfully',
-            $this->applicationService->formatApplicationResponse($application, $application->secret_key)
-        )->setStatusCode(201);
+        // return responseWithData(
+        //     'Application registered successfully',
+        //     $this->applicationService->formatApplicationResponse($application, $application->secret_key)
+        // )->setStatusCode(201);
+
+        return response()->json([
+            'message' => 'Application registered successfully',
+            'application' => $application
+        ], 201);
     }
     //Method untuk menampilkan detail aplikasi berdasarkan id
     public function show(Application $application)
@@ -82,7 +91,9 @@ class ApplicationController extends Controller
 
         $this->applicationService->deleteApplications($request->ids);
 
-        return redirect()->back()->with('message', 'Applications deleted successfully');
+        // return redirect()->back()->with('message', 'Applications deleted successfully');
+
+        return response()->json(['success' => true, 'message' => 'Applications deleted successfully']);
 
         // return responseWithData(
         //     'Applications deleted successfully',
