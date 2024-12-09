@@ -12,6 +12,8 @@ class AuthenticationController extends Controller
     //Method untuk mengautentikasi user
     public function authenticate(Request $request): RedirectResponse
     {
+        // dd(Hash::make($request->input('password')));
+
         $credentials = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required'],

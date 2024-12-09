@@ -4,20 +4,16 @@ import { ref, watch } from "vue";
 import Table from "../components/TableIntegrasi.vue";
 import Pagination from "../components/TablePagination.vue";
 import Search from "../components/Search.vue";
+import AddModal from "../components/AddEmailModal.vue";
 import { Head, useForm, usePage } from '@inertiajs/vue3'
 import { useFetch, onClickOutside, useStorage } from '@vueuse/core'
 import VueDatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css'
+import axios from 'axios';
 
 // add data
-const mail = ref({
-    to: '',
-    subject: '',
-    content: '',
-    priority: 0,
-    attachment: [],
-});
-const secret = ref('');
+const success = ref('');
+const error = ref('');
 
 const thead = ref(["", "Application name", "Recipient Email", "Subject", "Status", "Date", "Action"]);
 const logs = ref([]);
@@ -28,6 +24,12 @@ const search = ref('');
 const orderBy = useStorage('integrasi-orderBy', 'desc');
 const date = ref('');
 const baseUrl = import.meta.env.VITE_APP_URL;
+
+// add email modal
+const addModal = ref(false);
+function handleCloseAddModal() {
+    addModal.value = false;
+}
 
 // dropdown order
 const orderDropdown = ref(false);
@@ -54,13 +56,6 @@ const showDeleteDate = ref(false);
 const modalDeleteDate = ref(null);
 onClickOutside(modalDeleteDate, event => {
     showDeleteDate.value = false;
-});
-
-// modal add email
-const showAddModal = ref(false);
-const modalAdd = ref(null);
-onClickOutside(modalAdd, event => {
-    showAddModal.value = false;
 });
 
 // ketika klik pagination ganti data
@@ -107,7 +102,7 @@ function refreshData(page = 1) {
     });
 }
 
-function refreshDataWithoutFetchLoad(){
+function refreshDataWithoutFetchLoad() {
     // fetch data
     const { data } = useFetch(`${baseUrl}/api/email-logs?orderBy=${orderBy.value}&search=${search.value}&page=${currentPage.value}`, { refetch: true }).get().json()
     // Akses data langsung
@@ -159,30 +154,8 @@ function handleDeleteDate() {
     refreshData();
 }
 
-const formAdd = useForm({
-    secret: '',
-    mail: [{
-        to: '',
-        subject: '',
-        content: '',
-        priority: 0,
-        attachment: [],
-    }],
-    _token: pageInertia.props.csrf_token,
-})
-
-function handleAddEmail() {
-    // console.log(formAdd.mail.to);
-    formAdd.post(`${baseUrl}/integrasi/send`,
-        {
-            onSuccess: () => {
-                Inertia.reload({ preserveState: true });
-            }
-        }
-    );
-    formAdd.reset();
-    formAdd.secret = '';
-    showAddModal.value = false;
+function handleSuccessMessage(message) {
+    success.value = message;
 }
 
 // fetch data pertama kali
@@ -197,7 +170,7 @@ refreshData();
     <Layout>
         <div class="relative w-full px-3 py-5 bg-white shadow-md sm:rounded-lg">
             <!-- alert success -->
-            <div v-if="$page.props.flash.success"
+            <div v-if="success"
                 class="flex items-center p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50 dark:bg-gray-800 dark:text-green-400"
                 role="alert">
                 <svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
@@ -207,11 +180,11 @@ refreshData();
                 </svg>
                 <span class="sr-only">Info</span>
                 <div>
-                    {{ $page.props.flash.success }}
+                    {{ success }}
                 </div>
             </div>
             <!-- alert error -->
-            <div v-if="$page.props.flash.error"
+            <div v-if="error"
                 class="flex items-center p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400"
                 role="alert">
                 <svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
@@ -221,7 +194,7 @@ refreshData();
                 </svg>
                 <span class="sr-only">Info</span>
                 <div>
-                    {{ $page.props.flash.error }}
+                    {{ error }}
                 </div>
             </div>
             <!-- table header -->
@@ -237,7 +210,7 @@ refreshData();
                             </div>
                             <div
                                 class="flex flex-col items-stretch justify-end flex-shrink-0 w-full space-y-2 md:w-auto md:flex-row md:space-y-0 md:items-center md:space-x-3">
-                                <button type="button" @click="showAddModal = true"
+                                <button type="button" @click="addModal = true"
                                     class="flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-green-700 rounded-lg hover:bg-green-800 focus:ring-4 focus:ring-green-300 dark:bg-green-600 dark:hover:bg-green-700 focus:outline-none dark:focus:ring-green-800">
                                     <svg class="h-3.5 w-3.5 mr-2 text-white" aria-hidden="true"
                                         xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -375,82 +348,6 @@ refreshData();
             </div>
         </div>
         <!-- modal add email -->
-        <div v-if="showAddModal" id="crud-modal"
-            class="fixed top-0 left-0 right-0 z-50 flex items-center justify-center w-full overflow-x-hidden overflow-y-auto bg-gray-700 backdrop-blur-[2px] bg-opacity-40 md:inset-0">
-            <div class="relative w-full max-w-md max-h-full p-4">
-                <!-- Modal content -->
-                <div class="relative bg-white rounded-lg shadow dark:bg-gray-700" ref="detailModal">
-                    <!-- Modal header -->
-                    <div class="flex items-center justify-between p-4 border-b rounded-t md:p-5 dark:border-gray-600">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                            Add Email
-                        </h3>
-                        <button @click="showAddModal = false" type="button"
-                            class="inline-flex items-center justify-center w-8 h-8 text-sm text-gray-400 bg-transparent rounded-lg hover:bg-gray-200 hover:text-gray-900 ms-auto dark:hover:bg-gray-600 dark:hover:text-white"
-                            data-modal-toggle="crud-modal">
-                            <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                viewBox="0 0 14 14">
-                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                    stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
-                            </svg>
-                            <span class="sr-only">Close modal</span>
-                        </button>
-                    </div>
-                    <!-- Modal body -->
-                    <form class="p-4 md:p-5">
-                        <div class="grid grid-cols-2 gap-4 mb-4">
-                            <div class="col-span-2">
-                                <label for="name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                                    Secret
-                                </label>
-                                <input type="text" name="name" id="name" v-model="formAdd.secret"
-                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                                    placeholder="Type product name">
-                            </div>
-                            <div class="col-span-2">
-                                <label for="name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                                    Subject
-                                </label>
-                                <input type="text" name="name" id="name" v-model="formAdd.mail[0].subject"
-                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                                    placeholder="Type product name">
-                            </div>
-                            <div class="col-span-2">
-                                <label for="name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                                    To
-                                </label>
-                                <input type="text" name="name" id="name" v-model="formAdd.mail[0].to"
-                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                                    placeholder="Type product name">
-                            </div>
-                            <div class="col-span-2">
-                                <label for="name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                                    Priority
-                                </label>
-                                <input type="text" name="name" id="name" v-model="formAdd.mail[0].priority"
-                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                                    placeholder="Type product name">
-                            </div>
-                            <div class="col-span-2">
-                                <label for="name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                                    Attachment
-                                </label>
-                                <input type="text" name="name" id="name" v-model="formAdd.mail[0].attachment[0]"
-                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                                    placeholder="Type product name">
-                            </div>
-                            <div class="col-span-2">
-                                <label for="description"
-                                    class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Content</label>
-                                <textarea id="description" rows="4" v-model="formAdd.mail[0].content"
-                                    class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                    placeholder="Write product description here"></textarea>
-                            </div>
-                            <button @click="handleAddEmail" type="button" class="text-white w-fit bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-green-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">Submit</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+        <AddModal v-if="addModal" @close="handleCloseAddModal" @success="handleSuccessMessage" />
     </Layout>
 </template>
