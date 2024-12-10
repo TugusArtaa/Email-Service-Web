@@ -14,12 +14,22 @@ class ApplicationService
         return Application::select('id', 'name', 'description', 'created_at')->get();
     }
 
-    // Function untuk membuat dan store data aplikasi di database
+    // Function untuk mendapatkan aplikasi berdasarkan ID 
     public function getPaginatedApplications(int $perPage = 10, string $orderBy = 'id', string $orderDirection = 'desc', string $search = ''): LengthAwarePaginator
     {
         return Application::select('id', 'name', 'pic_name', 'secret_key', 'created_at', 'status')
             ->where('name', 'like', "%$search%")
             ->whereIn('status', ['enabled', 'disabled'])
+            ->orderBy($orderBy, $orderDirection)
+            ->paginate($perPage);
+    }
+
+    // Function untuk mendapatkan aplikasi berdasarkan ID
+    public function getPaginatedApprove(int $perPage = 10, string $orderBy = 'id', string $orderDirection = 'desc', string $search = ''): LengthAwarePaginator
+    {
+        return Application::select('id', 'name', 'pic_name', 'secret_key', 'created_at', 'status')
+            ->where('name', 'like', "%$search%")
+            ->whereIn('status', ['pending', 'request register'])
             ->orderBy($orderBy, $orderDirection)
             ->paginate($perPage);
     }
@@ -81,7 +91,7 @@ class ApplicationService
             }
 
             // Pastikan status aplikasi pending atau register
-            if ($application->status !== 'pending') {
+            if ($application->status !== 'pending' && $application->status !== 'request register') {
                 return response()->json([
                     'success' => false,
                     'message' => 'Invalid status for approval'
@@ -174,13 +184,6 @@ class ApplicationService
                             'success' => true,
                             'message' => 'Application status is disabled.'
                         ]);
-                    } elseif ($application->status === 'pending') {
-                        $application->status = 'disabled';
-                        $application->save();
-                        return response()->json([
-                            'success' => true,
-                            'message' => 'Regenerate request has been rejected.'
-                        ]);
                     } else {
                         return response()->json([
                             'success' => false,
@@ -191,7 +194,15 @@ class ApplicationService
                 // Jika salah satu kondisi tidak terpenuhi, metode ini mengembalikan respons kesalahan yang menunjukkan status tidak valid untuk penolakan.
                 // Jika ya, metode ini menghapus aplikasi yang menunjukkan bahwa aplikasi telah ditolak.
                 case 'rejected':
-                    if ($application->status !== 'pending' || $application->secret_key !== null) {
+                    if ($application->status === 'pending' && $application->secret_key !== null) {
+                        $application->status = 'enabled';
+                        $application->save();
+                        return response()->json([
+                            'success' => true,
+                            'message' => 'Regenerate request has been rejected.'
+                        ]);
+                    }
+                    if ($application->status !== 'request register' || $application->secret_key !== null) {
                         return response()->json([
                             'success' => false,
                             'message' => 'Invalid status for rejection'

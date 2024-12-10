@@ -48,6 +48,19 @@ class ApplicationController extends Controller
         );
     }
 
+    public function getApproveData(Request $request)
+    {
+        $search = $request->query('search', '');
+        $orderBy = $request->query('orderBy', 'id');
+        $orderDirection = $request->query('orderDirection', 'desc');
+        $applications = $this->applicationService->getPaginatedApprove(search: $search, orderBy: $orderBy, orderDirection: $orderDirection);
+
+        return responseWithData(
+            $applications->isEmpty() ? 'No applications found' : 'Applications retrieved successfully',
+            ['applications' => $applications]
+        );
+    }
+
     //  Method untuk menyimpan data aplikasi
     public function store(ApplicationRequest $request)
     {
@@ -101,13 +114,16 @@ class ApplicationController extends Controller
         // )->setStatusCode(200);
     }
 
-    public function approveApplication(ApproveApplicationRequest $Request)
+    public function approveApplication(ApproveApplicationRequest $request)
     {
         // Panggil service untuk memproses regenerasi secret key
-        $result = $this->applicationService->approveGenerateSecretKey($Request->id);
+        $result = $this->applicationService->approveGenerateSecretKey($request->id);
 
         // Kembalikan response sesuai hasil dari service
-        return $result;
+        return response()->json([
+            'message' => 'Application approved successfully',
+            'result' => $result
+        ]);
     }
 
     public function handleApplicationStatusChange(ApplicationStatusChangeRequest $request)
@@ -117,6 +133,11 @@ class ApplicationController extends Controller
 
         $result = $this->applicationService->handleApplicationStatusChange($id, $status);
 
+        // return response()->json([
+        //     'message' => 'Application status changed successfully',
+        //     'result' => $result
+        // ]);
+        
         return $result;
     }
 }
