@@ -37,6 +37,12 @@ const detailModal = ref(null);
 const showDetailModal = ref(false);
 const detailFetch = ref(false);
 
+// State untuk modal status
+const statusModal = ref(null);
+const showStatusModal = ref(false);
+const statusId = ref(null);
+const currentStatus = ref(null);
+
 // State untuk pesan alert
 const alertMessage = ref("");
 const alertType = ref("");
@@ -158,12 +164,13 @@ async function generateKey() {
         const data = await response.json();
 
         if (data.success) {
-            showKeyModal.value = false;
             emit("refresh");
+            showKeyModal.value = false;
             alertMessage.value = "Secret key regenerated request successfully!";
             alertType.value = "success";
             setTimeout(clearAlert, 4000);
         } else {
+            emit("refresh");
             showKeyModal.value = false;
             alertMessage.value = data.message;
             alertType.value = "error";
@@ -174,6 +181,51 @@ async function generateKey() {
         showKeyModal.value = false;
         alertMessage.value =
             "An error occurred while regenerating the secret key.";
+        alertType.value = "error";
+        setTimeout(clearAlert, 4000);
+    }
+}
+
+// Fungsi untuk membuka modal konfirmasi status
+function openStatusModal(id, status) {
+    statusId.value = id;
+    currentStatus.value = status;
+    showStatusModal.value = true;
+}
+
+// Fungsi untuk mengubah status aplikasi
+async function changeStatus() {
+    const newStatus =
+        currentStatus.value === "enabled" ? "disabled" : "enabled";
+    try {
+        const response = await fetch(
+            `/api/applications/application-status-change`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": pageInertia.props.csrf_token,
+                },
+                body: JSON.stringify({ id: statusId.value, status: newStatus }),
+            }
+        );
+
+        const data = await response.json();
+
+        if (data.success) {
+            emit("refresh");
+            showStatusModal.value = false;
+            alertMessage.value = `Application status changed to ${newStatus}.`;
+            alertType.value = "success";
+        } else {
+            alertMessage.value = data.message;
+            alertType.value = "error";
+        }
+        setTimeout(clearAlert, 4000);
+    } catch (error) {
+        console.error(error);
+        alertMessage.value =
+            "An error occurred while changing the application status.";
         alertType.value = "error";
         setTimeout(clearAlert, 4000);
     }
@@ -325,7 +377,7 @@ function clearAlert() {
                                 getDetail(item.id);
                             "
                             type="button"
-                            class="p-1 text-sm font-medium text-white bg-blue-700 rounded-lg focus:outline-none hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-red-900"
+                            class="p-1 text-sm font-medium text-white bg-emerald-500 rounded-lg focus:outline-none hover:bg-emerald-700 focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-red-900"
                         >
                             <svg
                                 class="w-5 h-5"
@@ -353,7 +405,7 @@ function clearAlert() {
                                 keyId = item.id;
                             "
                             type="button"
-                            class="p-1 text-sm font-medium text-white bg-yellow-700 rounded-lg focus:outline-none hover:bg-yellow-800 focus:ring-4 focus:ring-yellow-300 dark:bg-yellow-600 dark:hover:bg-yellow-700 dark:focus:ring-red-900"
+                            class="p-1 text-sm font-medium text-white bg-yellow-500 rounded-lg focus:outline-none hover:bg-yellow-700 focus:ring-4 focus:ring-yellow-300 dark:bg-yellow-600 dark:hover:bg-yellow-700 dark:focus:ring-red-900"
                         >
                             <svg
                                 class="w-5 h-5"
@@ -377,6 +429,32 @@ function clearAlert() {
                             </svg>
                         </button>
                     </Tippy>
+                                        <!-- Tombol ubah status aplikasi -->
+                                        <Tippy content="Change status">
+                        <button
+                            @click="openStatusModal(item.id, item.status)"
+                            type="button"
+                            class="p-1 text-sm font-medium text-white bg-blue-500 rounded-lg focus:outline-none hover:bg-blue-700 focus:ring-4 focus:ring-purple-300 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-red-900"
+                        >
+                            <svg
+                                class="w-5 h-5"
+                                aria-hidden="true"
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="24"
+                                height="24"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke="currentColor"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"
+                                />
+                            </svg>
+                        </button>
+                    </Tippy>
                     <!-- Tombol hapus aplikasi -->
                     <Tippy content="Delete application">
                         <button
@@ -385,7 +463,7 @@ function clearAlert() {
                                 deleteOne = item.id;
                             "
                             type="button"
-                            class="p-1 text-sm font-medium text-white bg-red-700 rounded-lg focus:outline-none hover:bg-red-800 focus:ring-4 focus:ring-red-300 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900"
+                            class="p-1 text-sm font-medium text-white bg-red-500 rounded-lg focus:outline-none hover:bg-red-700 focus:ring-4 focus:ring-red-300 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900"
                         >
                             <svg
                                 class="w-5 h-5"
@@ -701,6 +779,86 @@ function clearAlert() {
                     <!-- Tombol batal -->
                     <button
                         @click="showKeyModal = false"
+                        data-modal-hide="popup-modal"
+                        type="button"
+                        class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                    >
+                        No, cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal konfirmasi ubah status -->
+    <div
+        tabindex="-1"
+        v-show="showStatusModal"
+        class="overflow-y-auto backdrop-blur-[2px] bg-gray-700 bg-opacity-40 flex overflow-x-hidden fixed top-0 right-0 left-0 bottom-0 z-50 justify-center items-center w-full md:inset-0"
+    >
+        <div class="relative w-full max-w-md max-h-full p-4">
+            <div
+                class="relative bg-white rounded-lg shadow dark:bg-gray-700"
+                ref="statusModal"
+            >
+                <!-- Tombol tutup modal -->
+                <button
+                    @click="showStatusModal = false"
+                    type="button"
+                    class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                    data-modal-hide="popup-modal"
+                >
+                    <svg
+                        class="w-3 h-3"
+                        aria-hidden="true"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 14 14"
+                    >
+                        <path
+                            stroke="currentColor"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                        />
+                    </svg>
+                    <span class="sr-only">Close modal</span>
+                </button>
+                <div class="p-4 text-center md:p-5">
+                    <svg
+                        class="w-12 h-12 mx-auto mb-4 text-gray-400 dark:text-gray-200"
+                        aria-hidden="true"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 20 20"
+                    >
+                        <path
+                            stroke="currentColor"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                        />
+                    </svg>
+                    <!-- Pesan konfirmasi -->
+                    <h3
+                        class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400"
+                    >
+                        Are you sure you want to change the status of this
+                        application?
+                    </h3>
+                    <!-- Tombol konfirmasi -->
+                    <button
+                        @click="changeStatus()"
+                        data-modal-hide="popup-modal"
+                        type="button"
+                        class="text-white bg-purple-600 hover:bg-purple-800 focus:ring-4 focus:outline-none focus:ring-purple-300 dark:focus:ring-purple-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center"
+                    >
+                        Yes, I'm sure
+                    </button>
+                    <!-- Tombol batal -->
+                    <button
+                        @click="showStatusModal = false"
                         data-modal-hide="popup-modal"
                         type="button"
                         class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
