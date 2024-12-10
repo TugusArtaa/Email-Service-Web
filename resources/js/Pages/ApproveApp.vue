@@ -97,6 +97,12 @@ const approveApplication = async () => {
     }
 };
 
+// Fungsi untuk membuka modal reject
+const openRejectModal = (application) => {
+    selectedApplication.value = application;
+    showRejectModal.value = true;
+};
+
 // Fungsi untuk mengirim permintaan reject aplikasi
 const rejectApplication = async () => {
     try {
