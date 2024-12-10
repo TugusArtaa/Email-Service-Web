@@ -29,7 +29,7 @@ Route::post('/login', [AuthenticationController::class, 'authenticate']);
 Route::get('/', [EmailLogController::class, 'index'])->middleware('auth')->name('dashboard');
 
 Route::prefix('integrasi')->group(function () {
-    Route::get('/', function(){
+    Route::get('/', function () {
         return Inertia::render('Integrasi');
     })->name('integrasi.index');
     Route::post('/send', [EmailQueueController::class, 'sendEmails']);
@@ -49,4 +49,10 @@ Route::prefix('application')->group(function () {
     Route::post('/', [ApplicationController::class, 'store'])->name('application.index');
     Route::delete('/delete', [ApplicationController::class, 'delete'])->name('application.delete');
     Route::post('/{application}/regenerate-secret', [ApplicationController::class, 'regenerateSecret'])->name('application.delete');
+})->middleware('auth');
+
+Route::prefix('approve')->group(function () {
+    Route::get('/', function () {
+        return Inertia::render('ApproveApp');
+    })->name('approve.index');
 })->middleware('auth');
