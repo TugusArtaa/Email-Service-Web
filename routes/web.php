@@ -9,6 +9,7 @@ use App\Http\Controllers\EmailLogController;
 use App\Http\Controllers\EmailQueueController;
 use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\AuthenticationController;
+use App\Http\Middleware\CheckUserLevel;
 
 Route::get('/login', function () {
     return Inertia::render('Login');
@@ -36,7 +37,7 @@ Route::prefix('integrasi')->group(function () {
     Route::delete('/delete', [EmailLogController::class, 'deleteAll'])->name('application.delete');
     Route::delete('/delete-date', [EmailLogController::class, 'bulkDelete'])->name('application.deleteDate');
 
-})->middleware('auth');
+});
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -44,15 +45,22 @@ Route::middleware('auth')->group(function () {
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
 });
 
-Route::prefix('application')->group(function () {
-    Route::get('/', [ApplicationController::class, 'index'])->name('application.index');
-    Route::post('/', [ApplicationController::class, 'store'])->name('application.index');
-    Route::delete('/delete', [ApplicationController::class, 'delete'])->name('application.delete');
-    Route::post('/{application}/regenerate-secret', [ApplicationController::class, 'regenerateSecret'])->name('application.delete');
-})->middleware('auth');
+Route::middleware('auth')->group(function () {
+    Route::get('/application', [ApplicationController::class, 'index'])->name('application.index');
+    Route::post('/application', [ApplicationController::class, 'store'])->name('application.index');
+    Route::delete('/application/delete', [ApplicationController::class, 'delete'])->name('application.delete');
+    Route::post('/application/{application}/regenerate-secret', [ApplicationController::class, 'regenerateSecret'])->name('application.delete');
+});
 
-Route::prefix('approve')->group(function () {
+Route::prefix('approve')->middleware('auth', CheckUserLevel::class . ':supervisor')->group(function () {
     Route::get('/', function () {
         return Inertia::render('ApproveApp');
     })->name('approve.index');
-})->middleware('auth');
+});
+
+// Route::prefix('application')->group(function () {
+//     Route::get('/', [ApplicationController::class, 'index'])->name('application.index');
+//     Route::post('/', [ApplicationController::class, 'store'])->name('application.index');
+//     Route::delete('/delete', [ApplicationController::class, 'delete'])->name('application.delete');
+//     Route::post('/{application}/regenerate-secret', [ApplicationController::class, 'regenerateSecret'])->name('application.delete');
+// })->middleware('auth', CheckUserLevel::class . ':admin');
