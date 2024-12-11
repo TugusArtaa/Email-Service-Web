@@ -21,13 +21,15 @@ class EmailQueueController extends Controller
     {
         $data = $request->json()->all();
 
-        // Retrieve the application based on the secret key and check status
-        $application = Application::where('secret_key', $data['secret'])
-            ->where('status', 'enabled')
-            ->first();
+        // Retrieve the application based on the secret key
+        $application = Application::where('secret_key', $data['secret'])->first();
 
         if (!$application) {
             return errorResponse('Invalid secret key', 422);
+        }
+
+        if ($application->status !== 'enabled') {
+            return errorResponse('Application status is disabled', 422);
         }
 
         // Sort the emails by priority
