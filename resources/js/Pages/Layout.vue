@@ -1,3 +1,52 @@
+<script setup>
+import { ref, computed } from "vue";
+import { usePage, useForm } from "@inertiajs/vue3";
+
+const showAdminMenu = ref(false);
+const isSidebarOpen = ref(true);
+const page = usePage();
+const user = page.props.auth.user;
+
+const form = useForm({
+    _token: page.props.csrf_token,
+});
+
+function submit() {
+    form.post("/logout");
+}
+
+// Get current path for active navigation
+const currentPath = computed(() => {
+    return window.location.pathname;
+});
+
+// Get page title based on current path
+const pageTitle = computed(() => {
+    switch (currentPath.value) {
+        case "/dashboard":
+            return "Dashboard";
+        case "/integrasi":
+            return "Integrasi";
+        case "/application":
+            return "Manajemen Aplikasi";
+        case "/approve":
+            return "Approve Aplikasi";
+        case "/profile":
+            return "Profil";
+        default:
+            return "Dashboard";
+    }
+});
+
+const toggleAdminMenu = () => {
+    showAdminMenu.value = !showAdminMenu.value;
+};
+
+const toggleSidebar = () => {
+    isSidebarOpen.value = !isSidebarOpen.value;
+};
+</script>
+
 <template>
     <div class="flex min-h-screen bg-gray-50">
         <!-- Sidebar -->
@@ -124,6 +173,35 @@
                         </div>
                         <span>Manajemen Aplikasi</span>
                     </a>
+                    <!-- Approve Applications -->
+                    <a
+                        href="/approve"
+                        :class="[
+                            'flex items-center gap-4 px-4 py-3 text-sm font-medium rounded-lg',
+                            currentPath === '/approve'
+                                ? 'text-green-600 bg-green-50'
+                                : 'text-gray-600 hover:bg-gray-50',
+                            !isSidebarOpen && 'hidden',
+                        ]"
+                    >
+                        <div class="w-5 h-5">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke-width="1.5"
+                                stroke="currentColor"
+                                class="size-6"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="m4.5 12.75 6 6 9-13.5"
+                                />
+                            </svg>
+                        </div>
+                        <span>Approve Aplikasi</span>
+                    </a>
                 </nav>
 
                 <!-- Account Section -->
@@ -131,7 +209,7 @@
                     <h3
                         class="px-4 text-xs font-semibold text-gray-400 uppercase"
                     >
-                        ACCOUNT PAGES
+                        HALAMAN AKUN
                     </h3>
                     <nav class="mt-2">
                         <a
@@ -155,7 +233,7 @@
                                     <path d="M20 21a8 8 0 1 0-16 0" />
                                 </svg>
                             </div>
-                            <span>Profile</span>
+                            <span>Profil</span>
                         </a>
                     </nav>
                 </div>
@@ -232,7 +310,7 @@
                                     href="/profile"
                                     class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                 >
-                                    Profile Settings
+                                    Pengaturan Profil
                                 </a>
                                 <form @submit.prevent="submit">
                                     <input
@@ -278,50 +356,3 @@
         </div>
     </div>
 </template>
-
-<script setup>
-import { ref, computed } from "vue";
-import { usePage, useForm } from "@inertiajs/vue3";
-
-const showAdminMenu = ref(false);
-const isSidebarOpen = ref(true);
-const page = usePage();
-const user = page.props.auth.user;
-
-const form = useForm({
-    _token: page.props.csrf_token,
-});
-
-function submit() {
-    form.post("/logout");
-}
-
-// Get current path for active navigation
-const currentPath = computed(() => {
-    return window.location.pathname;
-});
-
-// Get page title based on current path
-const pageTitle = computed(() => {
-    switch (currentPath.value) {
-        case "/dashboard":
-            return "Dashboard";
-        case "/integrasi":
-            return "Integrasi";
-        case "/application":
-            return "Manajemen Aplikasi";
-        case "/profile":
-            return "Profile";
-        default:
-            return "Dashboard";
-    }
-});
-
-const toggleAdminMenu = () => {
-    showAdminMenu.value = !showAdminMenu.value;
-};
-
-const toggleSidebar = () => {
-    isSidebarOpen.value = !isSidebarOpen.value;
-};
-</script>

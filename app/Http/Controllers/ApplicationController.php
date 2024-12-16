@@ -48,23 +48,45 @@ class ApplicationController extends Controller
         );
     }
 
+    public function getApproveData(Request $request)
+    {
+        $search = $request->query('search', '');
+        $orderBy = $request->query('orderBy', 'id');
+        $orderDirection = $request->query('orderDirection', 'desc');
+        $applications = $this->applicationService->getPaginatedApprove(search: $search, orderBy: $orderBy, orderDirection: $orderDirection);
+
+        return responseWithData(
+            $applications->isEmpty() ? 'No applications found' : 'Applications retrieved successfully',
+            ['applications' => $applications]
+        );
+    }
+
     //  Method untuk menyimpan data aplikasi
     public function store(ApplicationRequest $request)
     {
         $validated = $request->validated();
 
+        // if ($this->applicationService->checkApplicationExists($validated['name'])) {
+        //     return errorResponse('Aplikasi sudah terdaftar', 422);
+        // }
+
         if ($this->applicationService->checkApplicationExists($validated['name'])) {
-            return errorResponse('Aplikasi sudah terdaftar', 422);
+            return response()->json(['errors' => ['name' => ['Aplikasi sudah terdaftar']]], 422);
         }
 
         $application = $this->applicationService->createApplication($validated);
 
 
         // return redirect()->back()->with('message', 'Aplikasi berhasil didaftarkan');
-        return responseWithData(
-            'Application registered successfully',
-            $this->applicationService->formatApplicationResponse($application, $application->secret_key)
-        )->setStatusCode(201);
+        // return responseWithData(
+        //     'Application registered successfully',
+        //     $this->applicationService->formatApplicationResponse($application, $application->secret_key)
+        // )->setStatusCode(201);
+
+        return response()->json([
+            'message' => 'Application registered successfully',
+            'application' => $application
+        ], 201);
     }
     //Method untuk menampilkan detail aplikasi berdasarkan id
     public function show(Application $application)
@@ -82,7 +104,9 @@ class ApplicationController extends Controller
 
         $this->applicationService->deleteApplications($request->ids);
 
-        return redirect()->back()->with('message', 'Applications deleted successfully');
+        // return redirect()->back()->with('message', 'Applications deleted successfully');
+
+        return response()->json(['success' => true, 'message' => 'Applications deleted successfully']);
 
         // return responseWithData(
         //     'Applications deleted successfully',
@@ -90,13 +114,16 @@ class ApplicationController extends Controller
         // )->setStatusCode(200);
     }
 
-    public function approveApplication(ApproveApplicationRequest $Request)
+    public function approveApplication(ApproveApplicationRequest $request)
     {
         // Panggil service untuk memproses regenerasi secret key
-        $result = $this->applicationService->approveGenerateSecretKey($Request->id);
+        $result = $this->applicationService->approveGenerateSecretKey($request->id);
 
         // Kembalikan response sesuai hasil dari service
-        return $result;
+        return response()->json([
+            'message' => 'Application approved successfully',
+            'result' => $result
+        ]);
     }
 
     public function handleApplicationStatusChange(ApplicationStatusChangeRequest $request)
@@ -106,6 +133,11 @@ class ApplicationController extends Controller
 
         $result = $this->applicationService->handleApplicationStatusChange($id, $status);
 
+        // return response()->json([
+        //     'message' => 'Application status changed successfully',
+        //     'result' => $result
+        // ]);
+        
         return $result;
     }
 }

@@ -30,6 +30,10 @@ const {
 </script>
 
 <template>
+    <!-- Judul -->
+    <head>
+        <title>Dashboard</title>
+    </head>
     <!-- Layout utama halaman -->
     <Layout>
         <!-- Menampilkan statistik -->
