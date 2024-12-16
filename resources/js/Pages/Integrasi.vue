@@ -348,6 +348,6 @@ refreshData();
             </div>
         </div>
         <!-- modal add email -->
-        <AddModal v-if="addModal" @close="handleCloseAddModal" @success="handleSuccessMessage" />
+        <AddModal v-show="addModal" @close="handleCloseAddModal" @success="handleSuccessMessage" />
     </Layout>
 </template>
