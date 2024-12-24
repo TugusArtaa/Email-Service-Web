@@ -3,6 +3,7 @@ import { watch, ref } from 'vue';
 import { Tippy } from 'vue-tippy'
 import { onClickOutside, useFetch } from '@vueuse/core'
 import { useForm, usePage } from '@inertiajs/vue3'
+import axios from 'axios';
 
 const props = defineProps({
     thead: Array,
@@ -59,13 +60,22 @@ function deleteLog() {
 function getDetail(id) {
     detailFetch.value = false;
     logDetail.value = {};
-    const fetchData = useFetch(`${baseUrl}/api/email-queue/extract/${id}`).get().json();
-    watch(fetchData.data, (newData) => {
-        if (newData) {
-            logDetail.value = newData.data;
+    // const fetchData = useFetch(`${baseUrl}/api/email-queue/extract/${id}`).get().json();
+    // watch(fetchData.data, (newData) => {
+    //     if (newData) {
+    //         logDetail.value = newData.data;
+    //         detailFetch.value = true;
+    //     }
+    // });
+    axios.post(`${baseUrl}/api/email-queue/extract`, { id })
+        .then(response => {
+            logDetail.value = response.data.data;
             detailFetch.value = true;
-        }
-    });
+        })
+        .catch(error => {
+            console.error(error);
+            detailFetch.value = false;
+        });
 }
 
 const formRetry = useForm({
