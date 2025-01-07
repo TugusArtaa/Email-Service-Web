@@ -29,7 +29,7 @@ class RabbitMQService
     {
         try {
             // Declare the exchange as 'direct' for routing emails
-            $this->channel->exchange_declare('email', 'direct', false, true, false);
+            $this->channel->exchange_declare('email_exchange', 'direct', false, true, false);
 
             // Declare the queue with priority support (dynamic priority from 1 to 20)
             $this->channel->queue_declare('email_queue', false, true, false, false, false, [
@@ -37,7 +37,7 @@ class RabbitMQService
             ]);
 
             // Bind the queue to the exchange with the routing key 'email'
-            $this->channel->queue_bind('email_queue', 'email', 'email');
+            $this->channel->queue_bind('email_queue', 'email_exchange', 'email');
         } catch (\Exception $e) {
             dd($e);
             return ['error' => 'Connection error: ' . $e->getMessage()];

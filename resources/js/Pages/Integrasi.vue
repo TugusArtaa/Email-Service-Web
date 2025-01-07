@@ -11,6 +11,38 @@ import VueDatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css'
 import axios from 'axios';
 
+// file upload
+const selectedFile = ref(null);
+function handleFileUpload(event) {
+    selectedFile.value = event.target.files[0];
+}
+async function uploadFile() {
+    if (!selectedFile.value) {
+        alert("Please select a file first.");
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append("excel_file", selectedFile.value);
+
+    // Periksa isi FormData
+    for (let [key, value] of formData.entries()) {
+        console.log(`${key}: ${value.name}`);
+    }
+    try {
+        const response = await axios.post(`${baseUrl}/api/email-queue/sendExcel`, formData, {
+            headers: {
+                "Content-Type": "multipart/form-data"
+            }
+        });
+        alert("File uploaded successfully.");
+        console.log(response.data);
+    } catch (error) {
+        console.error("Error uploading file:", error);
+        alert("Error uploading file.");
+    }
+}
+
 // add data
 const success = ref('');
 const error = ref('');
@@ -35,6 +67,16 @@ function handleCloseAddModal() {
 const orderDropdown = ref(false);
 const modalOrder = ref(null);
 const btnOrder = ref(null);
+onClickOutside(modalOrder, event => {
+    if (event.target !== btnOrder.value) {
+        orderDropdown.value = false;
+    }
+});
+
+// add excel
+const addExcel = ref(false);
+const modalExcel = ref(null);
+const btnExcel = ref(null);
 onClickOutside(modalOrder, event => {
     if (event.target !== btnOrder.value) {
         orderDropdown.value = false;
@@ -219,6 +261,15 @@ refreshData();
                                     </svg>
                                     New Email
                                 </button>
+                                <button type="button" @click="addExcel = true" ref="btnExcel"
+                                    class="flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-green-700 rounded-lg hover:bg-green-800 focus:ring-4 focus:ring-green-300 dark:bg-green-600 dark:hover:bg-green-700 focus:outline-none dark:focus:ring-green-800">
+                                    <svg class="h-3.5 w-3.5 mr-2 text-white" aria-hidden="true"
+                                        xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                            stroke-width="2" d="M5 12h14m-7 7V5" />
+                                    </svg>
+                                    Insert Excel
+                                </button>
                                 <div class="flex items-center w-full space-x-3 md:w-auto">
                                     <button @click="handleDeleteCheckbox" id="actionsDropdownButton"
                                         data-dropdown-toggle="actionsDropdown"
@@ -234,7 +285,7 @@ refreshData();
                                         Delete by Checkbox
                                     </button>
                                     <div class="relative">
-                                        <button @click="dateDropdown = !dateDropdown" ref="btnDate"
+                                        <!-- <button @click="dateDropdown = !dateDropdown" ref="btnDate"
                                             d="actionsDropdownButton" data-dropdown-toggle="actionsDropdown"
                                             class="flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-red-700 bg-white border border-red-700 rounded-lg md:w-auto focus:outline-none hover:bg-red-800 hover:text-white focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
                                             type="button">
@@ -246,7 +297,7 @@ refreshData();
                                                     d="M5 7h14m-9 3v8m4-8v8M10 3h4a1 1 0 0 1 1 1v3H9V4a1 1 0 0 1 1-1ZM6 7h12v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7Z" />
                                             </svg>
                                             Delete by Date
-                                        </button>
+                                        </button> -->
                                         <div v-show="dateDropdown" ref="modalDate"
                                             class="absolute flex flex-col items-center p-2 bg-white shadow -left-1/3 top-12 gap-y-2">
                                             <VueDatePicker v-model="date" range inline auto-apply
@@ -343,6 +394,42 @@ refreshData();
                             <button @click="handleDeleteDate" data-modal-hide="default-modal" type="button"
                                 class="text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-blue-800 mt-5">Delete</button>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- modal add excel -->
+        <div v-show="addExcel"
+            class="fixed top-0 left-0 right-0 z-50 flex items-center justify-center w-full overflow-x-hidden overflow-y-auto bg-gray-700 bg-opacity-40 md:inset-0 backdrop-blur-[2px]">
+            <div class="relative w-full max-w-2xl max-h-full p-4">
+                <!-- Modal content -->
+                <div class="relative bg-white rounded-lg shadow dark:bg-gray-700" ref="modalExcel">
+                    <!-- Modal header -->
+                    <div class="flex items-center justify-between p-4 border-b rounded-t md:p-5 dark:border-gray-600">
+                        <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
+                            Upload File Excel
+                        </h3>
+                        <button @click="addExcel = false" type="button"
+                            class="inline-flex items-center justify-center w-8 h-8 text-sm text-gray-400 bg-transparent rounded-lg hover:bg-gray-200 hover:text-gray-900 ms-auto dark:hover:bg-gray-600 dark:hover:text-white"
+                            data-modal-hide="default-modal">
+                            <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                viewBox="0 0 14 14">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                    stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+                            </svg>
+                            <span class="sr-only">Close modal</span>
+                        </button>
+                    </div>
+                    <!-- Modal body -->
+                    <div class="p-4 space-y-4md:p-5">
+                        <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                            for="file_input">Upload file</label>
+                        <input @change="handleFileUpload"
+                            class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
+                            id="file_input" type="file">
+                    </div>
+                    <div class="flex items-center justify-end pb-3">
+                        <button @click="uploadFile" type="button" class="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 me-4 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">Upload</button>
                     </div>
                 </div>
             </div>

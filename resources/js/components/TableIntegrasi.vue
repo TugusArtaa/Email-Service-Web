@@ -184,7 +184,7 @@ function handleRetry() {
                             </svg>
                         </button>
                     </Tippy>
-                    <Tippy content="Retry send email" v-if="item.status == 'failed'">
+                    <Tippy content="Retry send email" v-if="item.status == 'failed' || item.status == 'pending'">
                         <button type="button" @click="showEditModal = true; getEdit(item.id)"
                             class="p-1 text-sm font-medium text-white bg-green-700 rounded-lg focus:outline-none hover:bg-green-800 focus:ring-4 focus:ring-green-300 dark:bg-green-600 dark:hover:bg-blue-700 dark:focus:ring-red-900">
                             <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24"
