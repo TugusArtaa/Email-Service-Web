@@ -1,58 +1,55 @@
 <script setup>
-import { ref } from "vue";
-import { vAutoAnimate } from '@formkit/auto-animate'
-import axios from 'axios';
+import { ref, onMounted, watch } from "vue";
+import { vAutoAnimate } from "@formkit/auto-animate";
+import axios from "axios";
 
 const baseUrl = import.meta.env.VITE_APP_URL;
-// body modal
-const formModal = ref(false)
-// close modal
-const emit = defineEmits(['close', 'success'])
+const formModal = ref(false);
+const emit = defineEmits(["close", "success"]);
 
 const emails = ref({
-    secret: "MzOkSuCPGS79CQJleLG1m13ME20ZP4R5nGviNIJAaa7iceNnZXpigLFl",
-    mail: [
-        {
-            to: "surya@gmail.com",
-            subject: "Ini Subjek",
-            priority: "low",
-            content: "",
-            attachment: []
-        },
-        {
-            to: "nandana@gmail.com",
-            subject: "Ini Subjek",
-            priority: "low",
-            content: "",
-            attachment: []
-        }
-    ]
+    secret: "",
+    mail: [],
 });
 
-const successMessage = ref('');
-const errorMessage = ref('');
+onMounted(() => {
+    const storedEmails = localStorage.getItem("emails");
+    if (storedEmails) {
+        emails.value = JSON.parse(storedEmails);
+    }
+});
+
+watch(
+    emails,
+    (newEmails) => {
+        localStorage.setItem("emails", JSON.stringify(newEmails));
+    },
+    { deep: true }
+);
+
+const successMessage = ref("");
+const errorMessage = ref("");
 
 async function handleSubmit() {
     try {
-        const response = await axios.post(`${baseUrl}/api/email-queue/send`, emails.value);
-        emit('success', response.data.message);
-        // Reset form
-        emails.value = {
-            secret: "",
-            mail: [
-                {
-                    to: "",
-                    subject: "",
-                    priority: "low",
-                    content: "",
-                    attachment: []
-                }
-            ]
-        };
-        emit('close');
+        const response = await axios.post(
+            `${baseUrl}/api/email-queue/send`,
+            emails.value
+        );
+        successMessage.value = response.data.message;
+        emit("success", response.data.message);
+        emit("close");
     } catch (error) {
-        // errorMessage.value = error.response.data.message || 'An error occurred';
-        console.log(error.response.data.errors);
+        console.log(error.response);
+        if (
+            error.response &&
+            error.response.data &&
+            error.response.data.error
+        ) {
+            errorMessage.value = error.response.data.error;
+        } else {
+            errorMessage.value = "An error occurred";
+        }
     }
 }
 
@@ -60,16 +57,15 @@ function addEmail(newEmail) {
     emails.value.mail.push(newEmail);
 }
 
-// email
 const email = ref({
-    subject: '',
-    to: '',
-    priority: '',
-    content: '',
-    attachment: []
-})
-// index
-const emailIndex = ref(null)
+    subject: "",
+    to: "",
+    priority: "",
+    content: "",
+    attachment: [],
+});
+
+const emailIndex = ref(null);
 
 function detailEmail(index) {
     email.value = JSON.parse(JSON.stringify(emails.value.mail[index]));
@@ -78,12 +74,13 @@ function detailEmail(index) {
 
 function newEmail() {
     email.value = {
-        subject: '',
-        to: '',
-        priority: 'low',
-        content: '',
-        attachment: []
-    }
+        subject: "",
+        to: "",
+        priority: "low",
+        content: "",
+        attachment: [],
+    };
+    emails.value.secret = "";
     emailIndex.value = null;
 }
 
@@ -97,7 +94,7 @@ function removeEmail(index) {
 }
 
 function addAttachment() {
-    email.value.attachment.push('');
+    email.value.attachment.push("");
 }
 
 function removeAttachment(index) {
@@ -107,139 +104,314 @@ function removeAttachment(index) {
 
 <template>
     <div>
-        <div @click="emit('close')"
-            class="fixed top-0 left-0 right-0 z-50 flex items-center justify-center w-full max-h-full p-4 overflow-x-hidden overflow-y-auto bg-gray-700 bg-opacity-50 backdrop-blur-[2px] md:inset-0">
-        </div>
+        <div
+            @click="emit('close')"
+            class="fixed top-0 left-0 right-0 z-50 flex items-center justify-center w-full max-h-full p-4 overflow-x-hidden overflow-y-auto bg-gray-700 bg-opacity-50 backdrop-blur-[2px] md:inset-0"
+        ></div>
         <!-- Extra Large Modal -->
         <div
-            class="fixed z-50 w-full max-h-full -translate-x-1/2 -translate-y-1/2 bg-red-200 left-1/2 top-1/2 max-w-7xl">
+            class="fixed z-50 w-full max-h-full -translate-x-1/2 -translate-y-1/2 bg-red-200 left-1/2 top-1/2 max-w-7xl"
+        >
             <!-- Modal content -->
             <form class="relative bg-white rounded-lg shadow dark:bg-gray-700">
                 <!-- Modal header -->
-                <div class="flex items-center justify-between p-4 border-b rounded-t md:p-5 dark:border-gray-600">
-                    <h3 class="text-xl font-medium text-gray-900 dark:text-white">
+                <div
+                    class="flex items-center justify-between p-4 border-b rounded-t md:p-5 dark:border-gray-600"
+                >
+                    <h3
+                        class="text-xl font-medium text-gray-900 dark:text-white"
+                    >
                         Add Email
                     </h3>
-                    <button type="button" @click="emit('close')"
+                    <button
+                        type="button"
+                        @click="emit('close')"
                         class="inline-flex items-center justify-center w-8 h-8 text-sm text-gray-400 bg-transparent rounded-lg hover:bg-gray-200 hover:text-gray-900 ms-auto dark:hover:bg-gray-600 dark:hover:text-white"
-                        data-modal-hide="extralarge-modal">
-                        <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
-                            viewBox="0 0 14 14">
-                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+                        data-modal-hide="extralarge-modal"
+                    >
+                        <svg
+                            class="w-3 h-3"
+                            aria-hidden="true"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 14 14"
+                        >
+                            <path
+                                stroke="currentColor"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                            />
                         </svg>
                         <span class="sr-only">Close modal</span>
                     </button>
                 </div>
+                <!-- Error message -->
+                <div
+                    v-if="errorMessage"
+                    class="p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg dark:bg-red-200 dark:text-red-800"
+                    role="alert"
+                >
+                    {{ errorMessage }}
+                </div>
                 <!-- Modal body list card -->
-                <div v-show="!formModal" class="grid grid-cols-3 p-4 gap-x-2 gap-y-4 md:p-5 max-h-[70vh] overflow-auto">
+                <div
+                    v-show="!formModal"
+                    class="grid grid-cols-3 p-4 gap-x-2 gap-y-4 md:p-5 max-h-[70vh] overflow-auto"
+                >
                     <!-- card -->
-                    <div class="flex flex-col items-center justify-center text-green-700 border border-green-400 border-dashed cursor-pointer hover:text-green-500"
-                        @click="newEmail(), formModal = true">
-                        <svg class="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24"
-                            height="24" fill="none" viewBox="0 0 24 24">
-                            <path stroke="currentColor" stroke-linecap="round" stroke-width="2"
-                                d="m3.5 5.5 7.893 6.036a1 1 0 0 0 1.214 0L20.5 5.5M4 19h16a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1Z" />
+                    <div
+                        class="flex flex-col items-center justify-center text-green-700 border border-green-400 border-dashed cursor-pointer hover:text-green-500"
+                        @click="newEmail(), (formModal = true)"
+                    >
+                        <svg
+                            class="w-6 h-6"
+                            aria-hidden="true"
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="24"
+                            height="24"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke="currentColor"
+                                stroke-linecap="round"
+                                stroke-width="2"
+                                d="m3.5 5.5 7.893 6.036a1 1 0 0 0 1.214 0L20.5 5.5M4 19h16a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1Z"
+                            />
                         </svg>
                         <span>Add new email</span>
                     </div>
-                    <div @click="formModal = true, detailEmail(index), emailIndex = index"
-                        class="border py-1.5 px-3 relative rounded-md overflow-hidden" v-for="(item, index) in emails.mail">
+                    <div
+                        @click="
+                            (formModal = true),
+                                detailEmail(index),
+                                (emailIndex = index)
+                        "
+                        class="border py-1.5 px-3 relative rounded-md overflow-hidden"
+                        v-for="(item, index) in emails.mail"
+                    >
                         <h2 class="text-lg font-bold">{{ item.subject }}</h2>
-                        <h4 class="text-sm line-clamp-1" title="suryanandana@gmail.com">To: {{ item.to }}</h4>
+                        <h4
+                            class="text-sm line-clamp-1"
+                            title="suryanandana@gmail.com"
+                        >
+                            To: {{ item.to }}
+                        </h4>
                         <span
-                            class="bg-blue-100 text-blue-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300">
-                            {{ item.priority.charAt(0).toUpperCase() + item.priority.slice(1) }} Priority</span>
+                            class="bg-blue-100 text-blue-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300"
+                        >
+                            {{
+                                item.priority.charAt(0).toUpperCase() +
+                                item.priority.slice(1)
+                            }}
+                            Priority</span
+                        >
                         <!-- delete -->
-                        <button type="button" @click.stop="removeEmail(index)"
+                        <button
+                            type="button"
+                            @click.stop="removeEmail(index)"
                             class="absolute top-0 right-0 inline-flex items-center justify-center w-8 h-8 text-sm text-gray-400 bg-transparent rounded-lg hover:bg-gray-200 hover:text-gray-900 ms-auto dark:hover:bg-gray-600 dark:hover:text-white"
-                            data-modal-hide="extralarge-modal">
-                            <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                viewBox="0 0 14 14">
-                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                    stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+                            data-modal-hide="extralarge-modal"
+                        >
+                            <svg
+                                class="w-3 h-3"
+                                aria-hidden="true"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 14 14"
+                            >
+                                <path
+                                    stroke="currentColor"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                                />
                             </svg>
                             <span class="sr-only">Close modal</span>
                         </button>
                     </div>
                 </div>
                 <!-- Modal body form -->
-                <div v-show="formModal" class="grid grid-cols-3 p-4 md:p-5 gap-x-5 gap-y-4 max-h-[70vh] overflow-auto">
+                <div
+                    v-show="formModal"
+                    class="grid grid-cols-3 p-4 md:p-5 gap-x-5 gap-y-4 max-h-[70vh] overflow-auto"
+                >
                     <div>
-                        <label for="subject"
-                            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Subject</label>
-                        <input type="text" id="subject" v-model="email.subject"
+                        <label
+                            for="subject"
+                            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                            >Subject</label
+                        >
+                        <input
+                            type="text"
+                            id="subject"
+                            v-model="email.subject"
                             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                            placeholder="Example" required />
+                            placeholder="Example"
+                            required
+                        />
                     </div>
                     <div>
-                        <label for="first_name"
-                            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">To</label>
-                        <input type="email" id="first_name" v-model="email.to"
+                        <label
+                            for="first_name"
+                            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                            >To</label
+                        >
+                        <input
+                            type="email"
+                            id="first_name"
+                            v-model="email.to"
                             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                            placeholder="name@example.com" required />
+                            placeholder="name@example.com"
+                            required
+                        />
                     </div>
                     <div>
-                        <label for="countries"
-                            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Select an
-                            Priority</label>
-                        <select id="countries" v-model="email.priority"
-                            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                        <label
+                            for="countries"
+                            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                            >Select an Priority</label
+                        >
+                        <select
+                            id="countries"
+                            v-model="email.priority"
+                            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                        >
                             <option value="low">Low</option>
                             <option value="medium">Medium</option>
                             <option value="high">High</option>
                         </select>
                     </div>
                     <div>
-                        <label for="first_name"
-                            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Attachment</label>
+                        <label
+                            for="secret"
+                            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                            >Secret</label
+                        >
+                        <input
+                            type="text"
+                            id="secret"
+                            v-model="emails.secret"
+                            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                            placeholder="Enter secret"
+                            required
+                        />
+                    </div>
+                    <div>
+                        <label
+                            for="first_name"
+                            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                            >Attachment</label
+                        >
                         <div class="flex flex-col gap-y-2" v-auto-animate>
-                            <div v-for="(item, index) in email.attachment" :key="index"
-                                class="flex items-center gap-x-2">
-                                <input type="text" v-model="email.attachment[index]"
+                            <div
+                                v-for="(item, index) in email.attachment"
+                                :key="index"
+                                class="flex items-center gap-x-2"
+                            >
+                                <input
+                                    type="text"
+                                    v-model="email.attachment[index]"
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                    placeholder="Attachment URL..." required />
-                                <button @click="removeAttachment(index)" type="button"
-                                    class="text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-3 py-2.5 dark:bg-red-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
-                                    <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                                        width="24" height="24" fill="none" viewBox="0 0 24 24">
-                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                    placeholder="Attachment URL..."
+                                    required
+                                />
+                                <button
+                                    @click="removeAttachment(index)"
+                                    type="button"
+                                    class="text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-3 py-2.5 dark:bg-red-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+                                >
+                                    <svg
+                                        class="w-5 h-5"
+                                        aria-hidden="true"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="24"
+                                        height="24"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            stroke="currentColor"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
                                             stroke-width="2"
-                                            d="M5 7h14m-9 3v8m4-8v8M10 3h4a1 1 0 0 1 1 1v3H9V4a1 1 0 0 1 1-1ZM6 7h12v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7Z" />
+                                            d="M5 7h14m-9 3v8m4-8v8M10 3h4a1 1 0 0 1 1 1v3H9V4a1 1 0 0 1 1-1ZM6 7h12v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7Z"
+                                        />
                                     </svg>
                                 </button>
                             </div>
-                            <button type="button" @click="addAttachment" class="text-blue-600 hover:text-blue-800">Add
-                                Attachment</button>
+                            <button
+                                type="button"
+                                @click="addAttachment"
+                                class="text-blue-600 hover:text-blue-800"
+                            >
+                                Add Attachment
+                            </button>
                         </div>
                     </div>
                     <div class="col-span-2">
-                        <label for="message" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                            Content</label>
-                        <textarea id="message" rows="4" v-model="email.content"
+                        <label
+                            for="message"
+                            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                        >
+                            Content</label
+                        >
+                        <textarea
+                            id="message"
+                            rows="4"
+                            v-model="email.content"
                             class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                            placeholder="Write your thoughts here..."></textarea>
+                            placeholder="Write your thoughts here..."
+                        ></textarea>
                     </div>
                 </div>
                 <!-- Modal footer -->
                 <div
-                    class="flex items-center p-4 space-x-3 border-t border-gray-200 rounded-b md:p-5 rtl:space-x-reverse dark:border-gray-600">
+                    class="flex items-center p-4 space-x-3 border-t border-gray-200 rounded-b md:p-5 rtl:space-x-reverse dark:border-gray-600"
+                >
                     <!-- add new -->
-                    <button data-modal-hide="extralarge-modal" type="submit" v-if="formModal && emailIndex === null"
-                        @click="addEmail(email), formModal = false"
-                        class="text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">Add</button>
+                    <button
+                        data-modal-hide="extralarge-modal"
+                        type="submit"
+                        v-if="formModal && emailIndex === null"
+                        @click="addEmail(email), (formModal = false)"
+                        class="text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
+                    >
+                        Add
+                    </button>
                     <!-- edit changes -->
-                    <button data-modal-hide="extralarge-modal" type="button" @click="saveEdit"
+                    <button
+                        data-modal-hide="extralarge-modal"
+                        type="button"
+                        @click="saveEdit"
                         v-if="formModal && emailIndex !== null"
-                        class="text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">
-                        Save</button>
+                        class="text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
+                    >
+                        Save
+                    </button>
                     <!-- submit email -->
-                    <button data-modal-hide="extralarge-modal" type="button" @click="handleSubmit" v-if="!formModal"
-                        class="text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">
-                        Submit</button>
+                    <button
+                        data-modal-hide="extralarge-modal"
+                        type="button"
+                        @click="handleSubmit"
+                        v-if="!formModal"
+                        class="text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
+                    >
+                        Submit
+                    </button>
                     <!-- cancel -->
-                    <button data-modal-hide="extralarge-modal" type="button" @click="formModal = false" v-if="formModal"
-                        class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">Cancel</button>
+                    <button
+                        data-modal-hide="extralarge-modal"
+                        type="button"
+                        @click="formModal = false"
+                        v-if="formModal"
+                        class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                    >
+                        Cancel
+                    </button>
                 </div>
             </form>
         </div>

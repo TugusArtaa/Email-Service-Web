@@ -3,10 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\SendEmailRequest;
+use App\Http\Requests\ExtractEmailRequest;
+use App\Http\Requests\RetryEmailRequest;
 use App\Http\Requests\ExcelRequest;
 use App\Services\EmailQueueService;
 use App\Models\Application;
 use App\Services\EmailLogService;
+
+use PhpOffice\PhpSpreadsheet\Calculation\TextData\Extract;
 
 class EmailQueueController extends Controller
 {
@@ -78,9 +82,22 @@ class EmailQueueController extends Controller
     }
 
     //Method untuk mengambil data email log berdasarkan id
-    public function extractEmailData(SendEmailRequest $request)
+    public function extractEmailData(ExtractEmailRequest $request)
     {
         return $this->emailService->extractEmailLogData($request);
     }
-}
 
+    public function retryEmails(RetryEmailRequest $request)
+    {
+        $data = $request->validated();
+
+        $result = $this->emailService->retryEmails($data);
+
+        if (isset($result['error'])) {
+            return errorResponse($result['error'], 422);
+        }
+
+        return responseWithData('Email retried successfully', $result['message']);
+    }
+
+}

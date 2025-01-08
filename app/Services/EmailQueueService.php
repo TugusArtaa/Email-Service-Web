@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Http\Requests\SendEmailRequest;
+use App\Http\Requests\ExtractEmailRequest;
 use App\Models\Application;
 use PhpAmqpLib\Message\AMQPMessage;
 use App\Models\EmailLog;
@@ -67,7 +68,7 @@ class EmailQueueService
                     'subject' => $subject,
                     'content' => $content,
                     'attachment' => $mail['attachment'] ?? [],
-                    'priority' => $priority, // Store the numerical value in the DB
+                    'priority' => $mail['priority'], 
                     'secret' => $secret,
                 ];
 
@@ -204,8 +205,8 @@ class EmailQueueService
         return ['messages' => $result['messages']];
     }
 
-    //Method untuk mengekstrak data email log berdasarkan ID
-    public function extractEmailLogData(SendEmailRequest $request)
+    // //Method untuk mengekstrak data email log berdasarkan ID
+    public function extractEmailLogData(ExtractEmailRequest $request)
     {
         $id = $request->input('id');
         $emailLog = EmailLog::find($id);
@@ -228,7 +229,6 @@ class EmailQueueService
                 'content' => $emailData['content'] ?? '',
                 'priority' => $emailData['priority'] ?? '',
                 'attachment' => $emailData['attachment'] ?? [],
-                'secret' => $emailData['secret'] ?? '',
                 'status' => $emailLog['status'] ?? '',
                 'error_message' => $emailLog['error_message'] ?? ''
             ]);
@@ -236,5 +236,52 @@ class EmailQueueService
             return queueError('Error processing email log data.');
         }
     }
-}
 
+
+    public function retryEmails(array $data)
+    {
+        $emailLog = EmailLog::find($data['id']);
+    
+        if (!$emailLog) {
+            return ['error' => 'Email log not found'];
+        }
+    
+        $emailData = json_decode($emailLog->request, true);
+    
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return ['error' => 'Invalid email log data'];
+        }
+    
+        // Update email data with new inputs from retry request
+        $emailData['id'] = $data['id']; 
+        $emailData['to'] = $data['mail'][0]['to'] ?? $emailData['to'];
+        $emailData['subject'] = $data['mail'][0]['subject'] ?? $emailData['subject'];
+        $emailData['content'] = $data['mail'][0]['content'] ?? $emailData['content'];
+        $emailData['attachment'] = $data['mail'][0]['attachment'] ?? $emailData['attachment'];
+
+        // Log the new retried email
+        $applicationId = $emailLog->application_id;
+        $newEmailLog = app(EmailLogService::class)->logEmail($emailData, $applicationId);
+        $emailData['id'] = $newEmailLog->id; // Assign the new log ID to the email data
+
+        try {
+            $priorityMap = ['low' => 1, 'medium' => 2, 'high' => 3];
+            $priority = $priorityMap[$emailData['priority']] ?? 2;
+    
+            $msg = new AMQPMessage(
+                json_encode($emailData),
+                [
+                    'delivery_mode' => 2,
+                    'priority' => $priority,
+                ]
+            );
+    
+            $this->channel->basic_publish($msg, 'email_exchange', 'email');
+    
+            return ['message' => $emailData];
+        } catch (\Exception $e) {
+            return ['error' => 'Retry failed: ' . $e->getMessage()];
+        }
+    }
+
+}
