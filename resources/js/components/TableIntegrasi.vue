@@ -85,6 +85,7 @@ function getDetail(id) {
 
 const formRetry = useForm({
     id: 0,
+    secret: "",
     mail: [
         {
             to: "",
@@ -104,7 +105,7 @@ function getEdit(id) {
         .post(`${baseUrl}/api/email-queue/extract`, { id })
         .then((response) => {
             const newData = response.data.data;
-            console.log("Fetched data:", newData);
+            console.log("Fetched data:", newData.secret);
             if (newData) {
                 formRetry.id = id;
                 formRetry.mail[0].to = newData.to;
@@ -112,6 +113,7 @@ function getEdit(id) {
                 formRetry.mail[0].content = newData.content;
                 formRetry.mail[0].attachment = newData.attachment || [];
                 formRetry.mail[0].priority = newData.priority;
+                formRetry.secret = newData.secret;
                 editFetch.value = true;
             }
         })
@@ -123,15 +125,16 @@ function getEdit(id) {
 
 function handleRetry() {
     axios
-        .post(`${baseUrl}/api/email-queue/retry`, formRetry)
+        .post(`${baseUrl}/api/email-queue/send`, formRetry)
         .then((response) => {
-            if (response.data.kode === 200) {
+            if (response.data.kode === 200) {f
                 successMessage.value = response.data.message;
             } else {
                 errorMessage.value = response.data.message;
             }
         })
         .catch((error) => {
+            console.log(error.response);
             errorMessage.value =
                 error.response.data.message || "An error occurred";
         })
@@ -444,6 +447,14 @@ watch(errorMessage, (newMessage) => {
                             >
                                 To
                             </label>
+                            <input
+                                type="hidden"
+                                name="secret"
+                                id="name"
+                                v-model="formRetry.secret"
+                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                                placeholder="Type product name"
+                                required="" />
                             <input
                                 type="text"
                                 name="name"

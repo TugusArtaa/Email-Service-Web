@@ -29,6 +29,7 @@ watch(
 
 const successMessage = ref("");
 const errorMessage = ref("");
+const invalidKey = ref("");
 
 async function handleSubmit() {
     try {
@@ -40,7 +41,7 @@ async function handleSubmit() {
         emit("success", response.data.message);
         emit("close");
     } catch (error) {
-        // console.log(error.response.data.errors);
+        
         if (
             error.response &&
             error.response.data &&
@@ -48,8 +49,9 @@ async function handleSubmit() {
         ) {
             errorMessage.value = error.response.data.errors;
         } else {
-            errorMessage.value = "An error occurred";
+            invalidKey.value = error.response.data.error;
         }
+        // console.log(errorMessage.value);
     }
 }
 
@@ -65,16 +67,28 @@ const email = ref({
     attachment: [],
 });
 
+const detailErrors = ref({});
+
 const errorsDetail = ref({});
 
 const emailIndex = ref(null);
 
 function detailEmail(index) {
+    detailErrors.value =
+    Object.keys(errorMessage.value)
+        .filter(key => key.startsWith(`mail.${index}.`))
+        .reduce((acc, key) => {
+            acc[key] = errorMessage.value[key];
+            return acc;
+        }, {});
+    console.log(detailErrors.value);
     email.value = JSON.parse(JSON.stringify(emails.value.mail[index]));
     emailIndex.value = index;
+    console.log(emailIndex.value);
 }
 
 function newEmail() {
+    detailErrors.value = {};
     email.value = {
         subject: "",
         to: "",
@@ -157,6 +171,14 @@ function removeAttachment(index) {
                 >
                     An error occurred. Please check the card with red border for detail errors.
                 </div>
+                <!-- Error message invalid key -->
+                <div
+                    v-if="invalidKey && formModal === false"
+                    class="p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg dark:bg-red-200 dark:text-red-800"
+                    role="alert"
+                >
+                    {{ invalidKey }}!
+                </div>
                 <!-- Modal body list card -->
                 <div
                     v-show="!formModal"
@@ -191,7 +213,7 @@ function removeAttachment(index) {
                                 detailEmail(index),
                                 (emailIndex = index)
                         "
-                        :class="{'border-red-500': errorMessage[`mail.${index}.to`] }"
+                        :class="{'border-red-500': Object.keys(errorMessage).some(key => key.startsWith(`mail.${index}.`)) }"
                         class="border py-1.5 px-3 relative rounded-md overflow-hidden"
                         v-for="(item, index) in emails.mail"
                     >
@@ -256,6 +278,13 @@ function removeAttachment(index) {
                             placeholder="Example"
                             required
                         />
+                        <div v-if="detailErrors['mail.' + emailIndex + '.subject']">
+                            <p
+                                v-for="subjectErr in detailErrors['mail.' + emailIndex + '.subject']"
+                                class="text-sm text-red-700 dark:text-red-800">
+                            {{ subjectErr.replace(`mail.${emailIndex}.`, '') }}
+                            </p>
+                        </div>
                     </div>
                     <div>
                         <label
@@ -271,6 +300,13 @@ function removeAttachment(index) {
                             placeholder="name@example.com"
                             required
                         />
+                        <div v-if="detailErrors['mail.' + emailIndex + '.to']">
+                            <p
+                                v-for="toErr in detailErrors['mail.' + emailIndex + '.to']"
+                                class="text-sm text-red-700 dark:text-red-800">
+                            {{ toErr.replace(`mail.${emailIndex}.`, '') }}
+                            </p>
+                        </div>
                     </div>
                     <div>
                         <label
@@ -323,6 +359,13 @@ function removeAttachment(index) {
                                     placeholder="Attachment URL..."
                                     required
                                 />
+                                <div v-if="detailErrors['mail.' + emailIndex + '.attachment.' + index]">
+                                    <p
+                                        v-for="attachmentErr in detailErrors['mail.' + emailIndex + '.attachment.' + index]"
+                                        class="text-sm text-red-700 dark:text-red-800">
+                                    {{ attachmentErr.replace(`mail.${emailIndex}.`, '') }}
+                                    </p>
+                                </div>
                             </div>
                                 <button
                                     @click="removeAttachment(index)"

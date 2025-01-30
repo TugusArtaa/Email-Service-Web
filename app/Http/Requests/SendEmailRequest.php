@@ -15,7 +15,7 @@ class SendEmailRequest extends FormRequest
             'mail' => 'required|array',
             'mail.*.to' => 'required|email',
             'mail.*.content' => 'nullable|string',
-            'mail.*.subject' => 'required|string',
+            'mail.*.subject' => 'nullable|string',
             'mail.*.priority' => 'required|string|in:low,medium,high',
             'mail.*.attachment' => 'nullable|array',
             'mail.*.attachment.*' => 'nullable|url'
