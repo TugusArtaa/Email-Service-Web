@@ -40,13 +40,13 @@ async function handleSubmit() {
         emit("success", response.data.message);
         emit("close");
     } catch (error) {
-        console.log(error.response);
+        // console.log(error.response.data.errors);
         if (
             error.response &&
             error.response.data &&
-            error.response.data.error
+            error.response.data.errors
         ) {
-            errorMessage.value = error.response.data.error;
+            errorMessage.value = error.response.data.errors;
         } else {
             errorMessage.value = "An error occurred";
         }
@@ -65,6 +65,8 @@ const email = ref({
     attachment: [],
 });
 
+const errorsDetail = ref({});
+
 const emailIndex = ref(null);
 
 function detailEmail(index) {
@@ -77,7 +79,7 @@ function newEmail() {
         subject: "",
         to: "",
         priority: "low",
-        content: "",
+        content: "",    
         attachment: [],
     };
     emails.value.secret = "";
@@ -149,11 +151,11 @@ function removeAttachment(index) {
                 </div>
                 <!-- Error message -->
                 <div
-                    v-if="errorMessage"
+                    v-if="errorMessage && formModal === false"
                     class="p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg dark:bg-red-200 dark:text-red-800"
                     role="alert"
                 >
-                    {{ errorMessage }}
+                    An error occurred. Please check the card with red border for detail errors.
                 </div>
                 <!-- Modal body list card -->
                 <div
@@ -189,6 +191,7 @@ function removeAttachment(index) {
                                 detailEmail(index),
                                 (emailIndex = index)
                         "
+                        :class="{'border-red-500': errorMessage[`mail.${index}.to`] }"
                         class="border py-1.5 px-3 relative rounded-md overflow-hidden"
                         v-for="(item, index) in emails.mail"
                     >
@@ -310,8 +313,9 @@ function removeAttachment(index) {
                             <div
                                 v-for="(item, index) in email.attachment"
                                 :key="index"
-                                class="flex items-center gap-x-2"
+                                class="flex items-start gap-x-2"
                             >
+                            <div>
                                 <input
                                     type="text"
                                     v-model="email.attachment[index]"
@@ -319,6 +323,7 @@ function removeAttachment(index) {
                                     placeholder="Attachment URL..."
                                     required
                                 />
+                            </div>
                                 <button
                                     @click="removeAttachment(index)"
                                     type="button"
@@ -351,6 +356,7 @@ function removeAttachment(index) {
                                 Add Attachment
                             </button>
                         </div>
+
                     </div>
                     <div class="col-span-2">
                         <label

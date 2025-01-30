@@ -14,6 +14,8 @@ import axios from "axios";
 // file upload excel
 const selectedFile = ref(null);
 const fileInput = ref(null);
+const fileError = ref(null);
+const formatError = ref(null);
 
 function handleFileUpload(event) {
     selectedFile.value = event.target.files[0];
@@ -58,9 +60,17 @@ async function uploadFile() {
             fileInput.value.value = null;
         }
     } catch (error) {
+        fileError.value = null;
+        formatError.value = null;
         console.error("Error uploading file:", error);
         error.value = "Error uploading file.";
         clearAlert();
+        const errMessage = JSON.parse(error.request.response);
+        if (errMessage.original && errMessage.original.messages && errMessage.original.messages.excel_file) {
+            fileError.value = errMessage.original.messages.excel_file;
+        } else {
+            formatError.value = errMessage.messages;
+        }
     }
 }
 
@@ -717,7 +727,7 @@ refreshData();
 
                         <!-- Upload -->
                         <div
-                            class="p-8 mt-4 text-center border-2 border-gray-300 border-dashed rounded-lg"
+                            class="p-8 mt-4 mb-2 text-center border-2 border-gray-300 border-dashed rounded-lg"
                         >
                             <div class="flex flex-col items-center">
                                 <svg
@@ -748,6 +758,13 @@ refreshData();
                                 />
                             </div>
                         </div>
+                        <ul v-if="fileError" class="list-disc list-inside">
+                            <li v-for="error in fileError" class="text-sm text-red-600">{{ error }}</li>
+                        </ul>
+                        <ul v-if="formatError" v-for="error in formatError" class="list-disc list-inside">
+                            <p class="text-sm text-red-600">Error excel on row number {{(error.row)}}</p>
+                            <li v-for="message in error.errors" class="text-sm text-red-600">{{ message }}</li>
+                        </ul>
 
                         <!-- Submit Button -->
                         <div class="flex justify-end mt-6">
@@ -758,9 +775,9 @@ refreshData();
                                 Submit
                             </button>
                         </div>
-                    </div>
                 </div>
             </div>
+        </div>
         </div>
         <!-- modal add email -->
         <AddModal
