@@ -112,22 +112,22 @@ onClickOutside(modalOrder, (event) => {
     }
 });
 
-// // dropdown delete date
-// const dateDropdown = ref(false);
-// const modalDate = ref(null);
-// const btnDate = ref(null);
-// onClickOutside(modalDate, event => {
-//     if (event.target !== btnDate.value) {
-//         dateDropdown.value = false;
-//     }
-// });
+// dropdown delete date
+const dateDropdown = ref(false);
+const modalDate = ref(null);
+const btnDate = ref(null);
+onClickOutside(modalDate, event => {
+    if (event.target !== btnDate.value) {
+        dateDropdown.value = false;
+    }
+});
 
-// // modal delete date
-// const showDeleteDate = ref(false);
-// const modalDeleteDate = ref(null);
-// onClickOutside(modalDeleteDate, event => {
-//     showDeleteDate.value = false;
-// });
+// modal delete date
+const showDeleteDate = ref(false);
+const modalDeleteDate = ref(null);
+onClickOutside(modalDeleteDate, event => {
+    showDeleteDate.value = false;
+});
 
 // ketika klik pagination ganti data
 const handlePageChange = (page) => {
@@ -679,7 +679,7 @@ refreshData();
                         <!-- File Progress Section -->
                         <div v-if="selectedFile" class="mb-4">
                             <div
-                                class="flex items-center justify-between p-2 bg-blue-50 rounded"
+                                class="flex items-center justify-between p-2 rounded bg-blue-50"
                             >
                                 <span class="text-sm text-green-600">{{
                                     selectedFile.name
@@ -717,7 +717,7 @@ refreshData();
 
                         <!-- Upload -->
                         <div
-                            class="mt-4 border-2 border-dashed border-gray-300 rounded-lg p-8 text-center"
+                            class="p-8 mt-4 text-center border-2 border-gray-300 border-dashed rounded-lg"
                         >
                             <div class="flex flex-col items-center">
                                 <svg
@@ -735,7 +735,7 @@ refreshData();
                                 </svg>
                                 <label
                                     for="file_input"
-                                    class="text-green-500 hover:text-green-600 text-sm cursor-pointer"
+                                    class="text-sm text-green-500 cursor-pointer hover:text-green-600"
                                 >
                                     Upload File Excel
                                 </label>
