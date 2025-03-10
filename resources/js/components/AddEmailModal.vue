@@ -52,7 +52,7 @@ async function handleSubmit() {
         } else {
             invalidKey.value = error.response.data.error;
         }
-        // console.log(errorMessage.value);
+        console.log(errorMessage.value);
     }
 }
 
@@ -149,7 +149,7 @@ function removeAttachment(index) {
                 <div v-if="errorMessage && formModal === false"
                     class="p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg dark:bg-red-200 dark:text-red-800"
                     role="alert">
-                    An error occurred. Please check the card with red border for detail errors.
+                    An error occurred. Please edit the row with red background for detail errors.
                 </div>
                 <!-- Error message invalid key -->
                 <div v-if="invalidKey && formModal === false"
@@ -181,8 +181,8 @@ function removeAttachment(index) {
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="(item, index) in emails.mail"
-                                class="bg-white border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                            <tr v-for="(item, index) in emails.mail" :class="{'bg-red-100': Object.keys(errorMessage).some(key => key.startsWith(`mail.${index}.`)) }"
+                                class="border-gray-200 dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                                 <td class="px-6 py-4">
                                     {{ index + 1 }}
                                 </td>
