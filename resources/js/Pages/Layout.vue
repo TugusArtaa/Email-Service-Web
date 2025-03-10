@@ -175,6 +175,7 @@ const toggleSidebar = () => {
                     </a>
                     <!-- Approve Applications -->
                     <a
+                        v-show="user.level === 'supervisor'"
                         href="/approve"
                         :class="[
                             'flex items-center gap-4 px-4 py-3 text-sm font-medium rounded-lg',
