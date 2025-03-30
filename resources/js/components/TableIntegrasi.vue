@@ -1,73 +1,89 @@
 <script setup>
+// Import library dan komponen yang diperlukan
 import { watch, ref } from "vue";
 import { Tippy } from "vue-tippy";
+import NotificationToast from "./NotificationToast.vue";
 import { onClickOutside, useFetch } from "@vueuse/core";
 import { useForm, usePage } from "@inertiajs/vue3";
 import axios from "axios";
 
+// Props yang diterima dari parent
 const props = defineProps({
     thead: Array,
     fetch: Boolean,
     logs: Object,
+    search: String,
 });
+
+// Base URL untuk API
 const baseUrl = import.meta.env.VITE_APP_URL;
 
-// delete modal
+// State untuk modal hapus
 const deleteModal = ref(null);
 const showDeleteModal = ref(false);
 const deleteOne = ref([]);
 
-// detail modal
+// State untuk modal detail
 const detailModal = ref(null);
 const showDetailModal = ref(false);
 const detailFetch = ref(false);
-onClickOutside(detailModal, (event) => {
+onClickOutside(detailModal, () => {
     showDetailModal.value = false;
 });
 const logDetail = ref({});
 
-// edit modal
+// State untuk modal edit
 const editModal = ref(null);
 const showEditModal = ref(false);
 const editFetch = ref(false);
 const logEdit = ref({});
 
-//retry
+// State untuk pesan sukses dan error
 const successMessage = ref("");
 const errorMessage = ref("");
 
+// Emit event ke parent
 const emit = defineEmits(["checkbox", "refresh"]);
 
+// State untuk checkbox
 const checked = ref([]);
-
 watch(checked, (newChecked) => {
     checked.value = newChecked;
     emit("checkbox", checked.value);
 });
 
-// proses delete by id
+// State untuk form hapus
 const pageInertia = usePage();
-
 const form = useForm({
     ids: [],
     _token: pageInertia.props.csrf_token,
 });
 
+// State untuk notifikasi
+const notification = ref({
+    show: false,
+    type: "",
+    message: "",
+    description: "",
+});
+
+// Fungsi untuk menghapus log
 function deleteLog() {
     form.ids = deleteOne.value;
     form.delete(`${baseUrl}/integrasi/delete`, {
         onSuccess: () => {
-            successMessage.value = "Log deleted successfully";
+            showNotification("success", "Log berhasil dihapus");
             emit("delete");
             showDeleteModal.value = false;
             form.reset();
         },
         onError: () => {
-            errorMessage.value = "Failed to delete log";
+            showNotification("error", "Gagal menghapus log");
         },
     });
 }
 
+// Fungsi untuk mengambil detail log
 function getDetail(id) {
     detailFetch.value = false;
     logDetail.value = {};
@@ -83,6 +99,7 @@ function getDetail(id) {
         });
 }
 
+// State untuk form retry
 const formRetry = useForm({
     id: 0,
     secret: "",
@@ -98,6 +115,7 @@ const formRetry = useForm({
     _token: pageInertia.props.csrf_token,
 });
 
+// Fungsi untuk mengambil data log yang akan diedit
 function getEdit(id) {
     editFetch.value = false;
     logEdit.value = {};
@@ -105,7 +123,6 @@ function getEdit(id) {
         .post(`${baseUrl}/api/email-queue/extract`, { id })
         .then((response) => {
             const newData = response.data.data;
-            console.log("Fetched data:", newData.secret);
             if (newData) {
                 formRetry.id = id;
                 formRetry.mail[0].to = newData.to;
@@ -123,20 +140,22 @@ function getEdit(id) {
         });
 }
 
+// Fungsi untuk mengirim ulang email
 function handleRetry() {
     axios
         .post(`${baseUrl}/api/email-queue/send`, formRetry)
         .then((response) => {
-            if (response.data.kode === 200) {f
-                successMessage.value = response.data.message;
+            if (response.data.kode === 200) {
+                showNotification("success", response.data.message);
             } else {
-                errorMessage.value = response.data.message;
+                showNotification("error", response.data.message);
             }
         })
         .catch((error) => {
-            console.log(error.response);
-            errorMessage.value =
-                error.response.data.message || "An error occurred";
+            showNotification(
+                "error",
+                error.response.data.message || "Terjadi kesalahan"
+            );
         })
         .finally(() => {
             showEditModal.value = false;
@@ -145,68 +164,28 @@ function handleRetry() {
         });
 }
 
-watch(successMessage, (newMessage) => {
-    if (newMessage) {
-        setTimeout(() => {
-            successMessage.value = "";
-        }, 5000);
-    }
-});
-
-watch(errorMessage, (newMessage) => {
-    if (newMessage) {
-        setTimeout(() => {
-            errorMessage.value = "";
-        }, 5000);
-    }
-});
+// Fungsi untuk menampilkan notifikasi
+const showNotification = (type, message, description = "") => {
+    notification.value = {
+        show: true,
+        type,
+        message,
+        description,
+    };
+    setTimeout(() => {
+        notification.value.show = false;
+    }, 3000);
+};
 </script>
 
 <template>
-    <!-- alert success -->
-    <div
-        v-if="successMessage"
-        class="flex items-center p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50 dark:bg-gray-800 dark:text-green-400"
-        role="alert"
-    >
-        <svg
-            class="flex-shrink-0 inline w-4 h-4 me-3"
-            aria-hidden="true"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-        >
-            <path
-                d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"
-            />
-        </svg>
-        <span class="sr-only">Info</span>
-        <div>
-            {{ successMessage }}
-        </div>
-    </div>
-    <!-- alert error -->
-    <div
-        v-if="errorMessage"
-        class="flex items-center p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400"
-        role="alert"
-    >
-        <svg
-            class="flex-shrink-0 inline w-4 h-4 me-3"
-            aria-hidden="true"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-        >
-            <path
-                d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"
-            />
-        </svg>
-        <span class="sr-only">Info</span>
-        <div>
-            {{ errorMessage }}
-        </div>
-    </div>
+    <!-- Notification Toast -->
+    <NotificationToast
+        :notification="notification"
+        @close="notification.show = false"
+    />
+
+    <!-- Tabel -->
     <table
         class="w-full text-sm text-left text-gray-500 border dark:text-gray-400 rounded-2xl"
     >
@@ -225,6 +204,7 @@ watch(errorMessage, (newMessage) => {
             </tr>
         </thead>
         <tbody>
+            <!-- Tampilan Loading -->
             <tr v-if="fetch">
                 <td colspan="7" class="px-6 py-4 text-lg font-bold text-center">
                     <div role="status">
@@ -244,10 +224,11 @@ watch(errorMessage, (newMessage) => {
                                 fill="currentFill"
                             />
                         </svg>
-                        <span class="sr-only">Loading...</span>
+                        <span class="sr-only">Memuat...</span>
                     </div>
                 </td>
             </tr>
+            <!-- Tampilan Tidak Ada Data -->
             <tr
                 v-if="
                     (!props.logs.data || props.logs.data.length === 0) && !fetch
@@ -257,19 +238,19 @@ watch(errorMessage, (newMessage) => {
                     Tidak ada data yang ditemukan!
                 </td>
             </tr>
+            <!-- Tampilan Data -->
             <tr
                 v-for="(item, index) in logs.data"
                 :key="item.id"
                 v-if="!fetch"
                 class="dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
             >
-                <!-- input checkbox -->
                 <td class="px-6 py-4">
                     <input
                         type="checkbox"
                         :value="item.id"
                         v-model="checked"
-                        class="w-4 h-4 mt-1.5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                        class="w-4 h-4 mt-1.5 text-red-600 bg-red-100 border-red-300 rounded focus:ring-red-500 focus:ring-2 accent-red-600"
                     />
                 </td>
                 <td class="px-6 py-4">
@@ -297,7 +278,7 @@ watch(errorMessage, (newMessage) => {
                     {{ new Date(item.updated_at).toLocaleString() }}
                 </td>
                 <td class="flex gap-1 px-6 py-4">
-                    <Tippy content="Detail application">
+                    <Tippy content="Detail Email">
                         <button
                             @click="
                                 showDetailModal = true;
@@ -329,7 +310,7 @@ watch(errorMessage, (newMessage) => {
                         </button>
                     </Tippy>
                     <Tippy
-                        content="Retry send email"
+                        content="Coba lagi kirim email"
                         v-if="item.status == 'failed'"
                     >
                         <button
@@ -338,7 +319,7 @@ watch(errorMessage, (newMessage) => {
                                 showEditModal = true;
                                 getEdit(item.id);
                             "
-                            class="p-1 text-sm font-medium text-white bg-green-700 rounded-lg focus:outline-none hover:bg-green-800 focus:ring-4 focus:ring-green-300 dark:bg-green-600 dark:hover:bg-blue-700 dark:focus:ring-red-900"
+                            class="p-1 text-sm font-medium text-white bg-[#FFC107] rounded-lg focus:outline-none hover:bg-[#F39C12] focus:ring-4 focus:ring-green-300 dark:bg-green-600 dark:hover:bg-blue-700 dark:focus:ring-red-900"
                         >
                             <svg
                                 class="w-5 h-5"
@@ -358,7 +339,7 @@ watch(errorMessage, (newMessage) => {
                             </svg>
                         </button>
                     </Tippy>
-                    <Tippy content="Delete Log">
+                    <Tippy content="Hapus">
                         <button
                             type="button"
                             @click="
@@ -390,28 +371,27 @@ watch(errorMessage, (newMessage) => {
             </tr>
         </tbody>
     </table>
-    <!-- retry -->
+
+    <!-- Modal Kirim Ulang Email -->
     <div
         v-if="showEditModal"
         id="crud-modal"
         tabindex="-1"
         aria-hidden="true"
-        class="fixed top-0 left-0 right-0 z-50 flex items-center justify-center w-full overflow-x-hidden overflow-y-auto bg-gray-700 backdrop-blur-[2px] bg-opacity-40 md:inset-0"
+        class="fixed top-0 left-0 right-0 z-50 flex items-center justify-center w-full overflow-x-hidden overflow-y-auto bg-black bg-opacity-60 backdrop-blur-sm md:inset-0"
     >
-        <div class="relative w-full max-w-md max-h-full p-4">
-            <!-- Modal content -->
+        <div class="relative w-full max-w-xl max-h-full p-4">
             <div
                 class="relative bg-white rounded-lg shadow dark:bg-gray-700"
                 ref="detailModal"
             >
-                <!-- Modal header -->
                 <div
                     class="flex items-center justify-between p-4 border-b rounded-t md:p-5 dark:border-gray-600"
                 >
                     <h3
                         class="text-lg font-semibold text-gray-900 dark:text-white"
                     >
-                        Detail Email Logs
+                        Coba Kirim Ulang Email
                     </h3>
                     <button
                         @click="showEditModal = false"
@@ -434,10 +414,9 @@ watch(errorMessage, (newMessage) => {
                                 d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
                             />
                         </svg>
-                        <span class="sr-only">Close modal</span>
+                        <span class="sr-only">Keluar</span>
                     </button>
                 </div>
-                <!-- Modal body -->
                 <form class="p-4 md:p-5">
                     <div v-show="editFetch" class="grid grid-cols-2 gap-4 mb-4">
                         <div class="col-span-2">
@@ -445,7 +424,7 @@ watch(errorMessage, (newMessage) => {
                                 for="name"
                                 class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
                             >
-                                To
+                                Kepada
                             </label>
                             <input
                                 type="hidden"
@@ -453,15 +432,16 @@ watch(errorMessage, (newMessage) => {
                                 id="name"
                                 v-model="formRetry.secret"
                                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                                placeholder="Type product name"
-                                required="" />
+                                placeholder="Secret"
+                                required=""
+                            />
                             <input
                                 type="text"
                                 name="name"
                                 id="name"
                                 v-model="formRetry.mail[0].to"
                                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                                placeholder="Type product name"
+                                placeholder="Email penerima"
                                 required=""
                             />
                         </div>
@@ -470,7 +450,7 @@ watch(errorMessage, (newMessage) => {
                                 for="name"
                                 class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
                             >
-                                Subject
+                                Subjek
                             </label>
                             <input
                                 type="text"
@@ -478,7 +458,7 @@ watch(errorMessage, (newMessage) => {
                                 id="name"
                                 v-model="formRetry.mail[0].subject"
                                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                                placeholder="Type product name"
+                                placeholder="Subjek email"
                                 required=""
                             />
                         </div>
@@ -486,14 +466,14 @@ watch(errorMessage, (newMessage) => {
                             <label
                                 for="description"
                                 class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                                >Content</label
+                                >Isi</label
                             >
                             <textarea
                                 id="description"
                                 rows="4"
                                 v-model="formRetry.mail[0].content"
                                 class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                placeholder="Write product description here"
+                                placeholder="Tulis yang akan dikirim disini"
                             ></textarea>
                         </div>
                         <div
@@ -506,7 +486,7 @@ watch(errorMessage, (newMessage) => {
                                 for="name"
                                 class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
                             >
-                                Attachment
+                                Lampiran
                                 {{ index + 1 }}
                             </label>
                             <input
@@ -515,7 +495,7 @@ watch(errorMessage, (newMessage) => {
                                 :id="'name-' + index"
                                 v-model="formRetry.mail[0].attachment[index]"
                                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                                placeholder="Type product name"
+                                placeholder="URL Lampiran..."
                                 required=""
                             />
                         </div>
@@ -523,7 +503,7 @@ watch(errorMessage, (newMessage) => {
                             <label
                                 for="priority"
                                 class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                                >Select a Priority</label
+                                >Pilih Prioritas</label
                             >
                             <select
                                 id="priority"
@@ -535,13 +515,15 @@ watch(errorMessage, (newMessage) => {
                                 <option value="low">Low</option>
                             </select>
                         </div>
-                        <button
-                            @click="handleRetry"
-                            type="button"
-                            class="text-white w-fit bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-green-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
-                        >
-                            Submit
-                        </button>
+                        <div class="col-span-2 flex justify-end">
+                            <button
+                                @click="handleRetry"
+                                type="button"
+                                class="text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-green-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+                            >
+                                Kirim
+                            </button>
+                        </div>
                     </div>
                     <div
                         v-show="!editFetch"
@@ -564,34 +546,33 @@ watch(errorMessage, (newMessage) => {
                                 fill="currentFill"
                             />
                         </svg>
-                        <span class="sr-only">Loading...</span>
+                        <span class="sr-only">Memuat...</span>
                     </div>
                 </form>
             </div>
         </div>
     </div>
-    <!-- detail -->
+
+    <!-- Modal Detail Email -->
     <div
         v-if="showDetailModal"
         id="crud-modal"
         tabindex="-1"
         aria-hidden="true"
-        class="fixed top-0 left-0 right-0 z-50 flex items-center justify-center w-full overflow-x-hidden overflow-y-auto bg-gray-700 backdrop-blur-[2px] bg-opacity-40 md:inset-0"
+        class="fixed top-0 left-0 right-0 z-50 flex items-center justify-center w-full overflow-x-hidden overflow-y-auto bg-black bg-opacity-60 backdrop-blur-sm md:inset-0"
     >
-        <div class="relative w-full max-w-md max-h-full p-4">
-            <!-- Modal content -->
+        <div class="relative w-full max-w-xl max-h-full p-4">
             <div
                 class="relative bg-white rounded-lg shadow dark:bg-gray-700"
                 ref="detailModal"
             >
-                <!-- Modal header -->
                 <div
                     class="flex items-center justify-between p-4 border-b rounded-t md:p-5 dark:border-gray-600"
                 >
                     <h3
                         class="text-lg font-semibold text-gray-900 dark:text-white"
                     >
-                        Detail Email Logs
+                        Log Email Detail
                     </h3>
                     <button
                         @click="showDetailModal = false"
@@ -614,10 +595,9 @@ watch(errorMessage, (newMessage) => {
                                 d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
                             />
                         </svg>
-                        <span class="sr-only">Close modal</span>
+                        <span class="sr-only">Keluar</span>
                     </button>
                 </div>
-                <!-- Modal body -->
                 <form class="p-4 md:p-5">
                     <div
                         v-show="detailFetch"
@@ -628,7 +608,7 @@ watch(errorMessage, (newMessage) => {
                                 for="name"
                                 class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
                             >
-                                To
+                                Kepada
                             </label>
                             <input
                                 readonly
@@ -638,7 +618,7 @@ watch(errorMessage, (newMessage) => {
                                 id="name"
                                 :value="logDetail.to"
                                 class="bg-gray-50 cursor-not-allowed border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                                placeholder="Type product name"
+                                placeholder="Email penerima"
                                 required=""
                             />
                         </div>
@@ -647,7 +627,7 @@ watch(errorMessage, (newMessage) => {
                                 for="name"
                                 class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
                             >
-                                Subject
+                                Subjek
                             </label>
                             <input
                                 readonly
@@ -657,7 +637,7 @@ watch(errorMessage, (newMessage) => {
                                 id="name"
                                 :value="logDetail.subject"
                                 class="bg-gray-50 cursor-not-allowed border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                                placeholder="Type product name"
+                                placeholder="Subjek email"
                                 required=""
                             />
                         </div>
@@ -665,7 +645,7 @@ watch(errorMessage, (newMessage) => {
                             <label
                                 for="description"
                                 class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                                >Content</label
+                                >Isi</label
                             >
                             <textarea
                                 readonly
@@ -674,7 +654,7 @@ watch(errorMessage, (newMessage) => {
                                 rows="4"
                                 :value="logDetail.content"
                                 class="block cursor-not-allowed p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                placeholder="Write product description here"
+                                placeholder="Tulis yang akan dikirim disini"
                             ></textarea>
                         </div>
                         <div
@@ -684,7 +664,7 @@ watch(errorMessage, (newMessage) => {
                             <label
                                 for="name"
                                 class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                                >Attachment {{ index + 1 }}</label
+                                >Lampiran {{ index + 1 }}</label
                             >
                             <input
                                 readonly
@@ -694,7 +674,7 @@ watch(errorMessage, (newMessage) => {
                                 id="name"
                                 :value="item"
                                 class="bg-gray-50 cursor-not-allowed border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                                placeholder="Type product name"
+                                placeholder="URL Lampiran..."
                                 required=""
                             />
                         </div>
@@ -711,14 +691,14 @@ watch(errorMessage, (newMessage) => {
                                 rows="4"
                                 :value="logDetail.status"
                                 class="block cursor-not-allowed p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                placeholder="Write product description here"
+                                placeholder="Status pengiriman"
                             ></textarea>
                         </div>
                         <div class="col-span-2 mt-2">
                             <label
                                 for="description"
                                 class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                                >Error Message</label
+                                >Pesan Error</label
                             >
                             <textarea
                                 readonly
@@ -727,7 +707,7 @@ watch(errorMessage, (newMessage) => {
                                 rows="4"
                                 :value="logDetail.error_message"
                                 class="block cursor-not-allowed p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                placeholder="Write product description here"
+                                placeholder="Isi dari pesan error yang didapat"
                             ></textarea>
                         </div>
                     </div>
@@ -752,17 +732,19 @@ watch(errorMessage, (newMessage) => {
                                 fill="currentFill"
                             />
                         </svg>
-                        <span class="sr-only">Loading...</span>
+                        <span class="sr-only">Memuat...</span>
                     </div>
                 </form>
             </div>
+            <br />
         </div>
     </div>
-    <!-- delete -->
+
+    <!-- Modal Hapus Per Log Email -->
     <div
         tabindex="-1"
         v-show="showDeleteModal"
-        class="overflow-y-auto backdrop-blur-[2px] bg-gray-700 bg-opacity-40 flex overflow-x-hidden fixed top-0 right-0 left-0 bottom-0 z-50 justify-center items-center w-full md:inset-0"
+        class="overflow-y-auto bg-black bg-opacity-60 backdrop-blur-sm flex overflow-x-hidden fixed top-0 right-0 left-0 bottom-0 z-50 justify-center items-center w-full md:inset-0"
     >
         <div class="relative w-full max-w-md max-h-full p-4">
             <div
@@ -790,7 +772,7 @@ watch(errorMessage, (newMessage) => {
                             d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
                         />
                     </svg>
-                    <span class="sr-only">Close modal</span>
+                    <span class="sr-only">Keluar</span>
                 </button>
                 <div class="p-4 text-center md:p-5">
                     <svg
@@ -811,7 +793,8 @@ watch(errorMessage, (newMessage) => {
                     <h3
                         class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400"
                     >
-                        Are you sure you want to delete this application?
+                        Apakah anda yakin ingin menghapus log pengiriman email
+                        ini?
                     </h3>
                     <button
                         @click="deleteLog"
@@ -819,15 +802,15 @@ watch(errorMessage, (newMessage) => {
                         type="button"
                         class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center"
                     >
-                        Yes, I'm sure
+                        Ya, Saya yakin
                     </button>
                     <button
                         @click="showDeleteModal = false"
                         data-modal-hide="popup-modal"
                         type="button"
-                        class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                        class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-gray-950 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
                     >
-                        No, cancel
+                        Tidak, Batalkan
                     </button>
                 </div>
             </div>
