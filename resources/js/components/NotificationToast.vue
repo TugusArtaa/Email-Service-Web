@@ -1,6 +1,6 @@
 <script setup>
 //Impor fungsi reaktif dari vue
-import { reactive, toRefs } from "vue";
+import { reactive, toRefs, watch } from "vue";
 
 // Mendefinisikan properti `notification` yang wajib diisi dan bertipe objek
 const props = defineProps({
@@ -17,6 +17,18 @@ const emit = defineEmits(["close"]);
 const closeNotification = () => {
     emit("close");
 };
+
+// Mengawasi perubahan pada `notification.show`
+watch(
+    () => props.notification.show,
+    (newVal) => {
+        if (newVal) {
+            setTimeout(() => {
+                emit("close");
+            }, 3000);
+        }
+    }
+);
 </script>
 
 <template>

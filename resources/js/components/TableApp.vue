@@ -52,10 +52,6 @@ const showStatusModal = ref(false);
 const statusId = ref(null);
 const currentStatus = ref(null);
 
-// State untuk pesan alert
-const alertMessage = ref("");
-const alertType = ref("");
-
 // Mengawasi perubahan pada variabel checked dan emit event
 watch(checked, (newValue) => {
     emit("checkbox", newValue);
@@ -89,19 +85,6 @@ watch(deleteOne, (newValue) => {
     form.ids = [newValue];
 });
 
-// Fungsi untuk menampilkan notifikasi
-const showNotification = (type, message, description = "") => {
-    notification.value = {
-        show: true,
-        type,
-        message,
-        description,
-    };
-    setTimeout(() => {
-        notification.value.show = false;
-    }, 3000);
-};
-
 // Fungsi Hapus Aplikasi
 function deleteApp() {
     fetch("/api/applications/delete", {
@@ -117,19 +100,28 @@ function deleteApp() {
             if (data.success) {
                 emit("refresh");
                 showDeleteModal.value = false;
-                // Tampilkan notifikasi sukses
-                showNotification("success", "Aplikasi berhasil dihapus!");
+                notification.value = {
+                    show: true,
+                    type: "success",
+                    message: "Berhasil!",
+                    description: data.message,
+                };
             } else {
-                // Tampilkan notifikasi error
-                showNotification("error", "Gagal menghapus aplikasi.");
+                notification.value = {
+                    show: true,
+                    type: "danger",
+                    message: "Gagal!",
+                    description: data.message || "Terjadi kesalahan.",
+                };
             }
         })
         .catch((error) => {
-            // Tampilkan notifikasi error
-            showNotification(
-                "error",
-                "Terjadi kesalahan saat menghapus aplikasi."
-            );
+            notification.value = {
+                show: true,
+                type: "danger",
+                message: "Gagal!",
+                description: error.message || "Terjadi kesalahan.",
+            };
         });
 }
 
@@ -184,24 +176,30 @@ async function generateKey() {
         if (data.success) {
             emit("refresh");
             showKeyModal.value = false;
-            // Tampilkan notifikasi sukses
-            showNotification(
-                "success",
-                "Permintaan regenerasi Secret key berhasil!"
-            );
+            notification.value = {
+                show: true,
+                type: "success",
+                message: "Berhasil!",
+                description: data.message,
+            };
         } else {
             emit("refresh");
             showKeyModal.value = false;
-            // Tampilkan notifikasi error
-            showNotification("error", "Gagal melakukan regenerasi Secret key.");
+            notification.value = {
+                show: true,
+                type: "danger",
+                message: "Gagal!",
+                description: data.message || "Terjadi kesalahan.",
+            };
         }
     } catch (error) {
         showKeyModal.value = false;
-        // Tampilkan notifikasi error
-        showNotification(
-            "error",
-            "Terjadi kesalahan saat melakukan regenerasi Secret key."
-        );
+        notification.value = {
+            show: true,
+            type: "danger",
+            message: "Gagal!",
+            description: error.message || "Terjadi kesalahan.",
+        };
     }
 }
 
@@ -232,28 +230,29 @@ async function changeStatus() {
         if (data.success) {
             emit("refresh");
             showStatusModal.value = false;
-            // Tampilkan notifikasi sukses
-            showNotification(
-                "success",
-                `Status aplikasi berhasil diubah menjadi ${newStatus}.`
-            );
+            notification.value = {
+                show: true,
+                type: "success",
+                message: "Berhasil!",
+                description: data.message,
+            };
         } else {
-            // Tampilkan notifikasi error
-            showNotification("error", "Gagal mengubah status aplikasi.");
+            notification.value = {
+                show: true,
+                type: "danger",
+                message: "Gagal!",
+                description: data.message || "Terjadi kesalahan.",
+            };
         }
     } catch (error) {
         // Tampilkan notifikasi error
-        showNotification(
-            "error",
-            "Terjadi kesalahan saat mengubah status aplikasi."
-        );
+        notification.value = {
+            show: true,
+            type: "danger",
+            message: "Gagal!",
+            description: error.message || "Terjadi kesalahan.",
+        };
     }
-}
-
-// Fungsi untuk membersihkan pesan alert
-function clearAlert() {
-    alertMessage.value = "";
-    alertType.value = "";
 }
 </script>
 

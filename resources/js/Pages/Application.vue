@@ -66,19 +66,6 @@ watch(data, (newData) => {
     }
 });
 
-// Fungsi untuk menampilkan notifikasi
-const showNotification = (type, message, description = "") => {
-    notification.value = {
-        show: true,
-        type,
-        message,
-        description,
-    };
-    setTimeout(() => {
-        notification.value.show = false;
-    }, 3000);
-};
-
 // Fungsi untuk menangani perubahan halaman
 const handlePageChange = (page) => {
     if (page === applications.value.current_page) {
@@ -155,44 +142,53 @@ function deleteApp() {
         .then((response) => response.json())
         .then((data) => {
             if (data.success) {
-                // Reset data
                 checked.value = [];
                 form.ids = [];
                 showDeleteModal.value = false;
                 refreshData();
-                // Tampilkan notifikasi sukses
-                showNotification("success", "Aplikasi berhasil dihapus!");
+                notification.value = {
+                    show: true,
+                    type: "success",
+                    message: "Berhasil!",
+                    description: data.message,
+                };
             } else {
-                // Tampilkan notifikasi error
-                showNotification(
-                    "error",
-                    "Terjadi kesalahan saat menghapus aplikasi."
-                );
+                notification.value = {
+                    show: true,
+                    type: "danger",
+                    message: "Gagal!",
+                    description: data.message || "Terjadi kesalahan.",
+                };
             }
         })
         .catch((error) => {
-            // Tampilkan notifikasi error
-            showNotification(
-                "error",
-                "Terjadi kesalahan saat menghapus aplikasi."
-            );
+            notification.value = {
+                show: true,
+                type: "danger",
+                message: "Gagal!",
+                description: error.message || "Terjadi kesalahan.",
+            };
         });
 }
 
 // Fungsi untuk menyegarkan data aplikasi
 function refreshData() {
-    // Fetch data
     const { data } = useFetch(
         `${baseUrl}/api/applications?orderBy=${orderBy.value}&orderDirection=${orderDirection.value}`,
         { refetch: true }
     )
         .get()
         .json();
-    // Akses data langsung
     watch(data, (newData) => {
         if (newData) {
-            applications.value = [];
             applications.value = newData.data.applications;
+        } else {
+            notification.value = {
+                show: true,
+                type: "danger",
+                message: "Gagal Memuat Data!",
+                description: "Terjadi kesalahan saat menyegarkan data.",
+            };
         }
     });
 }
@@ -246,23 +242,28 @@ const addApplication = async (event) => {
             pic_name: appPicName.value,
             _token: pageInertia.props.csrf_token,
         });
-        // Reset form
         appName.value = "";
         appDescription.value = "";
         appPicName.value = "";
         showAddModal.value = false;
         refreshData();
-        // Tampilkan notifikasi sukses
-        showNotification("success", "Aplikasi berhasil ditambahkan!");
+        notification.value = {
+            show: true,
+            type: "success",
+            message: "Berhasil!",
+            description: response.data.message,
+        };
     } catch (error) {
         if (error.response?.status === 422) {
             validationErrors.value = error.response.data.errors;
         } else {
-            // Tampilkan notifikasi error
-            showNotification(
-                "error",
-                "Terjadi kesalahan saat menambahkan aplikasi."
-            );
+            notification.value = {
+                show: true,
+                type: "danger",
+                message: "Gagal!",
+                description:
+                    error.response?.data?.message || "Terjadi kesalahan.",
+            };
         }
     }
 };
