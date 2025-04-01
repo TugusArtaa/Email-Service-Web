@@ -156,16 +156,14 @@ const thead = ref([
             class="relative w-full px-3 py-5 overflow-x-auto bg-white shadow-md sm:rounded-lg"
         >
             <!-- Judul -->
-            <h3 class="mb-3 text-2xl font-bold dark:text-white">
-                Daftar Approve
-            </h3>
+            <h3 class="mb-3 text-2xl font-bold">Daftar Approve</h3>
             <!-- Alert -->
             <div
                 v-if="alertMessage"
                 :class="`flex items-center p-4 mb-4 text-sm border rounded-lg ${
                     alertType === 'success'
-                        ? 'text-green-800 border-green-300 bg-green-50 dark:bg-gray-800 dark:text-green-400 dark:border-green-800'
-                        : 'text-red-800 border-red-300 bg-red-50 dark:bg-gray-800 dark:text-red-400 dark:border-red-800'
+                        ? 'text-green-800 border-green-300 bg-green-50'
+                        : 'text-red-800 border-red-300 bg-red-50'
                 }`"
                 role="alert"
             >
@@ -222,14 +220,14 @@ const thead = ref([
     >
         <div class="relative w-full max-w-md max-h-full p-4">
             <div
-                class="relative bg-white rounded-lg shadow-lg dark:bg-gray-800"
+                class="relative bg-white rounded-lg shadow-lg"
                 ref="approveModal"
             >
                 <!-- Tombol tutup modal -->
                 <button
                     @click="showApproveModal = false"
                     type="button"
-                    class="absolute top-3 right-3 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                    class="absolute top-3 right-3 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 flex justify-center items-center"
                     data-modal-hide="popup-modal"
                 >
                     <svg
@@ -252,7 +250,7 @@ const thead = ref([
                 <!-- Isi modal -->
                 <div class="p-6 text-center">
                     <svg
-                        class="w-12 h-12 mx-auto mb-4 text-gray-400 dark:text-gray-200"
+                        class="w-12 h-12 mx-auto mb-4 text-gray-400"
                         aria-hidden="true"
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
@@ -267,9 +265,7 @@ const thead = ref([
                         />
                     </svg>
                     <!-- Judul modal -->
-                    <h3
-                        class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400"
-                    >
+                    <h3 class="mb-5 text-lg font-normal text-gray-500">
                         Are you sure you want to approve this?
                     </h3>
                     <!-- Tombol konfirmasi -->
@@ -277,7 +273,7 @@ const thead = ref([
                         @click="approveApplication"
                         data-modal-hide="popup-modal"
                         type="button"
-                        class="text-white bg-green-600 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 dark:focus:ring-green-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center"
+                        class="text-white bg-green-600 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center"
                     >
                         Yes, I'm sure
                     </button>
@@ -286,7 +282,7 @@ const thead = ref([
                         @click="showApproveModal = false"
                         data-modal-hide="popup-modal"
                         type="button"
-                        class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                        class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100"
                     >
                         No, cancel
                     </button>
@@ -302,14 +298,14 @@ const thead = ref([
     >
         <div class="relative w-full max-w-md max-h-full p-4">
             <div
-                class="relative bg-white rounded-lg shadow-lg dark:bg-gray-800"
+                class="relative bg-white rounded-lg shadow-lg"
                 ref="rejectModal"
             >
                 <!-- Tombol tutup modal -->
                 <button
                     @click="showRejectModal = false"
                     type="button"
-                    class="absolute top-3 right-3 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                    class="absolute top-3 right-3 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 flex justify-center items-center"
                     data-modal-hide="popup-modal"
                 >
                     <svg
@@ -332,7 +328,7 @@ const thead = ref([
                 <!-- Isi modal -->
                 <div class="p-6 text-center">
                     <svg
-                        class="w-12 h-12 mx-auto mb-4 text-gray-400 dark:text-gray-200"
+                        class="w-12 h-12 mx-auto mb-4 text-gray-400"
                         aria-hidden="true"
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
@@ -347,9 +343,7 @@ const thead = ref([
                         />
                     </svg>
                     <!-- Judul modal -->
-                    <h3
-                        class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400"
-                    >
+                    <h3 class="mb-5 text-lg font-normal text-gray-500">
                         Are you sure you want to reject this?
                     </h3>
                     <!-- Tombol konfirmasi -->
@@ -357,7 +351,7 @@ const thead = ref([
                         @click="rejectApplication"
                         data-modal-hide="popup-modal"
                         type="button"
-                        class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center"
+                        class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center"
                     >
                         Yes, I'm sure
                     </button>
@@ -366,7 +360,7 @@ const thead = ref([
                         @click="showRejectModal = false"
                         data-modal-hide="popup-modal"
                         type="button"
-                        class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                        class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100"
                     >
                         No, cancel
                     </button>

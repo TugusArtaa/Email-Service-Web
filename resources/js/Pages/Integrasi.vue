@@ -245,7 +245,7 @@ refreshData();
                             <button
                                 type="button"
                                 @click="showButtonsModal = true"
-                                class="flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-green-700 rounded-lg hover:bg-green-800 focus:ring-4 focus:ring-green-300 dark:bg-green-600 dark:hover:bg-green-700 focus:outline-none dark:focus:ring-green-800"
+                                class="flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-green-700 rounded-lg hover:bg-green-800 focus:ring-4 focus:ring-green-300 focus:outline-none"
                             >
                                 <svg
                                     class="w-5 h-5"
@@ -270,7 +270,7 @@ refreshData();
                                     id="actionsDropdownButton"
                                     data-dropdown-toggle="actionsDropdown"
                                     :disabled="form.ids.length <= 1"
-                                    class="flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-red-700 bg-red-700 border border-red-700 rounded-lg md:w-auto focus:outline-none hover:bg-red-800 hover:text-white focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    class="flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-red-700 bg-red-700 border border-red-700 rounded-lg md:w-auto focus:outline-none hover:bg-red-800 hover:text-white focus:z-10 focus:ring-4 focus:ring-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
                                     type="button"
                                 >
                                     <svg
@@ -297,7 +297,7 @@ refreshData();
                                         id="filterDropdownButton"
                                         data-dropdown-toggle="filterDropdown"
                                         @click="orderDropdown = !orderDropdown"
-                                        class="flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg md:w-auto focus:outline-none hover:bg-gray-100 hover:text-gray-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                                        class="flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg md:w-auto focus:outline-none hover:bg-gray-100 hover:text-gray-700 focus:z-10 focus:ring-4 focus:ring-gray-200"
                                         type="button"
                                     >
                                         <svg
@@ -338,7 +338,7 @@ refreshData();
                                         id="actionsDropdown"
                                         v-show="orderDropdown"
                                         ref="modalOrder"
-                                        class="absolute left-0 right-0 z-10 w-full overflow-hidden bg-white divide-y divide-gray-100 rounded shadow top-11 dark:bg-gray-700 dark:divide-gray-600"
+                                        class="absolute left-0 right-0 z-10 w-full overflow-hidden bg-white divide-y divide-gray-100 rounded shadow top-11"
                                     >
                                         <div class="py-1">
                                             <button
@@ -351,7 +351,7 @@ refreshData();
                                                     'text-green-700 bg-green-200 hover:bg-green-300':
                                                         orderBy === 'desc',
                                                 }"
-                                                class="block w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
+                                                class="block w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100"
                                             >
                                                 Tgl (baru-lama)
                                             </button>
@@ -365,7 +365,7 @@ refreshData();
                                                     'text-green-700 bg-green-200 hover:bg-green-300':
                                                         orderBy === 'asc',
                                                 }"
-                                                class="block w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
+                                                class="block w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100"
                                             >
                                                 Tgl (lama-baru)
                                             </button>
@@ -412,9 +412,7 @@ refreshData();
                         : 'scale-95 opacity-0'
                 "
             >
-                <div
-                    class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl overflow-hidden"
-                >
+                <div class="bg-white rounded-xl shadow-2xl overflow-hidden">
                     <div
                         class="flex items-center justify-between p-5 bg-gradient-to-r from-emerald-500 to-teal-500"
                     >
@@ -499,12 +497,10 @@ refreshData();
                             </button>
                         </div>
                     </div>
-                    <div
-                        class="px-6 py-4 bg-gray-50 dark:bg-gray-700 text-right"
-                    >
+                    <div class="px-6 py-4 bg-gray-50 text-right">
                         <button
                             @click="showButtonsModal = false"
-                            class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 focus:ring-4 focus:ring-gray-200 dark:text-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 focus:outline-none transition-colors duration-200"
+                            class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 focus:ring-4 focus:ring-gray-200 focus:outline-none transition-colors duration-200"
                         >
                             Batal
                         </button>
@@ -534,13 +530,11 @@ refreshData();
             class="overflow-y-auto bg-black bg-opacity-60 backdrop-blur-sm flex overflow-x-hidden fixed top-0 right-0 left-0 bottom-0 z-50 justify-center items-center w-full md:inset-0"
         >
             <div class="relative w-full max-w-md max-h-full p-4">
-                <div
-                    class="relative bg-white rounded-lg shadow dark:bg-gray-700"
-                >
+                <div class="relative bg-white rounded-lg shadow">
                     <button
                         @click="showDeleteModal = false"
                         type="button"
-                        class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                        class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center"
                     >
                         <svg
                             class="w-3 h-3"
@@ -561,7 +555,7 @@ refreshData();
                     </button>
                     <div class="p-4 text-center md:p-5">
                         <svg
-                            class="w-12 h-12 mx-auto mb-4 text-gray-400 dark:text-gray-200"
+                            class="w-12 h-12 mx-auto mb-4 text-red-700"
                             aria-hidden="true"
                             xmlns="http://www.w3.org/2000/svg"
                             fill="none"
@@ -575,9 +569,7 @@ refreshData();
                                 d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
                             />
                         </svg>
-                        <h3
-                            class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400"
-                        >
+                        <h3 class="mb-5 text-lg font-normal text-gray-500">
                             Apakah anda yakin ingin menghapus
                             <strong>{{ selectedIdsCount }}</strong> log
                             pengiriman email ini?
@@ -585,14 +577,14 @@ refreshData();
                         <button
                             @click="confirmDelete"
                             type="button"
-                            class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center"
+                            class="text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center"
                         >
                             Ya, Saya yakin
                         </button>
                         <button
                             @click="showDeleteModal = false"
                             type="button"
-                            class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-gray-950 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                            class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-gray-950 focus:z-10 focus:ring-4 focus:ring-gray-100"
                         >
                             Tidak, Batalkan
                         </button>

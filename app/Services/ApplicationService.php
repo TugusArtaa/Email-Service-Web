@@ -15,10 +15,17 @@ class ApplicationService
     }
 
     // Function untuk mendapatkan aplikasi berdasarkan ID 
-    public function getPaginatedApplications(int $perPage = 10, string $orderBy = 'id', string $orderDirection = 'desc', string $search = ''): LengthAwarePaginator
-    {
+    public function getPaginatedApplications(
+        int $perPage = 10,
+        string $orderBy = 'id',
+        string $orderDirection = 'desc',
+        string $search = ''
+    ): LengthAwarePaginator {
         return Application::select('id', 'name', 'pic_name', 'secret_key', 'created_at', 'status')
-            ->where('name', 'like', "%$search%")
+            ->where(function ($query) use ($search) {
+                $query->where('name', 'like', "%$search%")
+                    ->orWhere('pic_name', 'like', "%$search%");
+            })
             ->whereIn('status', ['enabled', 'disabled'])
             ->orderBy($orderBy, $orderDirection)
             ->paginate($perPage);

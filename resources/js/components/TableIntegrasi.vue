@@ -94,7 +94,6 @@ function getDetail(id) {
             detailFetch.value = true;
         })
         .catch((error) => {
-            console.error(error);
             detailFetch.value = false;
         });
 }
@@ -135,7 +134,6 @@ function getEdit(id) {
             }
         })
         .catch((error) => {
-            console.error(error);
             editFetch.value = false;
         });
 }
@@ -186,12 +184,8 @@ const showNotification = (type, message, description = "") => {
     />
 
     <!-- Tabel -->
-    <table
-        class="w-full text-sm text-left text-gray-500 border dark:text-gray-400 rounded-2xl"
-    >
-        <thead
-            class="text-xs text-gray-700 uppercase border-b bg-gray-50 dark:bg-gray-700 dark:text-gray-400"
-        >
+    <table class="w-full text-sm text-left text-gray-500 border rounded-2xl">
+        <thead class="text-xs text-gray-700 uppercase border-b bg-gray-50">
             <tr>
                 <th
                     scope="col"
@@ -210,7 +204,7 @@ const showNotification = (type, message, description = "") => {
                     <div role="status">
                         <svg
                             aria-hidden="true"
-                            class="inline w-8 h-8 text-gray-200 animate-spin dark:text-gray-600 fill-green-500"
+                            class="inline w-8 h-8 text-gray-200 animate-spin fill-green-500"
                             viewBox="0 0 100 101"
                             fill="none"
                             xmlns="http://www.w3.org/2000/svg"
@@ -235,7 +229,19 @@ const showNotification = (type, message, description = "") => {
                 "
             >
                 <td colspan="7" class="px-6 py-4 text-lg font-bold text-center">
-                    Tidak ada data yang ditemukan!
+                    <div class="flex flex-col items-center justify-center">
+                        <img
+                            :src="'/NotFound.png'"
+                            alt="Tidak ada data"
+                            class="w-80 h-44 mb-3"
+                        />
+                        <p class="text-lg font-bold text-gray-500">
+                            Tidak ada data yang ditemukan!
+                        </p>
+                        <p class="text-sm text-gray-400">
+                            Belum ada data yang ditambahkan.
+                        </p>
+                    </div>
                 </td>
             </tr>
             <!-- Tampilan Data -->
@@ -243,7 +249,7 @@ const showNotification = (type, message, description = "") => {
                 v-for="(item, index) in logs.data"
                 :key="item.id"
                 v-if="!fetch"
-                class="dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+                class="hover:bg-gray-50"
             >
                 <td class="px-6 py-4">
                     <input
@@ -285,7 +291,7 @@ const showNotification = (type, message, description = "") => {
                                 getDetail(item.id);
                             "
                             type="button"
-                            class="p-1 text-sm font-medium text-white bg-blue-700 rounded-lg focus:outline-none hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-red-900"
+                            class="p-1 text-sm font-medium text-white bg-blue-700 rounded-lg focus:outline-none hover:bg-blue-800 focus:ring-4 focus:ring-blue-300"
                         >
                             <svg
                                 class="w-5 h-5"
@@ -298,28 +304,21 @@ const showNotification = (type, message, description = "") => {
                             >
                                 <path
                                     stroke="currentColor"
+                                    stroke-linecap="round"
                                     stroke-width="2"
-                                    d="M21 12c0 1.2-4.03 6-9 6s-9-4.8-9-6c0-1.2 4.03-6 9-6s9 4.8 9 6Z"
-                                />
-                                <path
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                    d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+                                    d="m21 21-3.5-3.5M10 7v6m-3-3h6m4 0a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z"
                                 />
                             </svg>
                         </button>
                     </Tippy>
-                    <Tippy
-                        content="Coba lagi kirim email"
-                        v-if="item.status == 'failed'"
-                    >
+                    <Tippy content="Kirim Ulang" v-if="item.status == 'failed'">
                         <button
                             type="button"
                             @click="
                                 showEditModal = true;
                                 getEdit(item.id);
                             "
-                            class="p-1 text-sm font-medium text-white bg-[#FFC107] rounded-lg focus:outline-none hover:bg-[#F39C12] focus:ring-4 focus:ring-green-300 dark:bg-green-600 dark:hover:bg-blue-700 dark:focus:ring-red-900"
+                            class="p-1 text-sm font-medium text-white bg-[#FFC107] rounded-lg focus:outline-none hover:bg-[#F39C12] focus:ring-4 focus:ring-green-300"
                         >
                             <svg
                                 class="w-5 h-5"
@@ -346,7 +345,7 @@ const showNotification = (type, message, description = "") => {
                                 showDeleteModal = true;
                                 deleteOne = [item.id];
                             "
-                            class="p-1 text-sm font-medium text-white bg-red-700 rounded-lg focus:outline-none hover:bg-red-800 focus:ring-4 focus:ring-red-300 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900"
+                            class="p-1 text-sm font-medium text-white bg-red-700 rounded-lg focus:outline-none hover:bg-red-800 focus:ring-4 focus:ring-red-300"
                         >
                             <svg
                                 class="w-5 h-5"
@@ -381,22 +380,17 @@ const showNotification = (type, message, description = "") => {
         class="fixed top-0 left-0 right-0 z-50 flex items-center justify-center w-full overflow-x-hidden overflow-y-auto bg-black bg-opacity-60 backdrop-blur-sm md:inset-0"
     >
         <div class="relative w-full max-w-xl max-h-full p-4">
-            <div
-                class="relative bg-white rounded-lg shadow dark:bg-gray-700"
-                ref="detailModal"
-            >
+            <div class="relative bg-white rounded-lg shadow" ref="detailModal">
                 <div
-                    class="flex items-center justify-between p-4 border-b rounded-t md:p-5 dark:border-gray-600"
+                    class="flex items-center justify-between p-4 border-b rounded-t md:p-5"
                 >
-                    <h3
-                        class="text-lg font-semibold text-gray-900 dark:text-white"
-                    >
+                    <h3 class="text-lg font-semibold text-gray-900">
                         Coba Kirim Ulang Email
                     </h3>
                     <button
                         @click="showEditModal = false"
                         type="button"
-                        class="inline-flex items-center justify-center w-8 h-8 text-sm text-gray-400 bg-transparent rounded-lg hover:bg-gray-200 hover:text-gray-900 ms-auto dark:hover:bg-gray-600 dark:hover:text-white"
+                        class="inline-flex items-center justify-center w-8 h-8 text-sm text-gray-400 bg-transparent rounded-lg hover:bg-gray-200 hover:text-gray-900 ms-auto"
                         data-modal-toggle="crud-modal"
                     >
                         <svg
@@ -422,7 +416,7 @@ const showNotification = (type, message, description = "") => {
                         <div class="col-span-2">
                             <label
                                 for="name"
-                                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                                class="block mb-2 text-sm font-medium text-gray-900"
                             >
                                 Kepada
                             </label>
@@ -431,7 +425,7 @@ const showNotification = (type, message, description = "") => {
                                 name="secret"
                                 id="name"
                                 v-model="formRetry.secret"
-                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
                                 placeholder="Secret"
                                 required=""
                             />
@@ -440,7 +434,7 @@ const showNotification = (type, message, description = "") => {
                                 name="name"
                                 id="name"
                                 v-model="formRetry.mail[0].to"
-                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
                                 placeholder="Email penerima"
                                 required=""
                             />
@@ -448,7 +442,7 @@ const showNotification = (type, message, description = "") => {
                         <div class="col-span-2">
                             <label
                                 for="name"
-                                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                                class="block mb-2 text-sm font-medium text-gray-900"
                             >
                                 Subjek
                             </label>
@@ -457,7 +451,7 @@ const showNotification = (type, message, description = "") => {
                                 name="name"
                                 id="name"
                                 v-model="formRetry.mail[0].subject"
-                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
                                 placeholder="Subjek email"
                                 required=""
                             />
@@ -465,14 +459,14 @@ const showNotification = (type, message, description = "") => {
                         <div class="col-span-2">
                             <label
                                 for="description"
-                                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                                class="block mb-2 text-sm font-medium text-gray-900"
                                 >Isi</label
                             >
                             <textarea
                                 id="description"
                                 rows="4"
                                 v-model="formRetry.mail[0].content"
-                                class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
                                 placeholder="Tulis yang akan dikirim disini"
                             ></textarea>
                         </div>
@@ -484,7 +478,7 @@ const showNotification = (type, message, description = "") => {
                         >
                             <label
                                 for="name"
-                                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                                class="block mb-2 text-sm font-medium text-gray-900"
                             >
                                 Lampiran
                                 {{ index + 1 }}
@@ -494,7 +488,7 @@ const showNotification = (type, message, description = "") => {
                                 name="name"
                                 :id="'name-' + index"
                                 v-model="formRetry.mail[0].attachment[index]"
-                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
                                 placeholder="URL Lampiran..."
                                 required=""
                             />
@@ -502,13 +496,13 @@ const showNotification = (type, message, description = "") => {
                         <div class="col-span-2">
                             <label
                                 for="priority"
-                                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                                class="block mb-2 text-sm font-medium text-gray-900"
                                 >Pilih Prioritas</label
                             >
                             <select
                                 id="priority"
                                 v-model="formRetry.mail[0].priority"
-                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                             >
                                 <option value="high">High</option>
                                 <option value="medium">Medium</option>
@@ -519,7 +513,7 @@ const showNotification = (type, message, description = "") => {
                             <button
                                 @click="handleRetry"
                                 type="button"
-                                class="text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-green-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+                                class="text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5"
                             >
                                 Kirim
                             </button>
@@ -532,7 +526,7 @@ const showNotification = (type, message, description = "") => {
                     >
                         <svg
                             aria-hidden="true"
-                            class="inline w-8 h-8 text-gray-200 animate-spin dark:text-gray-600 fill-green-500"
+                            class="inline w-8 h-8 text-gray-200 animate-spin fill-green-500"
                             viewBox="0 0 100 101"
                             fill="none"
                             xmlns="http://www.w3.org/2000/svg"
@@ -562,22 +556,17 @@ const showNotification = (type, message, description = "") => {
         class="fixed top-0 left-0 right-0 z-50 flex items-center justify-center w-full overflow-x-hidden overflow-y-auto bg-black bg-opacity-60 backdrop-blur-sm md:inset-0"
     >
         <div class="relative w-full max-w-xl max-h-full p-4">
-            <div
-                class="relative bg-white rounded-lg shadow dark:bg-gray-700"
-                ref="detailModal"
-            >
+            <div class="relative bg-white rounded-lg shadow" ref="detailModal">
                 <div
-                    class="flex items-center justify-between p-4 border-b rounded-t md:p-5 dark:border-gray-600"
+                    class="flex items-center justify-between p-4 border-b rounded-t md:p-5"
                 >
-                    <h3
-                        class="text-lg font-semibold text-gray-900 dark:text-white"
-                    >
-                        Log Email Detail
+                    <h3 class="text-lg font-semibold text-gray-900">
+                        Detail Log Email
                     </h3>
                     <button
                         @click="showDetailModal = false"
                         type="button"
-                        class="inline-flex items-center justify-center w-8 h-8 text-sm text-gray-400 bg-transparent rounded-lg hover:bg-gray-200 hover:text-gray-900 ms-auto dark:hover:bg-gray-600 dark:hover:text-white"
+                        class="inline-flex items-center justify-center w-8 h-8 text-sm text-gray-400 bg-transparent rounded-lg hover:bg-gray-200 hover:text-gray-900 ms-auto"
                         data-modal-toggle="crud-modal"
                     >
                         <svg
@@ -606,7 +595,7 @@ const showNotification = (type, message, description = "") => {
                         <div class="col-span-2">
                             <label
                                 for="name"
-                                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                                class="block mb-2 text-sm font-medium text-gray-900"
                             >
                                 Kepada
                             </label>
@@ -617,7 +606,7 @@ const showNotification = (type, message, description = "") => {
                                 name="name"
                                 id="name"
                                 :value="logDetail.to"
-                                class="bg-gray-50 cursor-not-allowed border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                                class="bg-gray-50 cursor-not-allowed border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
                                 placeholder="Email penerima"
                                 required=""
                             />
@@ -625,7 +614,7 @@ const showNotification = (type, message, description = "") => {
                         <div class="col-span-2">
                             <label
                                 for="name"
-                                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                                class="block mb-2 text-sm font-medium text-gray-900"
                             >
                                 Subjek
                             </label>
@@ -636,7 +625,7 @@ const showNotification = (type, message, description = "") => {
                                 name="name"
                                 id="name"
                                 :value="logDetail.subject"
-                                class="bg-gray-50 cursor-not-allowed border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                                class="bg-gray-50 cursor-not-allowed border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
                                 placeholder="Subjek email"
                                 required=""
                             />
@@ -644,7 +633,7 @@ const showNotification = (type, message, description = "") => {
                         <div class="col-span-2">
                             <label
                                 for="description"
-                                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                                class="block mb-2 text-sm font-medium text-gray-900"
                                 >Isi</label
                             >
                             <textarea
@@ -653,8 +642,8 @@ const showNotification = (type, message, description = "") => {
                                 id="description"
                                 rows="4"
                                 :value="logDetail.content"
-                                class="block cursor-not-allowed p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                placeholder="Tulis yang akan dikirim disini"
+                                class="block cursor-not-allowed p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="Isi dari email yang dikirim..."
                             ></textarea>
                         </div>
                         <div
@@ -663,7 +652,7 @@ const showNotification = (type, message, description = "") => {
                         >
                             <label
                                 for="name"
-                                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                                class="block mb-2 text-sm font-medium text-gray-900"
                                 >Lampiran {{ index + 1 }}</label
                             >
                             <input
@@ -673,7 +662,7 @@ const showNotification = (type, message, description = "") => {
                                 name="name"
                                 id="name"
                                 :value="item"
-                                class="bg-gray-50 cursor-not-allowed border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                                class="bg-gray-50 cursor-not-allowed border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
                                 placeholder="URL Lampiran..."
                                 required=""
                             />
@@ -681,7 +670,7 @@ const showNotification = (type, message, description = "") => {
                         <div class="col-span-2">
                             <label
                                 for="description"
-                                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                                class="block mb-2 text-sm font-medium text-gray-900"
                                 >Status</label
                             >
                             <textarea
@@ -690,14 +679,14 @@ const showNotification = (type, message, description = "") => {
                                 id="description"
                                 rows="4"
                                 :value="logDetail.status"
-                                class="block cursor-not-allowed p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                class="block cursor-not-allowed p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
                                 placeholder="Status pengiriman"
                             ></textarea>
                         </div>
                         <div class="col-span-2 mt-2">
                             <label
                                 for="description"
-                                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                                class="block mb-2 text-sm font-medium text-gray-900"
                                 >Pesan Error</label
                             >
                             <textarea
@@ -706,8 +695,8 @@ const showNotification = (type, message, description = "") => {
                                 id="description"
                                 rows="4"
                                 :value="logDetail.error_message"
-                                class="block cursor-not-allowed p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                placeholder="Isi dari pesan error yang didapat"
+                                class="block cursor-not-allowed p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="-"
                             ></textarea>
                         </div>
                     </div>
@@ -718,7 +707,7 @@ const showNotification = (type, message, description = "") => {
                     >
                         <svg
                             aria-hidden="true"
-                            class="inline w-8 h-8 text-gray-200 animate-spin dark:text-gray-600 fill-green-500"
+                            class="inline w-8 h-8 text-gray-200 animate-spin fill-green-500"
                             viewBox="0 0 100 101"
                             fill="none"
                             xmlns="http://www.w3.org/2000/svg"
@@ -747,14 +736,11 @@ const showNotification = (type, message, description = "") => {
         class="overflow-y-auto bg-black bg-opacity-60 backdrop-blur-sm flex overflow-x-hidden fixed top-0 right-0 left-0 bottom-0 z-50 justify-center items-center w-full md:inset-0"
     >
         <div class="relative w-full max-w-md max-h-full p-4">
-            <div
-                class="relative bg-white rounded-lg shadow dark:bg-gray-700"
-                ref="deleteModal"
-            >
+            <div class="relative bg-white rounded-lg shadow" ref="deleteModal">
                 <button
                     @click="showDeleteModal = false"
                     type="button"
-                    class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                    class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center"
                     data-modal-hide="popup-modal"
                 >
                     <svg
@@ -776,7 +762,7 @@ const showNotification = (type, message, description = "") => {
                 </button>
                 <div class="p-4 text-center md:p-5">
                     <svg
-                        class="w-12 h-12 mx-auto mb-4 text-gray-400 dark:text-gray-200"
+                        class="w-12 h-12 mx-auto mb-4 text-red-700"
                         aria-hidden="true"
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
@@ -790,9 +776,7 @@ const showNotification = (type, message, description = "") => {
                             d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
                         />
                     </svg>
-                    <h3
-                        class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400"
-                    >
+                    <h3 class="mb-5 text-lg font-normal text-gray-500">
                         Apakah anda yakin ingin menghapus log pengiriman email
                         ini?
                     </h3>
@@ -800,7 +784,7 @@ const showNotification = (type, message, description = "") => {
                         @click="deleteLog"
                         data-modal-hide="popup-modal"
                         type="button"
-                        class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center"
+                        class="text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center"
                     >
                         Ya, Saya yakin
                     </button>
@@ -808,7 +792,7 @@ const showNotification = (type, message, description = "") => {
                         @click="showDeleteModal = false"
                         data-modal-hide="popup-modal"
                         type="button"
-                        class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-gray-950 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                        class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-gray-950 focus:z-10 focus:ring-4 focus:ring-gray-100"
                     >
                         Tidak, Batalkan
                     </button>

@@ -68,7 +68,6 @@ async function uploadFile() {
             }
         );
         emit("success", "File uploaded successfully.");
-        console.log(response.data);
         selectedFile.value = null;
         emit("close");
         if (fileInput.value) {
@@ -77,7 +76,6 @@ async function uploadFile() {
     } catch (error) {
         fileError.value = null;
         formatError.value = null;
-        console.error("Error uploading file:", error);
         this.error = "Error uploading file.";
         const errMessage = JSON.parse(error.request.response);
         if (

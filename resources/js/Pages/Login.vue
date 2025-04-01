@@ -25,9 +25,7 @@ function submit() {
 </script>
 
 <template>
-    <div
-        class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800"
-    >
+    <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
         <Head>
             <title>Halaman Login - S-MEBB</title>
         </Head>
@@ -36,16 +34,14 @@ function submit() {
         <div class="fixed top-0 left-0 w-full p-4 z-50">
             <div class="flex justify-center">
                 <div
-                    class="flex items-center gap-3 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-2 px-4 rounded-xl shadow-lg w-auto"
+                    class="flex items-center gap-3 bg-white/80 backdrop-blur-md p-2 px-4 rounded-xl shadow-lg w-auto"
                 >
                     <img
                         class="w-9 h-9"
                         :src="'/Logo_SMEBB.png'"
                         alt="Logo SMEBB"
                     />
-                    <div
-                        class="font-medium text-gray-800 dark:text-white text-sm"
-                    >
+                    <div class="font-medium text-gray-800 text-sm">
                         <span>S-MEBB DASHBOARD ADMIN</span>
                     </div>
                 </div>
@@ -60,14 +56,10 @@ function submit() {
             >
                 <div class="max-w-md mx-auto w-full">
                     <div class="text-center mb-10">
-                        <h1
-                            class="text-3xl font-bold text-green-600 dark:text-green-500"
-                        >
+                        <h1 class="text-3xl font-bold text-green-600">
                             Hi, Selamat Datang
                         </h1>
-                        <p
-                            class="mt-3 text-sm text-gray-500 dark:text-gray-400"
-                        >
+                        <p class="mt-3 text-sm text-gray-500">
                             Silakan masukkan email dan password untuk
                             melanjutkan
                         </p>
@@ -77,10 +69,10 @@ function submit() {
                     <form @submit.prevent="submit" class="space-y-6">
                         <div
                             v-if="form.errors.invalid"
-                            class="bg-red-100 dark:bg-red-900/40 border border-red-200 dark:border-red-800 rounded-lg p-4 flex items-start gap-3"
+                            class="bg-red-100 border border-red-200 rounded-lg p-4 flex items-start gap-3"
                         >
                             <svg
-                                class="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0"
+                                class="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0"
                                 xmlns="http://www.w3.org/2000/svg"
                                 viewBox="0 0 24 24"
                                 fill="none"
@@ -93,17 +85,16 @@ function submit() {
                                 <line x1="12" y1="8" x2="12" y2="12"></line>
                                 <line x1="12" y1="16" x2="12.01" y2="16"></line>
                             </svg>
-                            <span
-                                class="text-sm text-red-700 dark:text-red-300"
-                                >{{ form.errors.invalid }}</span
-                            >
+                            <span class="text-sm text-red-700">{{
+                                form.errors.invalid
+                            }}</span>
                         </div>
 
                         <!-- Email Field -->
                         <div class="space-y-2">
                             <label
                                 for="email"
-                                class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                                class="block text-sm font-medium text-gray-700"
                             >
                                 Email
                             </label>
@@ -133,7 +124,7 @@ function submit() {
                                     type="email"
                                     id="email"
                                     v-model="form.email"
-                                    class="pl-10 w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 py-3 px-4 text-sm text-gray-800 dark:text-white focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/20"
+                                    class="pl-10 w-full rounded-lg border border-gray-300 bg-white py-3 px-4 text-sm text-gray-800 focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/20"
                                     placeholder="nama@contoh.com"
                                     required
                                 />
@@ -150,7 +141,7 @@ function submit() {
                         <div class="space-y-2">
                             <label
                                 for="password"
-                                class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                                class="block text-sm font-medium text-gray-700"
                             >
                                 Password
                             </label>
@@ -185,7 +176,7 @@ function submit() {
                                     :type="showPassword ? 'text' : 'password'"
                                     id="password"
                                     v-model="form.password"
-                                    class="pl-10 w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 py-3 px-4 text-sm text-gray-800 dark:text-white focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/20"
+                                    class="pl-10 w-full rounded-lg border border-gray-300 bg-white py-3 px-4 text-sm text-gray-800 focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/20"
                                     placeholder="••••••••"
                                     required
                                 />
@@ -250,10 +241,10 @@ function submit() {
                                     class="sr-only peer"
                                 />
                                 <div
-                                    class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-green-600"
+                                    class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"
                                 ></div>
                                 <span
-                                    class="text-sm font-medium text-gray-900 ms-3 dark:text-gray-300"
+                                    class="text-sm font-medium text-gray-900 ms-3"
                                     >Ingat Saya</span
                                 >
                             </label>
@@ -262,7 +253,7 @@ function submit() {
                         <!-- Login Button -->
                         <button
                             type="submit"
-                            class="w-full bg-green-600 hover:bg-green-700 focus:ring-4 focus:ring-green-300 text-white font-medium rounded-lg text-sm px-5 py-3 transition-all duration-200 shadow-lg shadow-green-500/20 hover:shadow-green-500/30 focus:outline-none dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
+                            class="w-full bg-green-600 hover:bg-green-700 focus:ring-4 focus:ring-green-300 text-white font-medium rounded-lg text-sm px-5 py-3 transition-all duration-200 shadow-lg shadow-green-500/20 hover:shadow-green-500/30 focus:outline-none"
                         >
                             <span
                                 class="flex items-center justify-center gap-2"

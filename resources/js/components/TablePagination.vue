@@ -49,19 +49,13 @@ const emit = defineEmits(["page-change"]);
 
 <template>
     <div class="flex items-center justify-between mt-5">
-        <span class="text-sm text-gray-700 dark:text-gray-400">
+        <span class="text-sm text-gray-700">
             Menampilkan
-            <span class="font-semibold text-gray-900 dark:text-white">{{
-                from ?? 0
-            }}</span>
+            <span class="font-semibold text-gray-900">{{ from ?? 0 }}</span>
             hingga
-            <span class="font-semibold text-gray-900 dark:text-white">{{
-                to ?? 0
-            }}</span>
+            <span class="font-semibold text-gray-900">{{ to ?? 0 }}</span>
             dari
-            <span class="font-semibold text-gray-900 dark:text-white">{{
-                total
-            }}</span>
+            <span class="font-semibold text-gray-900">{{ total }}</span>
             entri
         </span>
         <nav aria-label="Page navigation example">
@@ -69,7 +63,7 @@ const emit = defineEmits(["page-change"]);
                 <li>
                     <button
                         @click="emit('page-change', prev)"
-                        class="flex items-center justify-center h-8 px-3 leading-tight text-gray-500 bg-white border border-gray-300 ms-0 border-e-0 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                        class="flex items-center justify-center h-8 px-3 leading-tight text-gray-500 bg-white border border-gray-300 ms-0 border-e-0 rounded-s-lg hover:bg-gray-100 hover:text-gray-700"
                     >
                         <svg
                             class="w-2.5 h-2.5 rtl:rotate-180"
@@ -96,7 +90,7 @@ const emit = defineEmits(["page-change"]);
                                 ? 'bg-green-600 text-white hover:bg-green-700 hover:text-white'
                                 : 'bg-white'
                         "
-                        class="flex items-center justify-center h-8 px-3 leading-tight text-gray-500 border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                        class="flex items-center justify-center h-8 px-3 leading-tight text-gray-500 border border-gray-300 hover:bg-gray-100 hover:text-gray-700"
                     >
                         {{ page }}
                     </button>
@@ -104,7 +98,7 @@ const emit = defineEmits(["page-change"]);
                 <li>
                     <button
                         @click="emit('page-change', next)"
-                        class="flex items-center justify-center h-8 px-3 leading-tight text-gray-500 bg-white border border-gray-300 border-s-0 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                        class="flex items-center justify-center h-8 px-3 leading-tight text-gray-500 bg-white border border-gray-300 border-s-0 rounded-e-lg hover:bg-gray-100 hover:text-gray-700"
                     >
                         <svg
                             class="w-2.5 h-2.5 rtl:rotate-180"
