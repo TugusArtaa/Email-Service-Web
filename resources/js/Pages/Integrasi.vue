@@ -216,17 +216,35 @@ refreshData();
 
         <!-- Header -->
         <div
-            class="px-6 py-8 mb-6 bg-gradient-to-r from-[#019966] to-[#017755] rounded-2xl shadow-xl flex justify-between items-center"
+            class="px-8 py-6 mb-8 bg-gradient-to-br from-[#019966] via-[#018860] to-[#017755] rounded-3xl shadow-lg flex items-center justify-between relative overflow-hidden"
         >
-            <div>
-                <h1 class="text-3xl font-bold text-white">
-                    Aktivitas Pengiriman Email
-                </h1>
-                <p class="mt-2 text-indigo-100">
-                    Cek status, kelola, dan pantau pengiriman email secara
-                    real-time
-                </p>
+            <div
+                class="absolute inset-0 opacity-5 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMwLTkuOTQtOC4wNi0xOC0xOC0xOFYwYzkuOTQgMCAxOCA4LjA2IDE4IDE4aDEyYzAgOS45NCA4LjA2IDE4IDE4IDE4djEyYy05Ljk0IDAtMTgtOC4wNi0xOC0xOEgzNnptLTE4IDM2YzkuOTQgMCAxOCA4LjA2IDE4IDE4aDE4YzAgOS45NC04LjA2IDE4LTE4IDE4djEyYzkuOTQgMCAxOC04LjA2IDE4LTE4aDEyYzAgOS45NCA4LjA2IDE4IDE4IDE4VjcyYy05Ljk0IDAtMTgtOC4wNi0xOC0xOEgxOGMwLTkuOTQtOC4wNi0xOC0xOC0xOHYtMTJjOS45NCAwIDE4IDguMDYgMTggMTh6IiBmaWxsPSIjZmZmIi8+PC9nPjwvc3ZnPg==')]"
+            ></div>
+            <div class="flex items-center z-10">
+                <div class="bg-white/10 p-2 rounded-2xl backdrop-blur-sm mr-8">
+                    <img :src="'/EmailLogo.png'" alt="Logo" class="h-20 w-20" />
+                </div>
+                <div>
+                    <h1
+                        class="text-4xl font-bold text-white tracking-tight drop-shadow-md"
+                    >
+                        Aktivitas Pengiriman Email
+                    </h1>
+                    <div class="flex items-center mt-3">
+                        <span
+                            class="w-10 h-1 bg-emerald-300 rounded-full mr-3"
+                        ></span>
+                        <p class="text-lg text-emerald-50 font-medium">
+                            Cek status, kelola, dan pantau pengiriman email
+                            secara real-time
+                        </p>
+                    </div>
+                </div>
             </div>
+            <div
+                class="absolute top-0 right-0 h-full w-24 bg-white/5 -skew-x-12"
+            ></div>
         </div>
 
         <!-- Header Tabel -->

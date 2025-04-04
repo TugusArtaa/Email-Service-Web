@@ -32,20 +32,19 @@ watch(
 </script>
 
 <template>
-    <!-- Komponen notifikasi hanya ditampilkan jika `notification.show` bernilai true -->
     <div
         v-if="notification.show"
-        class="fixed top-4 right-4 z-50 max-w-sm w-full pointer-events-auto transition-all duration-300 transform translate-y-0 opacity-100"
+        class="fixed top-3 right-3 z-50 max-w-sm w-full pointer-events-auto transition-all duration-500 transform translate-y-0 opacity-100"
         :class="[
-            notification.type === 'success' ? 'bg-green-100' : 'bg-red-100',
-            'backdrop-blur-sm bg-opacity-90 border',
+            notification.type === 'success' ? 'bg-green-50' : 'bg-red-50',
+            'backdrop-blur-md bg-opacity-95 border-l-3',
             notification.type === 'success'
-                ? 'border-green-300'
-                : 'border-red-300',
+                ? 'border-l-green-500'
+                : 'border-l-red-500',
         ]"
         style="
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1),
-                0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            box-shadow: 0 15px 20px -5px rgba(0, 0, 0, 0.1),
+                0 8px 8px -5px rgba(0, 0, 0, 0.04);
             border-radius: 0.75rem;
         "
     >
@@ -53,13 +52,13 @@ watch(
             <div class="flex-shrink-0">
                 <div
                     v-if="notification.type === 'success'"
-                    class="h-10 w-10 rounded-full flex items-center justify-center"
+                    class="h-10 w-10 rounded-full flex items-center justify-center shadow-md"
                     style="
-                        background: linear-gradient(145deg, #dcfce7, #bbf7d0);
+                        background: linear-gradient(145deg, #10b981, #34d399);
                     "
                 >
                     <svg
-                        class="h-6 w-6 text-green-600"
+                        class="h-5 w-5 text-white"
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
                         viewBox="0 0 24 24"
@@ -75,13 +74,13 @@ watch(
                 </div>
                 <div
                     v-else
-                    class="h-10 w-10 rounded-full flex items-center justify-center"
+                    class="h-10 w-10 rounded-full flex items-center justify-center shadow-md"
                     style="
-                        background: linear-gradient(145deg, #fee2e2, #fecaca);
+                        background: linear-gradient(145deg, #ef4444, #f87171);
                     "
                 >
                     <svg
-                        class="h-6 w-6 text-red-600"
+                        class="h-5 w-5 text-white"
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
                         viewBox="0 0 24 24"
@@ -102,14 +101,14 @@ watch(
                     class="text-base font-medium"
                     :class="
                         notification.type === 'success'
-                            ? 'text-green-800'
-                            : 'text-red-800'
+                            ? 'text-green-700'
+                            : 'text-red-700'
                     "
                 >
                     {{ notification.message }}
                 </p>
                 <p
-                    class="mt-1 text-sm"
+                    class="mt-0.5 text-sm"
                     :class="
                         notification.type === 'success'
                             ? 'text-green-600'
@@ -122,16 +121,16 @@ watch(
             <!-- Tombol untuk menutup notifikasi -->
             <button
                 @click="closeNotification"
-                class="ml-4 p-1 rounded-full hover:bg-gray-200 transition-colors duration-200"
+                class="ml-3 p-1.5 rounded-full transition-colors duration-200 hover:bg-opacity-20"
                 :class="
                     notification.type === 'success'
-                        ? 'text-green-500 hover:text-green-700'
-                        : 'text-red-500 hover:text-red-700'
+                        ? 'text-green-600 hover:bg-green-200'
+                        : 'text-red-600 hover:bg-red-200'
                 "
             >
                 <span class="sr-only">Close</span>
                 <svg
-                    class="h-5 w-5"
+                    class="h-4.5 w-4.5"
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 20 20"
                     fill="currentColor"
