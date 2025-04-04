@@ -1,5 +1,6 @@
 <script setup>
 // Mengimpor fungsi dan komponen yang diperlukan
+import { Head } from "@inertiajs/vue3";
 import { reactive } from "vue";
 import { useForm, usePage } from "@inertiajs/vue3";
 import Layout from "./Layout.vue";
@@ -16,15 +17,6 @@ const notification = reactive({
     message: "",
     timeout: null,
 });
-
-// Fungsi untuk menampilkan notifikasi
-const showNotification = (type, message) => {
-    clearTimeout(notification.timeout);
-    notification.show = true;
-    notification.type = type;
-    notification.message = message;
-    notification.timeout = setTimeout(() => (notification.show = false), 4000);
-};
 
 // Forms for profile and password updates
 const form = useForm({
@@ -43,8 +35,19 @@ const passwordForm = useForm({
 const updateProfile = () => {
     form.put("/profile", {
         preserveScroll: true,
-        onSuccess: () =>
-            showNotification("success", "Profile updated successfully!"),
+        onSuccess: (data) => {
+            notification.show = true;
+            notification.type = "success";
+            notification.message = "Berhasil!";
+            notification.description = "Profil berhasil diperbarui.";
+        },
+        onError: (errors) => {
+            notification.show = true;
+            notification.type = "danger";
+            notification.message = "Gagal!";
+            notification.description =
+                errors.name || errors.email || "Terjadi kesalahan.";
+        },
     });
 };
 
@@ -52,9 +55,21 @@ const updateProfile = () => {
 const updatePassword = () => {
     passwordForm.put("/profile/password", {
         preserveScroll: true,
-        onSuccess: () => {
+        onSuccess: (data) => {
             passwordForm.reset();
-            showNotification("success", "Password updated successfully!");
+            notification.show = true;
+            notification.type = "success";
+            notification.message = "Berhasil!";
+            notification.description = "Password berhasil diperbarui.";
+        },
+        onError: (errors) => {
+            notification.show = true;
+            notification.type = "danger";
+            notification.message = "Gagal!";
+            notification.description =
+                errors.current_password ||
+                errors.new_password ||
+                "Terjadi kesalahan.";
         },
     });
 };

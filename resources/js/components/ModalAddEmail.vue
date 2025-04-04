@@ -11,7 +11,7 @@ const baseUrl = import.meta.env.VITE_APP_URL;
 const formModal = ref(false);
 
 // Emit event ke parent component
-const emit = defineEmits(["close", "success"]);
+const emit = defineEmits(["close", "notification"]);
 
 // State untuk menyimpan data email yang akan dikirim
 const emails = ref({
@@ -60,8 +60,8 @@ async function handleSubmit() {
             `${baseUrl}/api/email-queue/send`,
             emails.value
         );
-        successMessage.value = response.data.message;
-        emit("success", response.data.message);
+        // Emit notification success
+        emit("notification", "success", "Berhasil!", response.data.message);
         emit("close");
     } catch (error) {
         if (
@@ -77,7 +77,14 @@ async function handleSubmit() {
                 general: ["Terjadi kesalahan yang tidak diketahui"],
             };
         }
-        showErrorMessages();
+        // Emit notification error
+        emit(
+            "notification",
+            "danger",
+            "Gagal!",
+            error.response?.data?.message ||
+                "Terjadi kesalahan yang tidak diketahui"
+        );
     }
 }
 

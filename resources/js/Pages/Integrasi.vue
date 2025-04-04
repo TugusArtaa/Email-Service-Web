@@ -10,8 +10,6 @@ import ModalImportExcel from "../components/ModalImportExcel.vue";
 import NotificationToast from "../components/NotificationToast.vue";
 import { Head, useForm, usePage } from "@inertiajs/vue3";
 import { useFetch, onClickOutside, useStorage } from "@vueuse/core";
-import VueDatePicker from "@vuepic/vue-datepicker";
-import "@vuepic/vue-datepicker/dist/main.css";
 import axios from "axios";
 
 // State dan variabel reaktif
@@ -144,57 +142,60 @@ function handleDeleteCheckbox() {
         selectedIdsCount.value = form.ids.length;
         showDeleteModal.value = true;
     } else {
-        showNotification("error", "Tidak ada data yang dipilih!");
+        notification.value = {
+            show: true,
+            type: "danger",
+            message: "Gagal!",
+            description: "Tidak ada data yang dipilih!",
+        };
     }
 }
 
-// Fungsi untuk menangani pesan sukses
-function handleSuccessMessage(message) {
-    success.value = message;
-    clearAlert();
-    showNotification("success", message);
+//Fungsi Delete Checkbox
+function confirmDelete() {
+    form.delete(`${baseUrl}/integrasi/delete`, {
+        onSuccess: (response) => {
+            notification.value = {
+                show: true,
+                type: "success",
+                message: "Berhasil!",
+                description: response.message || "Data berhasil dihapus!",
+            };
+            form.ids = [];
+            refreshData();
+            showDeleteModal.value = false;
+        },
+        onError: (error) => {
+            notification.value = {
+                show: true,
+                type: "danger",
+                message: "Gagal!",
+                description:
+                    error.response?.data?.message || "Gagal menghapus data!",
+            };
+        },
+    });
 }
 
-// Fungsi untuk menampilkan notifikasi
-const showNotification = (type, message, description = "") => {
+//Untuk Notification
+function handleNotification(type, message, description = "") {
     notification.value = {
         show: true,
         type,
         message,
         description,
     };
-    setTimeout(() => {
-        notification.value.show = false;
-    }, 3000);
-};
-
-// Fungsi Cleartalert
-function clearAlert() {
-    setTimeout(() => {
-        success.value = "";
-        error.value = "";
-    }, 5000);
-}
-
-//Fungsi Delete Checkbox
-function confirmDelete() {
-    form.delete(`${baseUrl}/integrasi/delete`, {
-        onSuccess: () => {
-            showNotification("success", "Data berhasil dihapus!");
-            form.ids = [];
-            refreshData();
-            showDeleteModal.value = false;
-        },
-        onError: () => {
-            showNotification("error", "Gagal menghapus data!");
-        },
-    });
 }
 
 // Pantau perubahan pada error dan tampilkan notifikasi jika ada
 watch(error, (newError) => {
     if (newError) {
-        showNotification("error", newError);
+        notification.value = {
+            show: true,
+            type: "danger",
+            message: "Gagal!",
+            description: newError,
+        };
     }
 });
 
@@ -382,10 +383,12 @@ refreshData();
         <!-- Body/ isi Tabel -->
         <Table
             :thead="thead"
-            :fetch="fetchData"
             :logs="logs"
+            :fetch="fetchData"
+            :search="search"
             @checkbox="handleCheckbox"
-            @refresh="handleRefresh"
+            @refresh="refreshData"
+            @notification="handleNotification"
         />
 
         <!-- Tabel Footer -->
@@ -513,14 +516,14 @@ refreshData();
         <ModalImportExcel
             v-show="addExcel"
             @close="handleCloseExcelModal"
-            @success="handleSuccessMessage"
+            @notification="handleNotification"
         />
 
         <!-- Modal add email -->
         <AddModal
             v-show="addModal"
             @close="handleCloseAddModal"
-            @success="handleSuccessMessage"
+            @notification="handleNotification"
         />
 
         <!-- Modal Hapus Checkbox -->

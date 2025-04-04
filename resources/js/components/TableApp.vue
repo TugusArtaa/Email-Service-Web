@@ -280,7 +280,7 @@ async function changeStatus() {
         <tbody>
             <!-- Menampilkan pesan jika tidak ada data -->
             <tr v-if="data.data.length === 0 && isFetching == false">
-                <td colspan="6" class="px-6 py-4 text-lg font-bold text-center">
+                <td colspan="7" class="px-6 py-4 text-lg font-bold text-center">
                     <div class="flex flex-col items-center justify-center">
                         <img
                             :src="'/NotFound.png'"

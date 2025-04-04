@@ -43,7 +43,7 @@ const successMessage = ref("");
 const errorMessage = ref("");
 
 // Emit event ke parent
-const emit = defineEmits(["checkbox", "refresh"]);
+const emit = defineEmits(["checkbox", "refresh", "notification"]);
 
 // State untuk checkbox
 const checked = ref([]);
@@ -71,14 +71,24 @@ const notification = ref({
 function deleteLog() {
     form.ids = deleteOne.value;
     form.delete(`${baseUrl}/integrasi/delete`, {
-        onSuccess: () => {
-            showNotification("success", "Log berhasil dihapus");
-            emit("delete");
+        onSuccess: (response) => {
+            emit(
+                "notification",
+                "success",
+                "Berhasil!",
+                response.message || "Log berhasil dihapus."
+            );
+            emit("refresh");
             showDeleteModal.value = false;
             form.reset();
         },
-        onError: () => {
-            showNotification("error", "Gagal menghapus log");
+        onError: (error) => {
+            emit(
+                "notification",
+                "danger",
+                "Gagal!",
+                error.response?.data?.message || "Gagal menghapus log."
+            );
         },
     });
 }
@@ -144,15 +154,22 @@ function handleRetry() {
         .post(`${baseUrl}/api/email-queue/send`, formRetry)
         .then((response) => {
             if (response.data.kode === 200) {
-                showNotification("success", response.data.message);
+                emit(
+                    "notification",
+                    "success",
+                    "Berhasil!",
+                    response.data.message
+                );
             } else {
-                showNotification("error", response.data.message);
+                emit("notification", "danger", "Gagal!", response.data.message);
             }
         })
         .catch((error) => {
-            showNotification(
-                "error",
-                error.response.data.message || "Terjadi kesalahan"
+            emit(
+                "notification",
+                "danger",
+                "Gagal!",
+                error.response?.data?.message || "Terjadi kesalahan"
             );
         })
         .finally(() => {
@@ -161,19 +178,6 @@ function handleRetry() {
             emit("refresh");
         });
 }
-
-// Fungsi untuk menampilkan notifikasi
-const showNotification = (type, message, description = "") => {
-    notification.value = {
-        show: true,
-        type,
-        message,
-        description,
-    };
-    setTimeout(() => {
-        notification.value.show = false;
-    }, 3000);
-};
 </script>
 
 <template>

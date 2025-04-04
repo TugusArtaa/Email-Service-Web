@@ -9,7 +9,7 @@ const props = defineProps({
 });
 
 // Emit untuk mengirim event ke parent component
-const emit = defineEmits(["close", "success"]);
+const emit = defineEmits(["close", "notification"]);
 
 // State untuk menyimpan file, error, dan elemen input
 const selectedFile = ref(null);
@@ -29,7 +29,9 @@ function handleFileUpload(event) {
         const fileExtension = file.name.split(".").pop().toLowerCase();
         const isExcel = ["xlsx", "xls"].includes(fileExtension);
         if (!isExcel) {
-            fileError.value = ["Only Excel files (.xlsx, .xls) are allowed."];
+            fileError.value = [
+                "Hanya file Excel (.xlsx, .xls) yang diizinkan.",
+            ];
             if (fileInput.value) {
                 fileInput.value.value = null;
             }
@@ -52,7 +54,7 @@ function cancelFileUpload() {
 // Fungsi untuk mengunggah file ke server
 async function uploadFile() {
     if (!selectedFile.value) {
-        error.value = "Please select a file first.";
+        error.value = "Silakan pilih file terlebih dahulu.";
         return;
     }
     const formData = new FormData();
@@ -67,7 +69,8 @@ async function uploadFile() {
                 },
             }
         );
-        emit("success", "File uploaded successfully.");
+        // Emit notification success
+        emit("notification", "success", "Berhasil!", response.data.message);
         selectedFile.value = null;
         emit("close");
         if (fileInput.value) {
@@ -76,16 +79,23 @@ async function uploadFile() {
     } catch (error) {
         fileError.value = null;
         formatError.value = null;
-        this.error = "Error uploading file.";
-        const errMessage = JSON.parse(error.request.response);
-        if (
-            errMessage.original &&
-            errMessage.original.messages &&
-            errMessage.original.messages.excel_file
-        ) {
-            fileError.value = errMessage.original.messages.excel_file;
-        } else {
-            formatError.value = errMessage.messages;
+        error.value = "Terjadi kesalahan saat mengunggah berkas.";
+        try {
+            const errMessage = JSON.parse(error.request.response);
+            if (
+                errMessage.original &&
+                errMessage.original.messages &&
+                errMessage.original.messages.excel_file
+            ) {
+                fileError.value = errMessage.original.messages.excel_file;
+            } else {
+                formatError.value = errMessage.messages;
+            }
+        } catch (parseError) {
+            console.error(
+                "Terjadi kesalahan saat mengurai respons server:",
+                parseError
+            );
         }
     }
 }
@@ -276,7 +286,7 @@ watch(
                                 />
                             </svg>
                             <span class="font-medium text-red-800"
-                                >Please fix the following errors:</span
+                                >Harap perbaiki kesalahan berikut:</span
                             >
                         </div>
                         <ul v-if="fileError" class="ml-5 space-y-1">
@@ -290,7 +300,8 @@ watch(
                         <div v-if="formatError" class="space-y-3">
                             <div v-for="err in formatError" class="ml-1">
                                 <p class="text-sm font-medium text-red-700">
-                                    Error excel on row number {{ err.row }}
+                                    Kesalahan excel pada nomor baris
+                                    {{ err.row }}
                                 </p>
                                 <ul class="ml-5 space-y-1">
                                     <li
