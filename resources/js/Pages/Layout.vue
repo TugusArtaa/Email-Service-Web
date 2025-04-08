@@ -1,32 +1,51 @@
+<style>
+html,
+body {
+    height: 100%;
+    overflow: hidden;
+}
+
+main {
+    overflow-y: auto;
+}
+</style>
+
 <script setup>
 import { ref, computed } from "vue";
 import { usePage, useForm } from "@inertiajs/vue3";
 
+// State untuk menampilkan atau menyembunyikan menu dropdown admin
 const showAdminMenu = ref(false);
+
+// State untuk menampilkan atau menyembunyikan sidebar
 const isSidebarOpen = ref(true);
+
+// Mengambil data halaman dan pengguna dari Inertia.js
 const page = usePage();
 const user = page.props.auth.user;
 
+// Form untuk logout menggunakan Inertia.js
 const form = useForm({
     _token: page.props.csrf_token,
 });
 
+// Fungsi untuk mengirimkan form logout
 function submit() {
     form.post("/logout");
 }
 
-// Get current path for active navigation
+// Menghitung path URL saat ini
 const currentPath = computed(() => {
     return window.location.pathname;
 });
 
-// Get page title based on current path
+// Menghitung judul halaman berdasarkan path URL
 const pageTitle = computed(() => {
     switch (currentPath.value) {
         case "/dashboard":
             return "Dashboard";
         case "/integrasi":
-            return "Integrasi";
+            return "Manajemen Email";
         case "/application":
             return "Manajemen Aplikasi";
         case "/approve":
@@ -38,294 +57,465 @@ const pageTitle = computed(() => {
     }
 });
 
+// Fungsi untuk toggle (menampilkan/menyembunyikan) menu dropdown admin
 const toggleAdminMenu = () => {
     showAdminMenu.value = !showAdminMenu.value;
 };
 
+// Fungsi untuk toggle (menampilkan/menyembunyikan) sidebar
 const toggleSidebar = () => {
     isSidebarOpen.value = !isSidebarOpen.value;
 };
 </script>
 
 <template>
-    <div class="flex min-h-screen bg-gray-50">
+    <div class="flex h-screen bg-gray-100 overflow-hidden">
         <!-- Sidebar -->
         <aside
             :class="[
-                'fixed top-0 left-0 z-40 h-screen transition-all duration-300 ease-in-out bg-white',
-                isSidebarOpen ? 'w-64' : 'w-0 -translate-x-full',
+                'fixed lg:relative lg:translate-x-0 top-0 left-0 z-40 h-full transition-all duration-300 ease-in-out',
+                isSidebarOpen
+                    ? 'w-64 translate-x-0'
+                    : 'w-0 -translate-x-full lg:w-20 lg:translate-x-0',
             ]"
         >
-            <!-- Logo Section -->
-            <div class="flex items-center gap-2 px-6 py-5">
-                <img
-                    :src="'/bpd.png'"
-                    alt="Logo"
-                    class="w-8 h-8"
-                    :class="{ hidden: !isSidebarOpen }"
-                />
-                <span
-                    :class="[
-                        'text-base font-bold whitespace-nowrap transition-opacity duration-300',
-                        isSidebarOpen ? 'opacity-100' : 'hidden',
-                    ]"
-                    >S-MEBB DASHBOARD</span
+            <div
+                class="h-full flex flex-col bg-gradient-to-br from-[#019966] to-[#017755] text-white shadow-xl"
+            >
+                <!-- Bagian Logo -->
+                <div
+                    class="flex items-center justify-center h-16 px-4 border-b border-green-700/50"
                 >
-            </div>
-
-            <!-- Navigation Menu -->
-            <div class="px-4 py-2">
-                <nav class="space-y-1">
-                    <!-- Dashboard -->
-                    <a
-                        href="/"
-                        :class="[
-                            'flex items-center gap-4 px-4 py-3 text-sm font-medium rounded-lg',
-                            currentPath === '/'
-                                ? 'text-green-600 bg-green-50'
-                                : 'text-gray-600 hover:bg-gray-50',
-                            !isSidebarOpen && 'hidden',
-                        ]"
-                    >
-                        <div class="w-5 h-5">
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                class="w-full h-full"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                            >
-                                <rect x="3" y="3" width="7" height="7" rx="1" />
-                                <rect
-                                    x="14"
-                                    y="3"
-                                    width="7"
-                                    height="7"
-                                    rx="1"
-                                />
-                                <rect
-                                    x="14"
-                                    y="14"
-                                    width="7"
-                                    height="7"
-                                    rx="1"
-                                />
-                                <rect
-                                    x="3"
-                                    y="14"
-                                    width="7"
-                                    height="7"
-                                    rx="1"
-                                />
-                            </svg>
-                        </div>
-                        <span>Dashboard</span>
-                    </a>
-
-                    <!-- Integrasi -->
-                    <a
-                        href="/integrasi"
-                        :class="[
-                            'flex items-center gap-4 px-4 py-3 text-sm font-medium rounded-lg',
-                            currentPath === '/integrasi'
-                                ? 'text-green-600 bg-green-50'
-                                : 'text-gray-600 hover:bg-gray-50',
-                            !isSidebarOpen && 'hidden',
-                        ]"
-                    >
-                        <div class="w-5 h-5">
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                class="w-full h-full"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"
-                                />
-                            </svg>
-                        </div>
-                        <span>Integrasi</span>
-                    </a>
-
-                    <!-- Manajemen Aplikasi -->
-                    <a
-                        href="/application"
-                        :class="[
-                            'flex items-center gap-4 px-4 py-3 text-sm font-medium rounded-lg',
-                            currentPath === '/application'
-                                ? 'text-green-600 bg-green-50'
-                                : 'text-gray-600 hover:bg-gray-50',
-                            !isSidebarOpen && 'hidden',
-                        ]"
-                    >
-                        <div class="w-5 h-5">
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                class="w-full h-full"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                            >
-                                <path d="M4 7h16M4 12h16M4 17h16" />
-                            </svg>
-                        </div>
-                        <span>Manajemen Aplikasi</span>
-                    </a>
-                    <!-- Approve Applications -->
-                    <a
-                        v-show="user.level === 'supervisor'"
-                        href="/approve"
-                        :class="[
-                            'flex items-center gap-4 px-4 py-3 text-sm font-medium rounded-lg',
-                            currentPath === '/approve'
-                                ? 'text-green-600 bg-green-50'
-                                : 'text-gray-600 hover:bg-gray-50',
-                            !isSidebarOpen && 'hidden',
-                        ]"
-                    >
-                        <div class="w-5 h-5">
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke-width="1.5"
-                                stroke="currentColor"
-                                class="size-6"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    d="m4.5 12.75 6 6 9-13.5"
-                                />
-                            </svg>
-                        </div>
-                        <span>Approve Aplikasi</span>
-                    </a>
-                </nav>
-
-                <!-- Account Section -->
-                <div :class="['mt-8', !isSidebarOpen && 'hidden']">
-                    <h3
-                        class="px-4 text-xs font-semibold text-gray-400 uppercase"
-                    >
-                        HALAMAN AKUN
-                    </h3>
-                    <nav class="mt-2">
-                        <a
-                            href="/profile"
+                    <div class="flex items-center gap-3">
+                        <img
+                            :src="'/Logo_SMEBB.png'"
+                            alt="Logo"
+                            class="w-9 h-9 object-contain"
+                        />
+                        <span
                             :class="[
-                                'flex items-center gap-4 px-4 py-3 text-sm font-medium rounded-lg',
-                                currentPath === '/profile'
-                                    ? 'text-green-600 bg-green-50'
-                                    : 'text-gray-600 hover:bg-gray-50',
+                                'text-base font-bold whitespace-nowrap tracking-wide',
+                                isSidebarOpen ? 'block' : 'hidden',
+                            ]"
+                            >S-MEBB DASHBOARD</span
+                        >
+                    </div>
+                </div>
+
+                <!-- Menu Sidebar -->
+                <div class="flex-1 py-6 px-3 overflow-y-auto">
+                    <nav class="space-y-1.5">
+                        <!-- Dashboard -->
+                        <a
+                            href="/"
+                            :class="[
+                                'flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200',
+                                currentPath === '/'
+                                    ? 'bg-white/20 text-white font-medium'
+                                    : 'text-white/80 hover:bg-white/10 hover:text-white',
                             ]"
                         >
-                            <div class="w-5 h-5">
+                            <div class="flex-shrink-0 w-5 h-5">
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     class="w-full h-full"
                                     viewBox="0 0 24 24"
                                     fill="none"
                                     stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
                                 >
-                                    <circle cx="12" cy="8" r="4" />
-                                    <path d="M20 21a8 8 0 1 0-16 0" />
+                                    <rect
+                                        x="3"
+                                        y="3"
+                                        width="7"
+                                        height="7"
+                                        rx="1"
+                                    />
+                                    <rect
+                                        x="14"
+                                        y="3"
+                                        width="7"
+                                        height="7"
+                                        rx="1"
+                                    />
+                                    <rect
+                                        x="14"
+                                        y="14"
+                                        width="7"
+                                        height="7"
+                                        rx="1"
+                                    />
+                                    <rect
+                                        x="3"
+                                        y="14"
+                                        width="7"
+                                        height="7"
+                                        rx="1"
+                                    />
                                 </svg>
                             </div>
-                            <span>Profil</span>
+                            <span
+                                :class="[isSidebarOpen ? 'block' : 'lg:hidden']"
+                                >Dashboard</span
+                            >
+                        </a>
+
+                        <!-- Integrasi -->
+                        <a
+                            href="/integrasi"
+                            :class="[
+                                'flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200',
+                                currentPath === '/integrasi'
+                                    ? 'bg-white/20 text-white font-medium'
+                                    : 'text-white/80 hover:bg-white/10 hover:text-white',
+                            ]"
+                        >
+                            <div class="flex-shrink-0 w-5 h-5">
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    class="w-full h-full"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                >
+                                    <path
+                                        d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"
+                                    />
+                                </svg>
+                            </div>
+                            <span
+                                :class="[isSidebarOpen ? 'block' : 'lg:hidden']"
+                                >Manajemen Email</span
+                            >
+                        </a>
+
+                        <!-- Manajemen Aplikasi -->
+                        <a
+                            href="/application"
+                            :class="[
+                                'flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200',
+                                currentPath === '/application'
+                                    ? 'bg-white/20 text-white font-medium'
+                                    : 'text-white/80 hover:bg-white/10 hover:text-white',
+                            ]"
+                        >
+                            <div class="flex-shrink-0 w-5 h-5">
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    class="w-full h-full"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                >
+                                    <path d="M4 7h16M4 12h16M4 17h16" />
+                                </svg>
+                            </div>
+                            <span
+                                :class="[isSidebarOpen ? 'block' : 'lg:hidden']"
+                                >Manajemen Aplikasi</span
+                            >
+                        </a>
+
+                        <!-- Approve Applications -->
+                        <a
+                            v-show="user.level === 'supervisor'"
+                            href="/approve"
+                            :class="[
+                                'flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200',
+                                currentPath === '/approve'
+                                    ? 'bg-white/20 text-white font-medium'
+                                    : 'text-white/80 hover:bg-white/10 hover:text-white',
+                            ]"
+                        >
+                            <div class="flex-shrink-0 w-5 h-5">
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    class="size-5"
+                                >
+                                    <path d="m4.5 12.75 6 6 9-13.5" />
+                                </svg>
+                            </div>
+                            <span
+                                :class="[isSidebarOpen ? 'block' : 'lg:hidden']"
+                                >Approve Aplikasi</span
+                            >
                         </a>
                     </nav>
+
+                    <!-- Profil -->
+                    <div :class="['mt-8', !isSidebarOpen && 'lg:mt-10']">
+                        <h3
+                            :class="[
+                                'px-4 text-xs font-semibold text-white/60 uppercase tracking-wider',
+                                !isSidebarOpen && 'lg:hidden',
+                            ]"
+                        >
+                            HALAMAN AKUN
+                        </h3>
+                        <nav class="mt-2">
+                            <a
+                                href="/profile"
+                                :class="[
+                                    'flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200',
+                                    currentPath === '/profile'
+                                        ? 'bg-white/20 text-white font-medium'
+                                        : 'text-white/80 hover:bg-white/10 hover:text-white',
+                                ]"
+                            >
+                                <div class="flex-shrink-0 w-5 h-5">
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        class="w-full h-full"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="2"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                    >
+                                        <circle cx="12" cy="8" r="4" />
+                                        <path d="M20 21a8 8 0 1 0-16 0" />
+                                    </svg>
+                                </div>
+                                <span
+                                    :class="[
+                                        isSidebarOpen ? 'block' : 'lg:hidden',
+                                    ]"
+                                    >Profil</span
+                                >
+                            </a>
+                        </nav>
+                    </div>
+                </div>
+
+                <!-- Footer Menu Sidebar -->
+                <div
+                    :class="[
+                        'p-4 border-t border-green-700/50',
+                        !isSidebarOpen && 'lg:p-3',
+                    ]"
+                >
+                    <form @submit.prevent="submit">
+                        <input
+                            type="hidden"
+                            name="_token"
+                            :value="page.props.csrf_token"
+                        />
+                        <button
+                            type="submit"
+                            :class="[
+                                'w-full flex items-center justify-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-all text-white',
+                                !isSidebarOpen && 'lg:px-2',
+                            ]"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                class="w-5 h-5"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            >
+                                <path
+                                    d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"
+                                />
+                                <polyline points="16 17 21 12 16 7" />
+                                <line x1="21" y1="12" x2="9" y2="12" />
+                            </svg>
+                            <span
+                                :class="[isSidebarOpen ? 'block' : 'lg:hidden']"
+                                >Logout</span
+                            >
+                        </button>
+                    </form>
                 </div>
             </div>
         </aside>
 
         <!-- Main Content -->
-        <div
-            :class="[
-                'flex-1 transition-all duration-300',
-                isSidebarOpen ? 'ml-64' : 'ml-0',
-            ]"
-        >
-            <!-- Top Navigation -->
-            <header
-                class="sticky top-0 z-30 flex items-center justify-between h-16 px-6 bg-white border-b border-gray-200"
-            >
-                <div class="flex items-center flex-1 gap-4">
-                    <!-- Toggle Sidebar Button -->
-                    <button
-                        @click="toggleSidebar"
-                        class="p-2 rounded-lg hover:bg-green-200"
-                    >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            class="w-5 h-5"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            :class="{ 'rotate-180': !isSidebarOpen }"
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Bagian atas Navigation -->
+            <header class="bg-white border-b border-gray-200 shadow-sm z-30">
+                <div
+                    class="flex items-center justify-between h-16 px-4 lg:px-6"
+                >
+                    <div class="flex items-center flex-1 gap-4">
+                        <!-- Tombol Toggle Sidebar -->
+                        <button
+                            @click="toggleSidebar"
+                            class="p-2 rounded-lg text-gray-600 hover:bg-green-100 hover:text-green-600 transition-colors"
+                            aria-label="Toggle sidebar"
                         >
-                            <path d="M4 6h16M4 12h16M4 18h16" />
-                        </svg>
-                    </button>
-                    <h1 class="text-lg font-semibold">{{ pageTitle }}</h1>
-                </div>
-
-                <div class="flex items-center gap-6">
-                    <!-- Admin Menu -->
-                    <div class="flex items-center gap-3">
-                        <div class="relative">
-                            <img
-                                class="w-10 h-10 rounded-full"
-                                :src="'/bpd.png'"
-                                alt=""
-                            />
-                            <span
-                                class="top-0 left-7 absolute w-3.5 h-3.5 bg-green-400 border-2 border-white dark:border-gray-800 rounded-full"
-                            ></span>
-                        </div>
-                        <span class="text-sm font-medium">{{ user.name }}</span>
-                        <div class="relative">
-                            <button
-                                @click="toggleAdminMenu"
-                                class="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-gray-100"
+                            <svg
+                                v-if="isSidebarOpen"
+                                xmlns="http://www.w3.org/2000/svg"
+                                class="w-5 h-5"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
                             >
+                                <path d="M15 18l-6-6 6-6" />
+                            </svg>
+                            <svg
+                                v-else
+                                xmlns="http://www.w3.org/2000/svg"
+                                class="w-5 h-5"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M3.75 5.25h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5"
+                                />
+                            </svg>
+                        </button>
+
+                        <!-- Judul Halaman -->
+                        <div>
+                            <h1 class="text-lg font-semibold text-gray-800">
+                                {{ pageTitle }}
+                            </h1>
+                            <div
+                                class="text-xs text-gray-500 flex items-center gap-1"
+                            >
+                                <span>S-MEBB</span>
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
-                                    class="w-5 h-5 text-gray-600"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
+                                    class="h-3 w-3"
+                                    viewBox="0 0 20 20"
+                                    fill="currentColor"
                                 >
-                                    <path d="M6 9l6 6 6-6" />
+                                    <path
+                                        fill-rule="evenodd"
+                                        d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                                        clip-rule="evenodd"
+                                    />
                                 </svg>
-                            </button>
+                                <span>{{ pageTitle }}</span>
+                            </div>
+                        </div>
+                    </div>
 
-                            <!-- Dropdown Menu -->
+                    <div class="flex items-center gap-3">
+                        <!-- Dropdown Profil User -->
+                        <div class="relative">
+                            <div class="flex items-center gap-3">
+                                <div class="relative">
+                                    <img
+                                        class="w-9 h-9 rounded-full object-cover border-2 border-green-500"
+                                        :src="'/bpd.png'"
+                                        alt="User avatar"
+                                    />
+                                    <span
+                                        class="absolute bottom-0 right-0 w-3 h-3 bg-green-400 border-2 border-white rounded-full"
+                                    ></span>
+                                </div>
+                                <div class="hidden md:block">
+                                    <div
+                                        class="text-sm font-medium text-gray-700"
+                                    >
+                                        {{ user.name }}
+                                    </div>
+                                    <div class="text-xs text-gray-500">
+                                        {{ user.level }}
+                                    </div>
+                                </div>
+                                <button
+                                    @click="toggleAdminMenu"
+                                    class="p-1.5 text-gray-600 hover:text-green-600 hover:bg-green-100 rounded-lg transition-colors"
+                                >
+                                    <svg
+                                        v-if="showAdminMenu"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        class="w-5 h-5"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="2"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                    >
+                                        <path d="M18 15l-6-6-6 6" />
+                                    </svg>
+                                    <svg
+                                        v-else
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        class="w-5 h-5"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="2"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                    >
+                                        <path d="M6 9l6 6 6-6" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <!-- Menu Dropdown Admin -->
                             <div
                                 v-if="showAdminMenu"
-                                class="absolute right-0 w-48 py-2 mt-2 bg-white border border-gray-100 rounded-lg shadow-lg"
+                                class="absolute right-0 min-w-max mt-2 origin-top-right bg-white border border-gray-200 divide-y divide-gray-100 rounded-lg shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50"
+                                @click.outside="showAdminMenu = false"
                             >
-                                <a
-                                    href="/profile"
-                                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                >
-                                    Pengaturan Profil
-                                </a>
-                                <form @submit.prevent="submit">
-                                    <input
-                                        type="hidden"
-                                        name="_token"
-                                        :value="csrf_token"
-                                    />
-                                    <button
-                                        type="submit"
-                                        class="w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100"
+                                <div class="px-4 py-3">
+                                    <p class="text-sm text-gray-900">
+                                        {{ user.name }}
+                                    </p>
+                                    <p
+                                        class="text-sm font-medium text-gray-500 truncate"
                                     >
-                                        Logout
-                                    </button>
-                                </form>
+                                        {{ user.email }}
+                                    </p>
+                                </div>
+                                <div class="py-1">
+                                    <a
+                                        href="/profile"
+                                        class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                    >
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            class="h-4 w-4"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                        >
+                                            <path
+                                                d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"
+                                            />
+                                            <circle cx="12" cy="7" r="4" />
+                                        </svg>
+                                        Pengaturan Profil
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -333,8 +523,13 @@ const toggleSidebar = () => {
             </header>
 
             <!-- Page Content -->
-            <main class="p-6">
-                <slot></slot>
+            <main class="flex-1 p-4 lg:p-6 overflow-y-auto bg-gray-50">
+                <!-- Isi Content -->
+                <div
+                    class="bg-white rounded-xl shadow-sm border border-gray-200 p-6"
+                >
+                    <slot></slot>
+                </div>
             </main>
         </div>
     </div>

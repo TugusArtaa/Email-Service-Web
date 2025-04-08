@@ -18,10 +18,18 @@ class EmailLogService
     {
         $query = EmailLog::with('application');
 
+        // Filter berdasarkan parameter pencarian
         if ($search) {
-            $query->where('status', 'like', '%' . $search . '%');
+            $query->where(function ($q) use ($search) {
+                $q->where('status', 'like', '%' . $search . '%')
+                    ->orWhereHas('application', function ($appQuery) use ($search) {
+                        $appQuery->where('name', 'like', '%' . $search . '%');
+                    })
+                    ->orWhere('request', 'like', '%' . $search . '%');
+            });
         }
 
+        // Urutkan berdasarkan parameter orderBy
         return $query->orderBy('created_at', $orderBy)
             ->paginate($perPage);
     }

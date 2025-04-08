@@ -6,6 +6,7 @@ import TableApprove from "../components/TableApprove.vue";
 import TablePagination from "../components/TablePagination.vue";
 import { Head } from "@inertiajs/vue3";
 import { useFetch, onClickOutside, useStorage } from "@vueuse/core";
+import NotificationToast from "../components/NotificationToast.vue";
 
 // Mendefinisikan URL dasar untuk API
 const baseUrl = import.meta.env.VITE_APP_URL;
@@ -32,8 +33,14 @@ const rejectModal = ref(null);
 const showApproveModal = ref(false);
 const showRejectModal = ref(false);
 const selectedApplication = ref({});
-const alertMessage = ref("");
-const alertType = ref("");
+
+// Variabel untuk toast notification
+const notification = ref({
+    show: false,
+    type: "",
+    message: "",
+    description: "",
+});
 
 // Mengambil data dari API
 const { isFetching, data } = useFetch(url, { refetch: true }).get().json();
@@ -44,12 +51,6 @@ watch(data, (newData) => {
         applications.value = newData.data.applications;
     }
 });
-
-// Fungsi untuk membersihkan pesan alert
-function clearAlert() {
-    alertMessage.value = "";
-    alertType.value = "";
-}
 
 // Fungsi untuk menangani perubahan halaman
 const handlePageChange = (page) => {
@@ -85,15 +86,21 @@ const approveApplication = async () => {
                 id: selectedApplication.value.id,
             }
         );
-        alertMessage.value = response.data.message;
-        alertType.value = "success";
+        notification.value = {
+            show: true,
+            type: "success",
+            message: "Berhasil!",
+            description: response.data.message,
+        };
         showApproveModal.value = false;
         refreshData();
-        setTimeout(clearAlert, 4000);
     } catch (error) {
-        alertMessage.value = error.response.data.message || "An error occurred";
-        alertType.value = "danger";
-        setTimeout(clearAlert, 4000);
+        notification.value = {
+            show: true,
+            type: "danger",
+            message: "Gagal!",
+            description: error.response.data.message || "Terjadi kesalahan",
+        };
     }
 };
 
@@ -113,15 +120,21 @@ const rejectApplication = async () => {
                 status: "rejected",
             }
         );
-        alertMessage.value = response.data.message;
-        alertType.value = "success";
+        notification.value = {
+            show: true,
+            type: "success",
+            message: "Berhasil!",
+            description: response.data.message,
+        };
         showRejectModal.value = false;
         refreshData();
-        setTimeout(clearAlert, 4000);
     } catch (error) {
-        alertMessage.value = error.response.data.message || "An error occurred";
-        alertType.value = "danger";
-        setTimeout(clearAlert, 4000);
+        notification.value = {
+            show: true,
+            type: "danger",
+            message: "Gagal!",
+            description: error.response.data.message || "Terjadi kesalahan",
+        };
     }
 };
 
@@ -131,18 +144,25 @@ const refreshData = async () => {
         const response = await axios.get(url.value);
         applications.value = response.data.data.applications;
     } catch (error) {
-        console.error("Error refreshing data:", error);
+        notification.value = {
+            show: true,
+            type: "danger",
+            message: "Gagal Memuat Data!",
+            description:
+                error.response?.data?.message ||
+                "Terjadi kesalahan saat menyegarkan data.",
+        };
     }
 };
 
 // Header tabel
 const thead = ref([
     "No",
-    "Application name",
-    "PIC Name",
-    "Created At",
+    "Nama Aplikasi",
+    "Nama PIC",
+    "Dibuat Pada",
     "Status",
-    "Actions",
+    "Aksi",
 ]);
 </script>
 
@@ -152,84 +172,86 @@ const thead = ref([
         <title>Approve Aplikasi</title>
     </Head>
     <Layout>
+        <!-- Toast Notification -->
+        <NotificationToast
+            :notification="notification"
+            @close="notification.show = false"
+        />
+
+        <!-- Header -->
         <div
-            class="relative w-full px-3 py-5 overflow-x-auto bg-white shadow-md sm:rounded-lg"
+            class="px-8 py-6 mb-8 bg-gradient-to-br from-[#019966] via-[#018860] to-[#017755] rounded-3xl shadow-lg flex items-center justify-between relative overflow-hidden"
         >
-            <!-- Judul -->
-            <h3 class="mb-3 text-2xl font-bold dark:text-white">
-                Daftar Approve
-            </h3>
-            <!-- Alert -->
             <div
-                v-if="alertMessage"
-                :class="`flex items-center p-4 mb-4 text-sm border rounded-lg ${
-                    alertType === 'success'
-                        ? 'text-green-800 border-green-300 bg-green-50 dark:bg-gray-800 dark:text-green-400 dark:border-green-800'
-                        : 'text-red-800 border-red-300 bg-red-50 dark:bg-gray-800 dark:text-red-400 dark:border-red-800'
-                }`"
-                role="alert"
-            >
-                <svg
-                    class="flex-shrink-0 inline w-4 h-4 me-3"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                >
-                    <path
-                        d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"
+                class="absolute inset-0 opacity-5 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMwLTkuOTQtOC4wNi0xOC0xOC0xOFYwYzkuOTQgMCAxOCA4LjA2IDE4IDE4aDEyYzAgOS45NCA4LjA2IDE4IDE4IDE4djEyYy05Ljk0IDAtMTgtOC4wNi0xOC0xOEgzNnptLTE4IDM2YzkuOTQgMCAxOCA4LjA2IDE4IDE4aDE4YzAgOS45NC04LjA2IDE4LTE4IDE4djEyYzkuOTQgMCAxOC04LjA2IDE4LTE4aDEyYzAgOS45NCA4LjA2IDE4IDE4IDE4VjcyYy05Ljk0IDAtMTgtOC4wNi0xOC0xOEgxOGMwLTkuOTQtOC4wNi0xOC0xOC0xOHYtMTJjOS45NCAwIDE4IDguMDYgMTggMTh6IiBmaWxsPSIjZmZmIi8+PC9nPjwvc3ZnPg==')]"
+            ></div>
+            <div class="flex items-center z-10">
+                <div class="bg-white/10 p-2 rounded-2xl backdrop-blur-sm mr-8">
+                    <img
+                        :src="'/ApproveLogo.png'"
+                        alt="Logo"
+                        class="h-20 w-20"
                     />
-                </svg>
-                <span class="sr-only">Info</span>
+                </div>
                 <div>
-                    <span class="font-medium">{{
-                        alertType === "success"
-                            ? "Success alert!"
-                            : "Danger alert!"
-                    }}</span>
-                    {{ alertMessage }}
+                    <h1
+                        class="text-4xl font-bold text-white tracking-tight drop-shadow-md"
+                    >
+                        Daftar Aplikasi yang Menunggu Persetujuan
+                    </h1>
+                    <div class="flex items-center mt-3">
+                        <span
+                            class="w-10 h-1 bg-emerald-300 rounded-full mr-3"
+                        ></span>
+                        <p class="text-lg text-emerald-50 font-medium">
+                            Tinjau dan setujui aplikasi yang mengajukan
+                            pendaftaran ke sistem
+                        </p>
+                    </div>
                 </div>
             </div>
-            <br />
-            <!-- Tabel -->
-            <TableApprove
-                :data="applications"
-                :thead="thead"
-                :title="'Daftar Approve'"
-                :isFetching="isFetching"
-                :page="page"
-                @approve="openApproveModal"
-                @reject="openRejectModal"
-                @refresh="refreshData"
-            />
-            <!-- Tabel footer -->
-            <TablePagination
-                :current="applications.current_page"
-                :from="applications.from"
-                :to="applications.to"
-                :total="applications.total"
-                :last="applications.last_page"
-                @page-change="handlePageChange"
-            />
+            <div
+                class="absolute top-0 right-0 h-full w-24 bg-white/5 -skew-x-12"
+            ></div>
         </div>
+        <!-- Tabel -->
+        <TableApprove
+            :data="applications"
+            :thead="thead"
+            :title="'Daftar Approve'"
+            :isFetching="isFetching"
+            :page="page"
+            @approve="openApproveModal"
+            @reject="openRejectModal"
+            @refresh="refreshData"
+        />
+        <!-- Tabel footer -->
+        <TablePagination
+            :current="applications.current_page"
+            :from="applications.from"
+            :to="applications.to"
+            :total="applications.total"
+            :last="applications.last_page"
+            @page-change="handlePageChange"
+        />
     </Layout>
 
     <!-- Modal Approve -->
     <div
         tabindex="-1"
         v-show="showApproveModal"
-        class="overflow-y-auto backdrop-blur-[2px] bg-gray-700 bg-opacity-40 flex overflow-x-hidden fixed top-0 right-0 left-0 bottom-0 z-50 justify-center items-center w-full md:inset-0"
+        class="overflow-y-auto bg-black bg-opacity-60 backdrop-blur-sm flex overflow-x-hidden fixed top-0 right-0 left-0 bottom-0 z-50 justify-center items-center w-full md:inset-0"
     >
         <div class="relative w-full max-w-md max-h-full p-4">
             <div
-                class="relative bg-white rounded-lg shadow-lg dark:bg-gray-800"
+                class="relative bg-white rounded-lg shadow-lg"
                 ref="approveModal"
             >
                 <!-- Tombol tutup modal -->
                 <button
                     @click="showApproveModal = false"
                     type="button"
-                    class="absolute top-3 right-3 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                    class="absolute top-3 right-3 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 flex justify-center items-center"
                     data-modal-hide="popup-modal"
                 >
                     <svg
@@ -247,12 +269,12 @@ const thead = ref([
                             d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
                         />
                     </svg>
-                    <span class="sr-only">Close modal</span>
+                    <span class="sr-only">Tutup modal</span>
                 </button>
                 <!-- Isi modal -->
                 <div class="p-6 text-center">
                     <svg
-                        class="w-12 h-12 mx-auto mb-4 text-gray-400 dark:text-gray-200"
+                        class="w-12 h-12 mx-auto mb-4 text-green-600"
                         aria-hidden="true"
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
@@ -267,49 +289,48 @@ const thead = ref([
                         />
                     </svg>
                     <!-- Judul modal -->
-                    <h3
-                        class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400"
-                    >
-                        Are you sure you want to approve this?
+                    <h3 class="mb-5 text-lg font-normal text-gray-500">
+                        Apakah Anda yakin ingin menyetujui ini?
                     </h3>
                     <!-- Tombol konfirmasi -->
                     <button
                         @click="approveApplication"
                         data-modal-hide="popup-modal"
                         type="button"
-                        class="text-white bg-green-600 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 dark:focus:ring-green-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center"
+                        class="text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center"
                     >
-                        Yes, I'm sure
+                        Ya, Saya yakin
                     </button>
                     <!-- Tombol batal -->
                     <button
                         @click="showApproveModal = false"
                         data-modal-hide="popup-modal"
                         type="button"
-                        class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                        class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-gray-950 focus:z-10 focus:ring-4 focus:ring-gray-100"
                     >
-                        No, cancel
+                        Tidak, Batalkan
                     </button>
                 </div>
             </div>
         </div>
     </div>
-    <!-- Modal Reject -->
+
+    <!-- Modal Penolakan -->
     <div
         tabindex="-1"
         v-show="showRejectModal"
-        class="overflow-y-auto backdrop-blur-[2px] bg-gray-700 bg-opacity-40 flex overflow-x-hidden fixed top-0 right-0 left-0 bottom-0 z-50 justify-center items-center w-full md:inset-0"
+        class="overflow-y-auto bg-black bg-opacity-60 backdrop-blur-sm flex overflow-x-hidden fixed top-0 right-0 left-0 bottom-0 z-50 justify-center items-center w-full md:inset-0"
     >
         <div class="relative w-full max-w-md max-h-full p-4">
             <div
-                class="relative bg-white rounded-lg shadow-lg dark:bg-gray-800"
+                class="relative bg-white rounded-lg shadow-lg"
                 ref="rejectModal"
             >
                 <!-- Tombol tutup modal -->
                 <button
                     @click="showRejectModal = false"
                     type="button"
-                    class="absolute top-3 right-3 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                    class="absolute top-3 right-3 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 flex justify-center items-center"
                     data-modal-hide="popup-modal"
                 >
                     <svg
@@ -327,12 +348,12 @@ const thead = ref([
                             d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
                         />
                     </svg>
-                    <span class="sr-only">Close modal</span>
+                    <span class="sr-only">Tutup modal</span>
                 </button>
                 <!-- Isi modal -->
                 <div class="p-6 text-center">
                     <svg
-                        class="w-12 h-12 mx-auto mb-4 text-gray-400 dark:text-gray-200"
+                        class="w-12 h-12 mx-auto mb-4 text-red-600"
                         aria-hidden="true"
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
@@ -347,28 +368,26 @@ const thead = ref([
                         />
                     </svg>
                     <!-- Judul modal -->
-                    <h3
-                        class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400"
-                    >
-                        Are you sure you want to reject this?
+                    <h3 class="mb-5 text-lg font-normal text-gray-500">
+                        Apakah Anda yakin ingin menolak ini?
                     </h3>
                     <!-- Tombol konfirmasi -->
                     <button
                         @click="rejectApplication"
                         data-modal-hide="popup-modal"
                         type="button"
-                        class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center"
+                        class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center"
                     >
-                        Yes, I'm sure
+                        Ya, Saya yakin
                     </button>
                     <!-- Tombol batal -->
                     <button
                         @click="showRejectModal = false"
                         data-modal-hide="popup-modal"
                         type="button"
-                        class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                        class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-gray-950 focus:z-10 focus:ring-4 focus:ring-gray-100"
                     >
-                        No, cancel
+                        Tidak, Batalkan
                     </button>
                 </div>
             </div>

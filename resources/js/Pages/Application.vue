@@ -6,6 +6,7 @@ import Layout from "./Layout.vue";
 import Table from "../components/TableApp.vue";
 import Search from "../components/Search.vue";
 import TablePagination from "../components/TablePagination.vue";
+import NotificationToast from "../components/NotificationToast.vue";
 import { Head, useForm, usePage } from "@inertiajs/vue3";
 import { useFetch, onClickOutside, useStorage } from "@vueuse/core";
 
@@ -28,6 +29,7 @@ const applications = ref({ data: [] });
 const search = ref("");
 const checked = ref([]);
 const page = ref(1);
+const selectedIdsCount = ref(0);
 
 // Variabel untuk dropdown urutan dan modal
 const orderDropdown = ref(false);
@@ -44,14 +46,18 @@ const appDescription = ref("");
 const appPicName = ref("");
 const validationErrors = ref({});
 
-// Variabel untuk pesan alert
-const alertMessage = ref("");
-const alertType = ref("");
-
 // Mengambil data dari API
 const { isFetching, error, data } = useFetch(url, { refetch: true })
     .get()
     .json();
+
+// State untuk notifikasi
+const notification = ref({
+    show: false,
+    type: "",
+    message: "",
+    description: "",
+});
 
 // Mengawasi perubahan data dan memperbarui variabel applications
 watch(data, (newData) => {
@@ -59,12 +65,6 @@ watch(data, (newData) => {
         applications.value = newData.data.applications;
     }
 });
-
-// Fungsi untuk membersihkan pesan alert
-function clearAlert() {
-    alertMessage.value = "";
-    alertType.value = "";
-}
 
 // Fungsi untuk menangani perubahan halaman
 const handlePageChange = (page) => {
@@ -80,7 +80,7 @@ const handleSearch = (query) => {
     if (query === search.value) {
         return;
     }
-    url.value = `${baseUrl}/api/applications?search=${query}&page=1&orderBy=${orderBy.value}&orderDirection=${orderDirection.value}`;
+    url.value = `${baseUrl}/api/applications?search=${query}&page=1&orderBy=${orderBy.value}&orderDirection=${orderDirection.value}&filterBy=name,pic_name`;
     search.value = query;
     applications.value = { data: [] };
 };
@@ -115,11 +115,11 @@ onClickOutside(deleteModal, (event) => {
 const thead = ref([
     "",
     "No",
-    "Application name",
-    "PIC Name",
-    "Created At",
+    "Nama Aplikasi",
+    "Nama PIC",
+    "Dibuat Pada",
     "Status",
-    "Action",
+    "Aksi",
 ]);
 
 // Inisialisasi form untuk operasi hapus
@@ -129,7 +129,7 @@ const form = useForm({
     _token: pageInertia.props.csrf_token,
 });
 
-// Fungsi untuk menghapus aplikasi
+// Fungsi untuk menghapus aplikasi banyak
 function deleteApp() {
     fetch("/api/applications/delete", {
         method: "DELETE",
@@ -142,53 +142,70 @@ function deleteApp() {
         .then((response) => response.json())
         .then((data) => {
             if (data.success) {
-                // Reset data
                 checked.value = [];
+                form.ids = [];
                 showDeleteModal.value = false;
                 refreshData();
-
-                // Set success alert
-                alertMessage.value = data.message;
-                alertType.value = "success";
+                notification.value = {
+                    show: true,
+                    type: "success",
+                    message: "Berhasil!",
+                    description: data.message,
+                };
             } else {
-                // Set error alert
-                alertMessage.value =
-                    "An error occurred while deleting the applications.";
-                alertType.value = "error";
+                notification.value = {
+                    show: true,
+                    type: "danger",
+                    message: "Gagal!",
+                    description: data.message || "Terjadi kesalahan.",
+                };
             }
-            setTimeout(clearAlert, 4000);
         })
         .catch((error) => {
-            console.error("Error deleting applications:", error);
-            alertMessage.value =
-                "An error occurred while deleting the applications.";
-            alertType.value = "error";
-            setTimeout(clearAlert, 4000);
+            notification.value = {
+                show: true,
+                type: "danger",
+                message: "Gagal!",
+                description: error.message || "Terjadi kesalahan.",
+            };
         });
 }
 
 // Fungsi untuk menyegarkan data aplikasi
 function refreshData() {
-    // Fetch data
     const { data } = useFetch(
         `${baseUrl}/api/applications?orderBy=${orderBy.value}&orderDirection=${orderDirection.value}`,
         { refetch: true }
     )
         .get()
         .json();
-    // Akses data langsung
     watch(data, (newData) => {
         if (newData) {
-            applications.value = [];
             applications.value = newData.data.applications;
+        } else {
+            notification.value = {
+                show: true,
+                type: "danger",
+                message: "Gagal Memuat Data!",
+                description: "Terjadi kesalahan saat menyegarkan data.",
+            };
         }
     });
 }
 
+//Fungsi untuk checkbox
+function handleCheckbox(selectedIds) {
+    form.ids = selectedIds;
+}
+
 // Fungsi untuk menangani perubahan checkbox
-const handleCheckbox = (newChecked) => {
-    checked.value = newChecked;
-    form.ids = checked.value;
+const handleDeleteCheckbox = () => {
+    if (form.ids.length > 0) {
+        selectedIdsCount.value = form.ids.length;
+        showDeleteModal.value = true;
+    } else {
+        showNotification("error", "Tidak ada data yang dipilih!");
+    }
 };
 
 // Inisialisasi form untuk operasi tambah
@@ -218,7 +235,6 @@ watch(appPicName, (newAppPicName) => {
 const addApplication = async (event) => {
     event.preventDefault();
     validationErrors.value = {};
-
     try {
         const response = await axios.post("/application", {
             name: appName.value,
@@ -226,271 +242,252 @@ const addApplication = async (event) => {
             pic_name: appPicName.value,
             _token: pageInertia.props.csrf_token,
         });
-
-        // Reset form
         appName.value = "";
         appDescription.value = "";
         appPicName.value = "";
         showAddModal.value = false;
         refreshData();
-
-        // Set success alert
-        alertMessage.value = "Application added successfully!";
-        alertType.value = "success";
-        setTimeout(clearAlert, 4000);
+        notification.value = {
+            show: true,
+            type: "success",
+            message: "Berhasil!",
+            description: response.data.message,
+        };
     } catch (error) {
         if (error.response?.status === 422) {
             validationErrors.value = error.response.data.errors;
         } else {
-            console.error("Error adding application:", error);
-            alertMessage.value =
-                "An error occurred while adding the application.";
-            alertType.value = "error";
-            setTimeout(clearAlert, 4000);
+            notification.value = {
+                show: true,
+                type: "danger",
+                message: "Gagal!",
+                description:
+                    error.response?.data?.message || "Terjadi kesalahan.",
+            };
         }
     }
 };
 </script>
 
 <template>
-    <!-- head -->
     <Head>
         <title>Manajemen aplikasi</title>
     </Head>
     <Layout>
+        <!-- Header -->
         <div
-            class="relative w-full px-3 py-5 overflow-x-auto bg-white shadow-md sm:rounded-lg"
+            class="px-8 py-6 mb-8 bg-gradient-to-br from-[#019966] via-[#018860] to-[#017755] rounded-3xl shadow-lg flex items-center justify-between relative overflow-hidden"
         >
-            <!-- Judul -->
-            <h3 class="mb-3 text-2xl font-bold dark:text-white">
-                Daftar Aplikasi
-            </h3>
-            <!-- Alert -->
             <div
-                v-if="alertMessage"
-                :class="`flex items-center p-4 mb-4 text-sm border rounded-lg ${
-                    alertType === 'success'
-                        ? 'text-green-800 border-green-300 bg-green-50 dark:bg-gray-800 dark:text-green-400 dark:border-green-800'
-                        : 'text-red-800 border-red-300 bg-red-50 dark:bg-gray-800 dark:text-red-400 dark:border-red-800'
-                }`"
-                role="alert"
-            >
-                <svg
-                    class="flex-shrink-0 inline w-4 h-4 me-3"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                >
-                    <path
-                        d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"
+                class="absolute inset-0 opacity-5 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMwLTkuOTQtOC4wNi0xOC0xOC0xOFYwYzkuOTQgMCAxOCA4LjA2IDE4IDE4aDEyYzAgOS45NCA4LjA2IDE4IDE4IDE4djEyYy05Ljk0IDAtMTgtOC4wNi0xOC0xOEgzNnptLTE4IDM2YzkuOTQgMCAxOCA4LjA2IDE4IDE4aDE4YzAgOS45NC04LjA2IDE4LTE4IDE4djEyYzkuOTQgMCAxOC04LjA2IDE4LTE4aDEyYzAgOS45NCA4LjA2IDE4IDE4IDE4VjcyYy05Ljk0IDAtMTgtOC4wNi0xOC0xOEgxOGMwLTkuOTQtOC4wNi0xOC0xOC0xOHYtMTJjOS45NCAwIDE4IDguMDYgMTggMTh6IiBmaWxsPSIjZmZmIi8+PC9nPjwvc3ZnPg==')]"
+            ></div>
+            <div class="flex items-center z-10">
+                <div class="bg-white/10 p-2 rounded-2xl backdrop-blur-sm mr-8">
+                    <img
+                        :src="'/AplikasiLogo.png'"
+                        alt="Logo"
+                        class="h-20 w-20"
                     />
-                </svg>
-                <span class="sr-only">Info</span>
+                </div>
                 <div>
-                    <span class="font-medium">{{
-                        alertType === "success"
-                            ? "Success alert!"
-                            : "Danger alert!"
-                    }}</span>
-                    {{ alertMessage }}
+                    <h1
+                        class="text-4xl font-bold text-white tracking-tight drop-shadow-md"
+                    >
+                        Daftar Aplikasi Terintegrasi
+                    </h1>
+                    <div class="flex items-center mt-3">
+                        <span
+                            class="w-10 h-1 bg-emerald-300 rounded-full mr-3"
+                        ></span>
+                        <p class="text-lg text-emerald-50 font-medium">
+                            Monitor, tinjau, dan kelola aplikasi yang terhubung
+                            dengan sistem ini
+                        </p>
+                    </div>
                 </div>
             </div>
-            <!-- Search -->
-            <section class="flex items-center mb-5">
-                <div class="w-full mx-auto">
-                    <div class="relative w-full sm:rounded-lg">
+            <div
+                class="absolute top-0 right-0 h-full w-24 bg-white/5 -skew-x-12"
+            ></div>
+        </div>
+        <!-- Notification Toast -->
+        <NotificationToast
+            :notification="notification"
+            @close="notification.show = false"
+        />
+        <!-- Header tabel -->
+        <section class="flex items-center mb-5">
+            <div class="w-full mx-auto">
+                <div class="relative w-full sm:rounded-lg">
+                    <div
+                        class="flex flex-col items-center justify-between space-y-3 md:flex-row md:space-y-0 md:space-x-4"
+                    >
+                        <div class="w-full md:w-1/2">
+                            <!-- Komponen search -->
+                            <Search @search="handleSearch" />
+                        </div>
                         <div
-                            class="flex flex-col items-center justify-between space-y-3 md:flex-row md:space-y-0 md:space-x-4"
+                            class="flex flex-col items-stretch justify-end flex-shrink-0 w-full space-y-2 md:w-auto md:flex-row md:space-y-0 md:items-center md:space-x-3"
                         >
-                            <div class="w-full md:w-1/2">
-                                <!-- Komponen search -->
-                                <Search @search="handleSearch" />
-                            </div>
-                            <div
-                                class="flex flex-col items-stretch justify-end flex-shrink-0 w-full space-y-2 md:w-auto md:flex-row md:space-y-0 md:items-center md:space-x-3"
+                            <!-- Tombol aksi -->
+                            <button
+                                type="button"
+                                @click="showAddModal = true"
+                                class="flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-green-700 rounded-lg hover:bg-green-800 focus:ring-4 focus:ring-green-300 focus:outline-none"
                             >
-                                <!-- Tombol aksi -->
+                                <svg
+                                    class="w-5 h-5"
+                                    aria-hidden="true"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke="currentColor"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M12 5v14m-7-7h14"
+                                    />
+                                </svg>
+                            </button>
+                            <div
+                                class="flex items-center w-full space-x-3 md:w-auto"
+                            >
+                                <!-- Tombol hapus -->
                                 <button
+                                    @click="handleDeleteCheckbox"
+                                    id="actionsDropdownButton"
+                                    data-dropdown-toggle="actionsDropdown"
+                                    :disabled="form.ids.length <= 1"
+                                    class="flex items-center justify-center w-full px-4 py-2 bg-red-700 border border-red-700 rounded-lg md:w-auto focus:outline-none hover:bg-red-800 focus:z-10 focus:ring-4 focus:ring-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
                                     type="button"
-                                    @click="showAddModal = true"
-                                    class="flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-green-700 rounded-lg hover:bg-green-800 focus:ring-4 focus:ring-green-300 dark:bg-green-600 dark:hover:bg-green-700 focus:outline-none dark:focus:ring-green-800"
                                 >
                                     <svg
-                                        class="h-3.5 w-3.5 mr-2 text-white"
+                                        class="w-5 h-5"
                                         aria-hidden="true"
                                         xmlns="http://www.w3.org/2000/svg"
+                                        width="24"
+                                        height="24"
+                                        fill="none"
                                         viewBox="0 0 24 24"
                                     >
                                         <path
-                                            stroke="currentColor"
+                                            stroke="white"
                                             stroke-linecap="round"
                                             stroke-linejoin="round"
                                             stroke-width="2"
-                                            d="M5 12h14m-7 7V5"
+                                            d="M5 7h14m-9 3v8m4-8v8M10 3h4a1 1 0 0 1 1 1v3H9V4a1 1 0 0 1 1-1ZM6 7h12v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7Z"
                                         />
                                     </svg>
-                                    Add Application
                                 </button>
-                                <div
-                                    class="flex items-center w-full space-x-3 md:w-auto"
-                                >
-                                    <!-- Dropdown aksi Mass Delete -->
+                                <div class="relative">
+                                    <!-- Dropdown Urutkan-->
                                     <button
-                                        data-dropdown-toggle="actionsDropdown"
-                                        @click="
-                                            checked.length > 0 &&
-                                                (showDeleteModal = true)
-                                        "
-                                        :class="{
-                                            'cursor-not-allowed':
-                                                checked.length === 0,
-                                        }"
-                                        class="flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-red-700 bg-white border border-red-700 rounded-lg md:w-auto focus:outline-none hover:bg-red-800 hover:text-white focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                                        ref="btnOrder"
+                                        data-dropdown-toggle="filterDropdown"
+                                        @click="orderDropdown = !orderDropdown"
+                                        class="flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg md:w-auto focus:outline-none hover:bg-gray-100 hover:text-green-700 focus:z-10 focus:ring-4 focus:ring-gray-200"
                                         type="button"
                                     >
                                         <svg
-                                            class="mr-1.5 w-4 h-4"
-                                            aria-hidden="true"
+                                            class="w-4 h-4 mr-2 text-gray-800"
                                             xmlns="http://www.w3.org/2000/svg"
-                                            width="24"
-                                            height="24"
                                             fill="none"
                                             viewBox="0 0 24 24"
+                                            stroke-width="1.5"
+                                            stroke="currentColor"
                                         >
                                             <path
-                                                stroke="currentColor"
                                                 stroke-linecap="round"
                                                 stroke-linejoin="round"
-                                                stroke-width="2"
-                                                d="M5 7h14m-9 3v8m4-8v8M10 3h4a1 1 0 0 1 1 1v3H9V4a1 1 0 0 1 1-1ZM6 7h12v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7Z"
+                                                d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 0 0-3.7-3.7 48.678 48.678 0 0 0-7.324 0 4.006 4.006 0 0 0-3.7 3.7c-.017.22-.032.441-.046.662M19.5 12l3-3m-3 3-3-3m-12 3c0 1.232.046 2.453.138 3.662a4.006 4.006 0 0 0 3.7 3.7 48.656 48.656 0 0 0 7.324 0 4.006 4.006 0 0 0 3.7-3.7c.017-.22.032-.441.046-.662M4.5 12l3 3m-3-3-3 3"
                                             />
                                         </svg>
-                                        Mass Delete
-                                    </button>
-                                    <div class="relative">
-                                        <!-- Dropdown Order By-->
-                                        <button
-                                            ref="btnOrder"
-                                            data-dropdown-toggle="filterDropdown"
-                                            @click="
-                                                orderDropdown = !orderDropdown
+                                        Urutkan
+                                        <svg
+                                            :class="
+                                                orderDropdown
+                                                    ? 'rotate-180'
+                                                    : ''
                                             "
-                                            class="flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg md:w-auto focus:outline-none hover:bg-gray-100 hover:text-green-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
-                                            type="button"
+                                            class="-mr-1 ml-1.5 w-5 h-5"
+                                            fill="currentColor"
+                                            viewbox="0 0 20 20"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            aria-hidden="true"
                                         >
-                                            <svg
-                                                class="w-4 h-4 mr-2 text-gray-800"
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                fill="none"
-                                                viewBox="0 0 24 24"
-                                                stroke-width="1.5"
-                                                stroke="currentColor"
-                                            >
-                                                <path
-                                                    stroke-linecap="round"
-                                                    stroke-linejoin="round"
-                                                    d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 0 0-3.7-3.7 48.678 48.678 0 0 0-7.324 0 4.006 4.006 0 0 0-3.7 3.7c-.017.22-.032.441-.046.662M19.5 12l3-3m-3 3-3-3m-12 3c0 1.232.046 2.453.138 3.662a4.006 4.006 0 0 0 3.7 3.7 48.656 48.656 0 0 0 7.324 0 4.006 4.006 0 0 0 3.7-3.7c.017-.22.032-.441.046-.662M4.5 12l3 3m-3-3-3 3"
-                                                />
-                                            </svg>
-                                            Order By
-                                            <svg
-                                                :class="
-                                                    orderDropdown
-                                                        ? 'rotate-180'
-                                                        : ''
+                                            <path
+                                                clip-rule="evenodd"
+                                                fill-rule="evenodd"
+                                                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                            />
+                                        </svg>
+                                    </button>
+                                    <!-- Dropdown Urutkan -->
+                                    <div
+                                        v-show="orderDropdown"
+                                        ref="modalOrder"
+                                        class="absolute left-0 right-0 z-10 w-full overflow-hidden bg-white divide-y divide-gray-100 rounded shadow top-11"
+                                    >
+                                        <div class="py-1">
+                                            <button
+                                                href="#"
+                                                @click="
+                                                    order('created_at', 'desc')
                                                 "
-                                                class="-mr-1 ml-1.5 w-5 h-5"
-                                                fill="currentColor"
-                                                viewbox="0 0 20 20"
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                aria-hidden="true"
+                                                :class="{
+                                                    'text-green-700 bg-green-200 hover:bg-green-300':
+                                                        orderBy ===
+                                                            'created_at' &&
+                                                        orderDirection ===
+                                                            'desc',
+                                                }"
+                                                class="block w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100"
                                             >
-                                                <path
-                                                    clip-rule="evenodd"
-                                                    fill-rule="evenodd"
-                                                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                                />
-                                            </svg>
-                                        </button>
-                                        <!-- Dropdown Order By -->
-                                        <div
-                                            v-show="orderDropdown"
-                                            ref="modalOrder"
-                                            class="absolute left-0 right-0 z-10 w-full overflow-hidden bg-white divide-y divide-gray-100 rounded shadow top-11 dark:bg-gray-700 dark:divide-gray-600"
-                                        >
-                                            <div class="py-1">
-                                                <button
-                                                    href="#"
-                                                    @click="
-                                                        order(
-                                                            'created_at',
-                                                            'desc'
-                                                        )
-                                                    "
-                                                    :class="{
-                                                        'text-green-700 bg-green-200 hover:bg-green-300':
-                                                            orderBy ===
-                                                                'created_at' &&
-                                                            orderDirection ===
-                                                                'desc',
-                                                    }"
-                                                    class="block w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
-                                                >
-                                                    Date (new-old)
-                                                </button>
-                                                <button
-                                                    href="#"
-                                                    @click="
-                                                        order(
-                                                            'created_at',
-                                                            'asc'
-                                                        )
-                                                    "
-                                                    :class="{
-                                                        'text-green-700 bg-green-200 hover:bg-green-300':
-                                                            orderBy ===
-                                                                'created_at' &&
-                                                            orderDirection ===
-                                                                'asc',
-                                                    }"
-                                                    class="block w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
-                                                >
-                                                    Date (old-new)
-                                                </button>
-                                                <button
-                                                    href="#"
-                                                    @click="
-                                                        order('name', 'asc')
-                                                    "
-                                                    :class="{
-                                                        'text-green-700 bg-green-200 hover:bg-green-300':
-                                                            orderBy ===
-                                                                'name' &&
-                                                            orderDirection ===
-                                                                'asc',
-                                                    }"
-                                                    class="block w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
-                                                >
-                                                    App name (A-Z)
-                                                </button>
-                                                <button
-                                                    href="#"
-                                                    @click="
-                                                        order('name', 'desc')
-                                                    "
-                                                    :class="{
-                                                        'text-green-700 bg-green-200 hover:bg-green-300':
-                                                            orderBy ===
-                                                                'name' &&
-                                                            orderDirection ===
-                                                                'desc',
-                                                    }"
-                                                    class="block w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
-                                                >
-                                                    App name (Z-A)
-                                                </button>
-                                            </div>
+                                                Tgl (baru-lama)
+                                            </button>
+                                            <button
+                                                href="#"
+                                                @click="
+                                                    order('created_at', 'asc')
+                                                "
+                                                :class="{
+                                                    'text-green-700 bg-green-200 hover:bg-green-300':
+                                                        orderBy ===
+                                                            'created_at' &&
+                                                        orderDirection ===
+                                                            'asc',
+                                                }"
+                                                class="block w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100"
+                                            >
+                                                Tgl (lama-baru)
+                                            </button>
+                                            <button
+                                                href="#"
+                                                @click="order('name', 'asc')"
+                                                :class="{
+                                                    'text-green-700 bg-green-200 hover:bg-green-300':
+                                                        orderBy === 'name' &&
+                                                        orderDirection ===
+                                                            'asc',
+                                                }"
+                                                class="block w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                            >
+                                                Aplikasi (A-Z)
+                                            </button>
+                                            <button
+                                                href="#"
+                                                @click="order('name', 'desc')"
+                                                :class="{
+                                                    'text-green-700 bg-green-200 hover:bg-green-300':
+                                                        orderBy === 'name' &&
+                                                        orderDirection ===
+                                                            'desc',
+                                                }"
+                                                class="block w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                            >
+                                                Aplikasi (Z-A)
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -498,44 +495,41 @@ const addApplication = async (event) => {
                         </div>
                     </div>
                 </div>
-            </section>
-            <!-- Tabel -->
-            <Table
-                :data="applications"
-                :thead="thead"
-                :title="'Daftar Aplikasi'"
-                :isFetching="isFetching"
-                @checkbox="handleCheckbox"
-                @refresh="refreshData"
-            />
-            <!-- Tabel footer -->
-            <TablePagination
-                :current="applications.current_page"
-                :from="applications.from"
-                :to="applications.to"
-                :total="applications.total"
-                :last="applications.last_page"
-                @page-change="handlePageChange"
-            />
-        </div>
+            </div>
+        </section>
+        <!-- Tabel -->
+        <Table
+            :data="applications"
+            :thead="thead"
+            :title="'Daftar Aplikasi'"
+            :isFetching="isFetching"
+            @checkbox="handleCheckbox"
+            @refresh="refreshData"
+        />
+        <!-- Tabel footer -->
+        <TablePagination
+            :current="applications.current_page"
+            :from="applications.from"
+            :to="applications.to"
+            :total="applications.total"
+            :last="applications.last_page"
+            @page-change="handlePageChange"
+        />
     </Layout>
-    <!-- Modal hapus -->
+
+    <!-- Modal hapus checkbox -->
     <div
         tabindex="-1"
         v-show="showDeleteModal"
-        class="overflow-y-auto backdrop-blur-[2px] bg-gray-700 bg-opacity-40 flex overflow-x-hidden fixed top-0 right-0 left-0 bottom-0 z-50 justify-center items-center w-full md:inset-0"
+        class="overflow-y-auto bg-black bg-opacity-60 backdrop-blur-sm flex overflow-x-hidden fixed top-0 right-0 left-0 bottom-0 z-50 justify-center items-center w-full md:inset-0"
     >
         <div class="relative w-full max-w-md max-h-full p-4">
-            <div
-                class="relative bg-white rounded-lg shadow dark:bg-gray-700"
-                ref="deleteModal"
-            >
-                <!-- Close Modal -->
+            <div class="relative bg-white rounded-lg shadow">
+                <!-- Tombol tutup modal -->
                 <button
                     @click="showDeleteModal = false"
                     type="button"
-                    class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
-                    data-modal-hide="popup-modal"
+                    class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center"
                 >
                     <svg
                         class="w-3 h-3"
@@ -552,11 +546,11 @@ const addApplication = async (event) => {
                             d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
                         />
                     </svg>
-                    <span class="sr-only">Close modal</span>
+                    <span class="sr-only">Keluar</span>
                 </button>
                 <div class="p-4 text-center md:p-5">
                     <svg
-                        class="w-12 h-12 mx-auto mb-4 text-gray-400 dark:text-gray-200"
+                        class="w-12 h-12 mx-auto mb-4 text-red-700"
                         aria-hidden="true"
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
@@ -570,63 +564,52 @@ const addApplication = async (event) => {
                             d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
                         />
                     </svg>
-                    <!-- Pesan konfirmasi -->
-                    <h3
-                        class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400"
-                    >
-                        Are you sure you want to delete these application?
+                    <h3 class="mb-5 text-lg font-normal text-gray-500">
+                        Apakah Anda yakin ingin menghapus
+                        <strong>{{ selectedIdsCount }}</strong> aplikasi ini?
                     </h3>
-                    <!-- Tombol konfirmasi -->
                     <button
-                        @click="deleteApp()"
-                        data-modal-hide="popup-modal"
+                        @click="deleteApp"
                         type="button"
-                        class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center"
+                        class="text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center"
                     >
-                        Yes, I'm sure
+                        Ya, Saya yakin
                     </button>
-                    <!-- Tombol batal -->
                     <button
                         @click="showDeleteModal = false"
-                        data-modal-hide="popup-modal"
                         type="button"
-                        class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                        class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-gray-950 focus:z-10 focus:ring-4 focus:ring-gray-100"
                     >
-                        No, cancel
+                        Tidak, Batalkan
                     </button>
                 </div>
             </div>
         </div>
     </div>
-    <!-- Modal detail -->
+
+    <!-- Modal Tambah Aplikasi -->
     <div
         v-if="showAddModal"
         id="crud-modal"
         tabindex="-1"
         aria-hidden="true"
-        class="fixed top-0 left-0 right-0 z-50 flex items-center justify-center w-full overflow-x-hidden overflow-y-auto bg-gray-700 backdrop-blur-[2px] bg-opacity-40 md:inset-0"
+        class="overflow-y-auto bg-black bg-opacity-60 backdrop-blur-sm flex overflow-x-hidden fixed top-0 right-0 left-0 bottom-0 z-50 justify-center items-center w-full md:inset-0"
     >
         <div class="relative w-full max-w-md max-h-full p-4">
-            <!-- Modal content -->
-            <div
-                class="relative bg-white rounded-lg shadow dark:bg-gray-700"
-                ref="addModal"
-            >
+            <div class="relative bg-white rounded-lg shadow" ref="addModal">
                 <!-- Modal header -->
                 <div
-                    class="flex items-center justify-between p-4 border-b rounded-t md:p-5 dark:border-gray-600"
+                    class="flex items-center justify-between p-4 border-b rounded-t md:p-5 bg-gradient-to-r from-emerald-500 to-teal-500"
                 >
                     <!-- Judul modal -->
-                    <h3
-                        class="text-lg font-semibold text-gray-900 dark:text-white"
-                    >
-                        Detail Application
+                    <h3 class="text-xl font-bold text-white">
+                        Tambah Aplikasi
                     </h3>
                     <!-- Tombol close modal -->
                     <button
                         @click="showAddModal = false"
                         type="button"
-                        class="inline-flex items-center justify-center w-8 h-8 text-sm text-gray-400 bg-transparent rounded-lg hover:bg-gray-200 hover:text-gray-900 ms-auto dark:hover:bg-gray-600 dark:hover:text-white"
+                        class="text-white/80 hover:text-white transition-colors focus:outline-none"
                         data-modal-toggle="crud-modal"
                     >
                         <svg
@@ -644,18 +627,18 @@ const addApplication = async (event) => {
                                 d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
                             />
                         </svg>
-                        <span class="sr-only">Close modal</span>
+                        <span class="sr-only">Tutup modal</span>
                     </button>
                 </div>
                 <!-- Modal body -->
                 <form class="p-4 md:p-5" @submit.prevent="addApplication">
                     <div class="grid grid-cols-2 gap-4 mb-4">
                         <div class="col-span-2">
-                            <!-- Label PIC Name -->
+                            <!-- Label Nama PIC -->
                             <label
                                 for="pic_name"
-                                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                                >PIC Name</label
+                                class="block mb-2 text-sm font-medium text-gray-900"
+                                >Nama PIC</label
                             >
                             <!-- Tampilkan pesan error jika ada -->
                             <span
@@ -663,22 +646,22 @@ const addApplication = async (event) => {
                                 class="text-red-600 text-sm"
                                 >{{ validationErrors.pic_name[0] }}</span
                             >
-                            <!-- Input PIC Name -->
+                            <!-- Input Nama PIC -->
                             <input
                                 type="text"
                                 name="pic_name"
                                 v-model="appPicName"
-                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                                placeholder="Type PIC name"
+                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
+                                placeholder="Ketik nama PIC"
                                 required=""
                             />
                         </div>
                         <div class="col-span-2">
-                            <!-- Label Application name -->
+                            <!-- Label Nama Aplikasi -->
                             <label
                                 for="name"
-                                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                                >Application name</label
+                                class="block mb-2 text-sm font-medium text-gray-900"
+                                >Nama Aplikasi</label
                             >
                             <!-- Tampilkan pesan error jika ada -->
                             <span
@@ -691,17 +674,17 @@ const addApplication = async (event) => {
                                 type="text"
                                 name="name"
                                 v-model="appName"
-                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                                placeholder="Type product name"
+                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
+                                placeholder="Ketik nama aplikasi"
                                 required=""
                             />
                         </div>
                         <div class="col-span-2">
-                            <!-- Label Application Description -->
+                            <!-- Label Deskripsi Aplikasi -->
                             <label
                                 for="description"
-                                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                                >Application Description</label
+                                class="block mb-2 text-sm font-medium text-gray-900"
+                                >Deskripsi Aplikasi</label
                             >
                             <!-- Tampilkan pesan error jika ada -->
                             <span
@@ -709,31 +692,32 @@ const addApplication = async (event) => {
                                 class="text-red-600 text-sm"
                                 >{{ validationErrors.description[0] }}</span
                             >
-                            <!-- Input Application Description -->
+                            <!-- Input Deskripsi Aplikasi -->
                             <textarea
                                 id="description"
                                 rows="4"
                                 v-model="appDescription"
-                                class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                placeholder="Write product description here"
+                                class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="Tulis deskripsi aplikasi di sini"
                             ></textarea>
                         </div>
                     </div>
-                    <!-- Tombol simpan -->
-                    <button
-                        type="submit"
-                        class="text-white bg-green-600 hover:bg-green-800 mt-3 focus:ring-4 focus:outline-none focus:ring-green-300 dark:focus:ring-green-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center"
-                    >
-                        Create
-                    </button>
-                    <!-- Tombol batal -->
-                    <button
-                        @click="showAddModal = false"
-                        type="button"
-                        class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
-                    >
-                        Cancel
-                    </button>
+                    <!-- Tombol simpan dan batal -->
+                    <div class="flex justify-end space-x-3">
+                        <button
+                            type="button"
+                            @click="showAddModal = false"
+                            class="py-2.5 px-5 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors duration-300"
+                        >
+                            Batal
+                        </button>
+                        <button
+                            type="submit"
+                            class="py-2.5 px-5 text-sm font-medium text-white bg-emerald-500 hover:bg-emerald-600 focus:ring-4 focus:outline-none focus:ring-green-300 rounded-lg"
+                        >
+                            Tambah
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>

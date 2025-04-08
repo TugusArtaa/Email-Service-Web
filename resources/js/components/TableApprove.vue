@@ -32,42 +32,9 @@ const incrementedNumbers = computed(() => {
 </script>
 
 <template>
-    <!-- Menampilkan pesan alert jika ada -->
-    <div
-        v-if="alertMessage"
-        :class="`flex items-center p-4 mb-4 text-sm border rounded-lg ${
-            alertType === 'success'
-                ? 'text-green-800 border-green-300 bg-green-50 dark:bg-gray-800 dark:text-green-400 dark:border-green-800'
-                : 'text-red-800 border-red-300 bg-red-50 dark:bg-gray-800 dark:text-red-400 dark:border-red-800'
-        }`"
-        role="alert"
-    >
-        <svg
-            class="flex-shrink-0 inline w-4 h-4 me-3"
-            aria-hidden="true"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-        >
-            <path
-                d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"
-            />
-        </svg>
-        <span class="sr-only">Info</span>
-        <div>
-            <span class="font-medium">{{
-                alertType === "success" ? "Success alert!" : "Danger alert!"
-            }}</span>
-            {{ alertMessage }}
-        </div>
-    </div>
     <!-- Tabel data aplikasi -->
-    <table
-        class="w-full text-sm text-left text-gray-500 border dark:text-gray-400 rounded-2xl"
-    >
-        <thead
-            class="text-xs text-gray-700 uppercase border-b bg-gray-50 dark:bg-gray-700 dark:text-gray-400"
-        >
+    <table class="w-full text-sm text-left text-gray-500 border rounded-2xl">
+        <thead class="text-xs text-gray-700 uppercase border-b bg-gray-50">
             <tr>
                 <!-- Header tabel -->
                 <th
@@ -84,7 +51,19 @@ const incrementedNumbers = computed(() => {
             <!-- Menampilkan pesan jika tidak ada data -->
             <tr v-if="data.data.length === 0 && isFetching == false">
                 <td colspan="6" class="px-6 py-4 text-lg font-bold text-center">
-                    Tidak ada data yang ditemukan!
+                    <div class="flex flex-col items-center justify-center">
+                        <img
+                            :src="'/NotFound.png'"
+                            alt="Tidak ada data"
+                            class="w-80 h-44 mb-3"
+                        />
+                        <p class="text-lg font-bold text-gray-500">
+                            Tidak ada data yang ditemukan!
+                        </p>
+                        <p class="text-sm text-gray-400">
+                            Belum ada data yang ditambahkan.
+                        </p>
+                    </div>
                 </td>
             </tr>
             <!-- Menampilkan loading spinner saat fetching data -->
@@ -93,7 +72,7 @@ const incrementedNumbers = computed(() => {
                     <div role="status">
                         <svg
                             aria-hidden="true"
-                            class="inline w-8 h-8 text-gray-200 animate-spin dark:text-gray-600 fill-green-500"
+                            class="inline w-8 h-8 text-gray-200 animate-spin fill-green-500"
                             viewBox="0 0 100 101"
                             fill="none"
                             xmlns="http://www.w3.org/2000/svg"
@@ -115,7 +94,7 @@ const incrementedNumbers = computed(() => {
             <tr
                 v-for="(item, index) in data.data"
                 :key="item.id"
-                class="dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+                class="hover:bg-gray-50"
             >
                 <!-- Nomor urut -->
                 <td class="px-5 py-5 bg-white text-sm">
@@ -155,7 +134,7 @@ const incrementedNumbers = computed(() => {
                         <button
                             @click="() => openApproveModal(item)"
                             type="button"
-                            class="p-1 text-sm font-medium text-white bg-green-500 rounded-lg focus:outline-none hover:bg-green-700 focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-red-900"
+                            class="p-1 text-sm font-medium text-white bg-green-500 rounded-lg focus:outline-none hover:bg-green-700 focus:ring-4 focus:ring-blue-300"
                         >
                             <svg
                                 class="w-5 h-5"
@@ -180,7 +159,7 @@ const incrementedNumbers = computed(() => {
                         <button
                             @click="() => openRejectModal(item)"
                             type="button"
-                            class="p-1 text-sm font-medium text-white bg-red-500 rounded-lg focus:outline-none hover:bg-red-700 focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-red-900"
+                            class="p-1 text-sm font-medium text-white bg-red-500 rounded-lg focus:outline-none hover:bg-red-700 focus:ring-4 focus:ring-blue-300"
                         >
                             <svg
                                 class="w-5 h-5"

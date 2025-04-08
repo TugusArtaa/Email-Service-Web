@@ -4,6 +4,7 @@ import { ref, watch } from "vue";
 import { defineProps, computed } from "vue";
 import { onClickOutside, useFetch } from "@vueuse/core";
 import { useForm, usePage } from "@inertiajs/vue3";
+import NotificationToast from "../components/NotificationToast.vue";
 import { Tippy } from "vue-tippy";
 import "tippy.js/dist/tippy.css";
 
@@ -13,6 +14,14 @@ const props = defineProps({
     thead: Array,
     title: String,
     isFetching: Boolean,
+});
+
+// State untuk notifikasi toast
+const notification = ref({
+    show: false,
+    type: "",
+    message: "",
+    description: "",
 });
 
 // Mendefinisikan event yang akan diemit
@@ -42,10 +51,6 @@ const statusModal = ref(null);
 const showStatusModal = ref(false);
 const statusId = ref(null);
 const currentStatus = ref(null);
-
-// State untuk pesan alert
-const alertMessage = ref("");
-const alertType = ref("");
 
 // Mengawasi perubahan pada variabel checked dan emit event
 watch(checked, (newValue) => {
@@ -80,7 +85,7 @@ watch(deleteOne, (newValue) => {
     form.ids = [newValue];
 });
 
-// Fungsi untuk menghapus aplikasi
+// Fungsi Hapus Aplikasi
 function deleteApp() {
     fetch("/api/applications/delete", {
         method: "DELETE",
@@ -95,21 +100,28 @@ function deleteApp() {
             if (data.success) {
                 emit("refresh");
                 showDeleteModal.value = false;
-                alertMessage.value = data.message;
-                alertType.value = "success";
-                setTimeout(clearAlert, 4000);
+                notification.value = {
+                    show: true,
+                    type: "success",
+                    message: "Berhasil!",
+                    description: data.message,
+                };
             } else {
-                alertMessage.value = data.message;
-                alertType.value = "error";
-                setTimeout(clearAlert, 4000);
+                notification.value = {
+                    show: true,
+                    type: "danger",
+                    message: "Gagal!",
+                    description: data.message || "Terjadi kesalahan.",
+                };
             }
         })
         .catch((error) => {
-            console.error(error);
-            alertMessage.value =
-                "An error occurred while deleting the application.";
-            alertType.value = "error";
-            setTimeout(clearAlert, 4000);
+            notification.value = {
+                show: true,
+                type: "danger",
+                message: "Gagal!",
+                description: error.message || "Terjadi kesalahan.",
+            };
         });
 }
 
@@ -160,29 +172,34 @@ async function generateKey() {
                 }),
             }
         );
-
         const data = await response.json();
-
         if (data.success) {
             emit("refresh");
             showKeyModal.value = false;
-            alertMessage.value = "Secret key regenerated request successfully!";
-            alertType.value = "success";
-            setTimeout(clearAlert, 4000);
+            notification.value = {
+                show: true,
+                type: "success",
+                message: "Berhasil!",
+                description: data.message,
+            };
         } else {
             emit("refresh");
             showKeyModal.value = false;
-            alertMessage.value = data.message;
-            alertType.value = "error";
-            setTimeout(clearAlert, 4000);
+            notification.value = {
+                show: true,
+                type: "danger",
+                message: "Gagal!",
+                description: data.message || "Terjadi kesalahan.",
+            };
         }
     } catch (error) {
-        console.error(error);
         showKeyModal.value = false;
-        alertMessage.value =
-            "An error occurred while regenerating the secret key.";
-        alertType.value = "error";
-        setTimeout(clearAlert, 4000);
+        notification.value = {
+            show: true,
+            type: "danger",
+            message: "Gagal!",
+            description: error.message || "Terjadi kesalahan.",
+        };
     }
 }
 
@@ -209,72 +226,45 @@ async function changeStatus() {
                 body: JSON.stringify({ id: statusId.value, status: newStatus }),
             }
         );
-
         const data = await response.json();
-
         if (data.success) {
             emit("refresh");
             showStatusModal.value = false;
-            alertMessage.value = `Application status changed to ${newStatus}.`;
-            alertType.value = "success";
+            notification.value = {
+                show: true,
+                type: "success",
+                message: "Berhasil!",
+                description: data.message,
+            };
         } else {
-            alertMessage.value = data.message;
-            alertType.value = "error";
+            notification.value = {
+                show: true,
+                type: "danger",
+                message: "Gagal!",
+                description: data.message || "Terjadi kesalahan.",
+            };
         }
-        setTimeout(clearAlert, 4000);
     } catch (error) {
-        console.error(error);
-        alertMessage.value =
-            "An error occurred while changing the application status.";
-        alertType.value = "error";
-        setTimeout(clearAlert, 4000);
+        // Tampilkan notifikasi error
+        notification.value = {
+            show: true,
+            type: "danger",
+            message: "Gagal!",
+            description: error.message || "Terjadi kesalahan.",
+        };
     }
-}
-
-// Fungsi untuk membersihkan pesan alert
-function clearAlert() {
-    alertMessage.value = "";
-    alertType.value = "";
 }
 </script>
 
 <template>
-    <!-- Menampilkan pesan alert jika ada -->
-    <div
-        v-if="alertMessage"
-        :class="`flex items-center p-4 mb-4 text-sm border rounded-lg ${
-            alertType === 'success'
-                ? 'text-green-800 border-green-300 bg-green-50 dark:bg-gray-800 dark:text-green-400 dark:border-green-800'
-                : 'text-red-800 border-red-300 bg-red-50 dark:bg-gray-800 dark:text-red-400 dark:border-red-800'
-        }`"
-        role="alert"
-    >
-        <svg
-            class="flex-shrink-0 inline w-4 h-4 me-3"
-            aria-hidden="true"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-        >
-            <path
-                d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"
-            />
-        </svg>
-        <span class="sr-only">Info</span>
-        <div>
-            <span class="font-medium">{{
-                alertType === "success" ? "Success alert!" : "Danger alert!"
-            }}</span>
-            {{ alertMessage }}
-        </div>
-    </div>
+    <!-- NotificationToast -->
+    <NotificationToast
+        :notification="notification"
+        @close="notification.show = false"
+    />
     <!-- Tabel data aplikasi -->
-    <table
-        class="w-full text-sm text-left text-gray-500 border dark:text-gray-400 rounded-2xl"
-    >
-        <thead
-            class="text-xs text-gray-700 uppercase border-b bg-gray-50 dark:bg-gray-700 dark:text-gray-400"
-        >
+    <table class="w-full text-sm text-left text-gray-500 border rounded-2xl">
+        <thead class="text-xs text-gray-700 uppercase border-b bg-gray-50">
             <tr>
                 <!-- Header tabel -->
                 <th
@@ -290,8 +280,20 @@ function clearAlert() {
         <tbody>
             <!-- Menampilkan pesan jika tidak ada data -->
             <tr v-if="data.data.length === 0 && isFetching == false">
-                <td colspan="6" class="px-6 py-4 text-lg font-bold text-center">
-                    Tidak ada data yang ditemukan!
+                <td colspan="7" class="px-6 py-4 text-lg font-bold text-center">
+                    <div class="flex flex-col items-center justify-center">
+                        <img
+                            :src="'/NotFound.png'"
+                            alt="Tidak ada data"
+                            class="w-80 h-44 mb-3"
+                        />
+                        <p class="text-lg font-bold text-gray-500">
+                            Tidak ada data yang ditemukan!
+                        </p>
+                        <p class="text-sm text-gray-400">
+                            Belum ada data yang ditambahkan.
+                        </p>
+                    </div>
                 </td>
             </tr>
             <!-- Menampilkan loading spinner saat fetching data -->
@@ -300,7 +302,7 @@ function clearAlert() {
                     <div role="status">
                         <svg
                             aria-hidden="true"
-                            class="inline w-8 h-8 text-gray-200 animate-spin dark:text-gray-600 fill-green-500"
+                            class="inline w-8 h-8 text-gray-200 animate-spin fill-green-500"
                             viewBox="0 0 100 101"
                             fill="none"
                             xmlns="http://www.w3.org/2000/svg"
@@ -322,10 +324,8 @@ function clearAlert() {
             <tr
                 v-for="(item, index) in data.data"
                 :key="item.id"
-                :class="{
-                    'bg-red-50 hover:bg-red-100': checked.includes(item.id),
-                }"
-                class="dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+                v-if="!fetch"
+                class="hover:bg-gray-50"
             >
                 <!-- input checkbox -->
                 <td class="px-5 py-5 bg-white text-sm">
@@ -333,7 +333,7 @@ function clearAlert() {
                         type="checkbox"
                         v-model="checked"
                         :value="item.id"
-                        @change="handleCheckboxChange"
+                        class="w-4 h-4 mt-1.5 text-red-600 bg-red-100 border-red-300 rounded focus:ring-red-500 focus:ring-2 accent-red-600"
                     />
                 </td>
                 <!-- Nomor urut -->
@@ -370,14 +370,14 @@ function clearAlert() {
                     class="flex items-center space-x-2 px-5 py-5 bg-white text-sm"
                 >
                     <!-- Tombol detail aplikasi -->
-                    <Tippy content="Detail application">
+                    <Tippy content="Detail Aplikasi">
                         <button
                             @click="
                                 showDetailModal = true;
                                 getDetail(item.id);
                             "
                             type="button"
-                            class="p-1 text-sm font-medium text-white bg-emerald-500 rounded-lg focus:outline-none hover:bg-emerald-700 focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-red-900"
+                            class="p-1 text-sm font-medium text-white bg-blue-600 rounded-lg focus:outline-none hover:bg-blue-700 focus:ring-4 focus:ring-blue-300"
                         >
                             <svg
                                 class="w-5 h-5"
@@ -398,14 +398,14 @@ function clearAlert() {
                         </button>
                     </Tippy>
                     <!-- Tombol regenerasi kunci rahasia -->
-                    <Tippy content="Regenerate secret key">
+                    <Tippy content="Regenerasi Secret key">
                         <button
                             @click="
                                 showKeyModal = true;
                                 keyId = item.id;
                             "
                             type="button"
-                            class="p-1 text-sm font-medium text-white bg-yellow-500 rounded-lg focus:outline-none hover:bg-yellow-700 focus:ring-4 focus:ring-yellow-300 dark:bg-yellow-600 dark:hover:bg-yellow-700 dark:focus:ring-red-900"
+                            class="p-1 text-sm font-medium text-white bg-amber-500 rounded-lg focus:outline-none hover:bg-amber-600 focus:ring-4 focus:ring-amber-300"
                         >
                             <svg
                                 class="w-5 h-5"
@@ -429,12 +429,12 @@ function clearAlert() {
                             </svg>
                         </button>
                     </Tippy>
-                                        <!-- Tombol ubah status aplikasi -->
-                                        <Tippy content="Change status">
+                    <!-- Tombol ubah status aplikasi -->
+                    <Tippy content="Ubah Status">
                         <button
                             @click="openStatusModal(item.id, item.status)"
                             type="button"
-                            class="p-1 text-sm font-medium text-white bg-blue-500 rounded-lg focus:outline-none hover:bg-blue-700 focus:ring-4 focus:ring-purple-300 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-red-900"
+                            class="p-1 text-sm font-medium text-white bg-gray-600 rounded-lg focus:outline-none hover:bg-gray-700 focus:ring-4 focus:ring-gray-300"
                         >
                             <svg
                                 class="w-5 h-5"
@@ -456,14 +456,14 @@ function clearAlert() {
                         </button>
                     </Tippy>
                     <!-- Tombol hapus aplikasi -->
-                    <Tippy content="Delete application">
+                    <Tippy content="Hapus">
                         <button
                             @click="
                                 showDeleteModal = true;
                                 deleteOne = item.id;
                             "
                             type="button"
-                            class="p-1 text-sm font-medium text-white bg-red-500 rounded-lg focus:outline-none hover:bg-red-700 focus:ring-4 focus:ring-red-300 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900"
+                            class="p-1 text-sm font-medium text-white bg-red-700 rounded-lg focus:outline-none hover:bg-red-800 focus:ring-4 focus:ring-red-300"
                         >
                             <svg
                                 class="w-5 h-5"
@@ -493,18 +493,15 @@ function clearAlert() {
     <div
         tabindex="-1"
         v-show="showDeleteModal"
-        class="overflow-y-auto backdrop-blur-[2px] bg-gray-700 bg-opacity-40 flex overflow-x-hidden fixed top-0 right-0 left-0 bottom-0 z-50 justify-center items-center w-full md:inset-0"
+        class="overflow-y-auto bg-black bg-opacity-60 backdrop-blur-sm flex overflow-x-hidden fixed top-0 right-0 left-0 bottom-0 z-50 justify-center items-center w-full md:inset-0"
     >
         <div class="relative w-full max-w-md max-h-full p-4">
-            <div
-                class="relative bg-white rounded-lg shadow dark:bg-gray-700"
-                ref="deleteModal"
-            >
+            <div class="relative bg-white rounded-lg shadow" ref="deleteModal">
                 <!-- Tombol tutup modal -->
                 <button
                     @click="showDeleteModal = false"
                     type="button"
-                    class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                    class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center"
                     data-modal-hide="popup-modal"
                 >
                     <svg
@@ -522,12 +519,12 @@ function clearAlert() {
                             d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
                         />
                     </svg>
-                    <span class="sr-only">Close modal</span>
+                    <span class="sr-only">Tutup modal</span>
                 </button>
                 <div class="p-4 text-center md:p-5">
                     <!-- Ikon -->
                     <svg
-                        class="w-12 h-12 mx-auto mb-4 text-gray-400 dark:text-gray-200"
+                        class="w-12 h-12 mx-auto mb-4 text-red-700"
                         aria-hidden="true"
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
@@ -542,60 +539,54 @@ function clearAlert() {
                         />
                     </svg>
                     <!-- Judul -->
-                    <h3
-                        class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400"
-                    >
-                        Are you sure you want to delete this application?
+                    <h3 class="mb-5 text-lg font-normal text-gray-500">
+                        Apakah Anda yakin ingin menghapus aplikasi ini?
                     </h3>
                     <!-- Tombol konfirmasi -->
                     <button
                         @click="deleteApp"
                         data-modal-hide="popup-modal"
                         type="button"
-                        class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center"
+                        class="text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center"
                     >
-                        Yes, I'm sure
+                        Ya, Saya yakin
                     </button>
                     <!-- Tombol batal -->
                     <button
                         @click="showDeleteModal = false"
                         data-modal-hide="popup-modal"
                         type="button"
-                        class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-red-500 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                        class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-gray-950 focus:z-10 focus:ring-4 focus:ring-gray-100"
                     >
-                        No, cancel
+                        Tidak, Batalkan
                     </button>
                 </div>
             </div>
         </div>
     </div>
+
     <!-- Modal detail aplikasi -->
     <div
         v-if="showDetailModal"
         id="crud-modal"
         tabindex="-1"
         aria-hidden="true"
-        class="fixed top-0 left-0 right-0 z-50 flex items-center justify-center w-full overflow-x-hidden overflow-y-auto bg-gray-700 backdrop-blur-[2px] bg-opacity-40 md:inset-0"
+        class="overflow-y-auto bg-black bg-opacity-60 backdrop-blur-sm flex overflow-x-hidden fixed top-0 right-0 left-0 bottom-0 z-50 justify-center items-center w-full md:inset-0"
     >
         <div class="relative w-full max-w-md max-h-full p-4">
-            <div
-                class="relative bg-white rounded-lg shadow dark:bg-gray-700"
-                ref="detailModal"
-            >
+            <div class="relative bg-white rounded-lg shadow" ref="detailModal">
                 <!-- Modal header -->
                 <div
-                    class="flex items-center justify-between p-4 border-b rounded-t md:p-5 dark:border-gray-600"
+                    class="flex items-center justify-between p-4 border-b rounded-t md:p-5"
                 >
-                    <h3
-                        class="text-lg font-semibold text-gray-900 dark:text-white"
-                    >
-                        Detail Application
+                    <h3 class="text-lg font-semibold text-gray-900">
+                        Detail Aplikasi
                     </h3>
                     <!-- Tombol tutup modal -->
                     <button
                         @click="showDetailModal = false"
                         type="button"
-                        class="inline-flex items-center justify-center w-8 h-8 text-sm text-gray-400 bg-transparent rounded-lg hover:bg-gray-200 hover:text-gray-900 ms-auto dark:hover:bg-gray-600 dark:hover:text-white"
+                        class="inline-flex items-center justify-center w-8 h-8 text-sm text-gray-400 bg-transparent rounded-lg hover:bg-gray-200 hover:text-gray-900 ms-auto"
                         data-modal-toggle="crud-modal"
                     >
                         <svg
@@ -613,7 +604,7 @@ function clearAlert() {
                                 d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
                             />
                         </svg>
-                        <span class="sr-only">Close modal</span>
+                        <span class="sr-only">Tutup modal</span>
                     </button>
                 </div>
                 <!-- Modal body -->
@@ -626,8 +617,8 @@ function clearAlert() {
                             <!-- Nama aplikasi -->
                             <label
                                 for="name"
-                                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                                >Application name</label
+                                class="block mb-2 text-sm font-medium text-gray-900"
+                                >Nama Aplikasi</label
                             >
                             <!-- Input nama aplikasi -->
                             <input
@@ -637,7 +628,7 @@ function clearAlert() {
                                 v-model="application.name"
                                 name="name"
                                 id="name"
-                                class="bg-gray-50 cursor-not-allowed border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                                class="bg-gray-50 cursor-not-allowed border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
                                 placeholder="Type product name"
                                 required=""
                             />
@@ -646,7 +637,7 @@ function clearAlert() {
                             <!-- Kunci rahasia -->
                             <label
                                 for="name"
-                                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                                class="block mb-2 text-sm font-medium text-gray-900"
                                 >Secret key</label
                             >
                             <!-- Input kunci rahasia -->
@@ -657,7 +648,7 @@ function clearAlert() {
                                 v-model="application.secret_key"
                                 name="name"
                                 id="name"
-                                class="bg-gray-50 cursor-not-allowed border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                                class="bg-gray-50 cursor-not-allowed border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
                                 placeholder="Type product name"
                                 required=""
                             />
@@ -666,8 +657,8 @@ function clearAlert() {
                             <!-- Nama PIC -->
                             <label
                                 for="description"
-                                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                                >Application Description</label
+                                class="block mb-2 text-sm font-medium text-gray-900"
+                                >Deskripsi Aplikasi</label
                             >
                             <!-- Input deskripsi aplikasi -->
                             <textarea
@@ -676,7 +667,7 @@ function clearAlert() {
                                 v-model="application.description"
                                 id="description"
                                 rows="4"
-                                class="block cursor-not-allowed p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                class="block cursor-not-allowed p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
                                 placeholder="Write product description here"
                             ></textarea>
                         </div>
@@ -689,7 +680,7 @@ function clearAlert() {
                     >
                         <svg
                             aria-hidden="true"
-                            class="inline w-8 h-8 text-gray-200 animate-spin dark:text-gray-600 fill-green-500"
+                            class="inline w-8 h-8 text-gray-200 animate-spin fill-green-500"
                             viewBox="0 0 100 101"
                             fill="none"
                             xmlns="http://www.w3.org/2000/svg"
@@ -703,7 +694,7 @@ function clearAlert() {
                                 fill="currentFill"
                             />
                         </svg>
-                        <span class="sr-only">Loading...</span>
+                        <span class="sr-only">Memuat...</span>
                     </div>
                 </form>
             </div>
@@ -713,18 +704,15 @@ function clearAlert() {
     <div
         tabindex="-1"
         v-show="showKeyModal"
-        class="overflow-y-auto backdrop-blur-[2px] bg-gray-700 bg-opacity-40 flex overflow-x-hidden fixed top-0 right-0 left-0 bottom-0 z-50 justify-center items-center w-full md:inset-0"
+        class="overflow-y-auto bg-black bg-opacity-60 backdrop-blur-sm flex overflow-x-hidden fixed top-0 right-0 left-0 bottom-0 z-50 justify-center items-center w-full md:inset-0"
     >
         <div class="relative w-full max-w-md max-h-full p-4">
-            <div
-                class="relative bg-white rounded-lg shadow-lg dark:bg-gray-800"
-                ref="keyModal"
-            >
+            <div class="relative bg-white rounded-lg shadow-lg" ref="keyModal">
                 <!-- Tombol tutup modal -->
                 <button
                     @click="showKeyModal = false"
                     type="button"
-                    class="absolute top-3 right-3 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                    class="absolute top-3 right-3 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 flex justify-center items-center"
                     data-modal-hide="popup-modal"
                 >
                     <svg
@@ -742,12 +730,12 @@ function clearAlert() {
                             d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
                         />
                     </svg>
-                    <span class="sr-only">Close modal</span>
+                    <span class="sr-only">Tutup modal</span>
                 </button>
                 <!-- Isi modal -->
                 <div class="p-6 text-center">
                     <svg
-                        class="w-12 h-12 mx-auto mb-4 text-gray-400 dark:text-gray-200"
+                        class="w-12 h-12 mx-auto mb-4 text-amber-500"
                         aria-hidden="true"
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
@@ -762,28 +750,26 @@ function clearAlert() {
                         />
                     </svg>
                     <!-- Judul modal -->
-                    <h3
-                        class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400"
-                    >
-                        Are you sure you want to regenerate this secret key?
+                    <h3 class="mb-5 text-lg font-normal text-gray-500">
+                        Apakah Anda yakin ingin membuat ulang Secret key?
                     </h3>
                     <!-- Tombol konfirmasi -->
                     <button
                         @click="generateKey"
                         data-modal-hide="popup-modal"
                         type="button"
-                        class="text-white bg-yellow-500 hover:bg-yellow-700 focus:ring-4 focus:outline-none focus:ring-green-300 dark:focus:ring-green-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center"
+                        class="text-white bg-amber-500 hover:bg-amber-600 focus:ring-4 focus:outline-none focus:ring-amber-300 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center"
                     >
-                        Yes, I'm sure
+                        Ya, Saya yakin
                     </button>
                     <!-- Tombol batal -->
                     <button
                         @click="showKeyModal = false"
                         data-modal-hide="popup-modal"
                         type="button"
-                        class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-yellow-500 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                        class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-gray-950 focus:z-10 focus:ring-4 focus:ring-gray-100"
                     >
-                        No, cancel
+                        Tidak, Batalkan
                     </button>
                 </div>
             </div>
@@ -793,18 +779,15 @@ function clearAlert() {
     <div
         tabindex="-1"
         v-show="showStatusModal"
-        class="overflow-y-auto backdrop-blur-[2px] bg-gray-700 bg-opacity-40 flex overflow-x-hidden fixed top-0 right-0 left-0 bottom-0 z-50 justify-center items-center w-full md:inset-0"
+        class="overflow-y-auto bg-black bg-opacity-60 backdrop-blur-sm flex overflow-x-hidden fixed top-0 right-0 left-0 bottom-0 z-50 justify-center items-center w-full md:inset-0"
     >
         <div class="relative w-full max-w-md max-h-full p-4">
-            <div
-                class="relative bg-white rounded-lg shadow dark:bg-gray-700"
-                ref="statusModal"
-            >
+            <div class="relative bg-white rounded-lg shadow" ref="statusModal">
                 <!-- Tombol tutup modal -->
                 <button
                     @click="showStatusModal = false"
                     type="button"
-                    class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                    class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center"
                     data-modal-hide="popup-modal"
                 >
                     <svg
@@ -822,11 +805,11 @@ function clearAlert() {
                             d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
                         />
                     </svg>
-                    <span class="sr-only">Close modal</span>
+                    <span class="sr-only">Tutup modal</span>
                 </button>
                 <div class="p-4 text-center md:p-5">
                     <svg
-                        class="w-12 h-12 mx-auto mb-4 text-gray-400 dark:text-gray-200"
+                        class="w-12 h-12 mx-auto mb-4 text-gray-600"
                         aria-hidden="true"
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
@@ -841,29 +824,26 @@ function clearAlert() {
                         />
                     </svg>
                     <!-- Pesan konfirmasi -->
-                    <h3
-                        class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400"
-                    >
-                        Are you sure you want to change the status of this
-                        application?
+                    <h3 class="mb-5 text-lg font-normal text-gray-500">
+                        Apakah Anda yakin ingin mengubah status aplikasi ini?
                     </h3>
                     <!-- Tombol konfirmasi -->
                     <button
                         @click="changeStatus()"
                         data-modal-hide="popup-modal"
                         type="button"
-                        class="text-white bg-blue-500 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-purple-300 dark:focus:ring-purple-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center"
+                        class="text-white bg-gray-600 hover:bg-gray-700 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center"
                     >
-                        Yes, I'm sure
+                        Ya, Saya yakin
                     </button>
                     <!-- Tombol batal -->
                     <button
                         @click="showStatusModal = false"
                         data-modal-hide="popup-modal"
                         type="button"
-                        class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-500 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                        class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-gray-950 focus:z-10 focus:ring-4 focus:ring-gray-100"
                     >
-                        No, cancel
+                        Tidak, Batalkan
                     </button>
                 </div>
             </div>
