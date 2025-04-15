@@ -52,7 +52,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/application/{application}/regenerate-secret', [ApplicationController::class, 'regenerateSecret'])->name('application.delete');
 });
 
-Route::prefix('approve')->middleware('auth', CheckUserLevel::class . ':supervisor')->group(function () {
+Route::prefix('approve')->middleware('auth')->middleware(CheckUserLevel::class . ':supervisor')->group(function () {
     Route::get('/', function () {
         return Inertia::render('ApproveApp');
     })->name('approve.index');
