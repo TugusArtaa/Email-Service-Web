@@ -20,7 +20,26 @@ const form = useForm({
 
 // Fungsi untuk mengirimkan form ke endpoint `/login`
 function submit() {
-    form.post("/login");
+    form.post("/login", {
+        onSuccess: () => {
+            if (form.remember) {
+                // Simpan email dan password ke localStorage
+                localStorage.setItem("remember_email", form.email);
+                localStorage.setItem("remember_password", form.password);
+            } else {
+                // Hapus email dan password dari localStorage
+                localStorage.removeItem("remember_email");
+                localStorage.removeItem("remember_password");
+            }
+        },
+    });
+}
+
+// Saat halaman dimuat, isi form dengan data dari localStorage jika ada
+if (localStorage.getItem("remember_email")) {
+    form.email = localStorage.getItem("remember_email");
+    form.password = localStorage.getItem("remember_password");
+    form.remember = true;
 }
 </script>
 

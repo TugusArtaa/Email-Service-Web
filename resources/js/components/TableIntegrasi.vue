@@ -389,7 +389,7 @@ function handleRetry() {
                     class="flex items-center justify-between p-4 border-b rounded-t md:p-5"
                 >
                     <h3 class="text-lg font-semibold text-gray-900">
-                        Coba Kirim Ulang Email
+                        Kirim Ulang Email
                     </h3>
                     <button
                         @click="showEditModal = false"
@@ -781,8 +781,7 @@ function handleRetry() {
                         />
                     </svg>
                     <h3 class="mb-5 text-lg font-normal text-gray-500">
-                        Apakah anda yakin ingin menghapus log pengiriman email
-                        ini?
+                        Anda yakin ingin menghapus log pengiriman email ini?
                     </h3>
                     <button
                         @click="deleteLog"

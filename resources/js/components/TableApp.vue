@@ -398,7 +398,7 @@ async function changeStatus() {
                         </button>
                     </Tippy>
                     <!-- Tombol regenerasi kunci rahasia -->
-                    <Tippy content="Regenerasi Secret key">
+                    <Tippy content="Ubah Secret key">
                         <button
                             @click="
                                 showKeyModal = true;
@@ -540,7 +540,7 @@ async function changeStatus() {
                     </svg>
                     <!-- Judul -->
                     <h3 class="mb-5 text-lg font-normal text-gray-500">
-                        Apakah Anda yakin ingin menghapus aplikasi ini?
+                        Anda yakin ingin menghapus aplikasi ini?
                     </h3>
                     <!-- Tombol konfirmasi -->
                     <button
@@ -751,7 +751,7 @@ async function changeStatus() {
                     </svg>
                     <!-- Judul modal -->
                     <h3 class="mb-5 text-lg font-normal text-gray-500">
-                        Apakah Anda yakin ingin membuat ulang Secret key?
+                        Anda yakin ingin membuat ulang Secret key?
                     </h3>
                     <!-- Tombol konfirmasi -->
                     <button
@@ -825,7 +825,13 @@ async function changeStatus() {
                     </svg>
                     <!-- Pesan konfirmasi -->
                     <h3 class="mb-5 text-lg font-normal text-gray-500">
-                        Apakah Anda yakin ingin mengubah status aplikasi ini?
+                        Anda yakin ingin
+                        {{
+                            currentStatus === "enabled"
+                                ? "menonaktifkan"
+                                : "mengaktifkan"
+                        }}
+                        aplikasi ini?
                     </h3>
                     <!-- Tombol konfirmasi -->
                     <button

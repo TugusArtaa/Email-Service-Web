@@ -565,7 +565,7 @@ const addApplication = async (event) => {
                         />
                     </svg>
                     <h3 class="mb-5 text-lg font-normal text-gray-500">
-                        Apakah Anda yakin ingin menghapus
+                        Anda yakin ingin menghapus
                         <strong>{{ selectedIdsCount }}</strong> aplikasi ini?
                     </h3>
                     <button

@@ -81,6 +81,27 @@ const toggleSidebar = () => {
         >
             <div
                 class="h-full flex flex-col bg-gradient-to-br from-[#019966] to-[#017755] text-white shadow-xl"
+                style="
+                    background-image: radial-gradient(
+                            circle at 10% 20%,
+                            rgba(255, 255, 255, 0.05) 0%,
+                            transparent 40%
+                        ),
+                        radial-gradient(
+                            circle at 90% 80%,
+                            rgba(255, 255, 255, 0.07) 0%,
+                            transparent 40%
+                        ),
+                        repeating-linear-gradient(
+                            45deg,
+                            rgba(255, 255, 255, 0.03) 0px,
+                            rgba(255, 255, 255, 0.03) 1px,
+                            transparent 1px,
+                            transparent 10px
+                        ),
+                        linear-gradient(to bottom right, #019966, #017755);
+                    background-blend-mode: overlay;
+                "
             >
                 <!-- Bagian Logo -->
                 <div
@@ -175,16 +196,16 @@ const toggleSidebar = () => {
                             <div class="flex-shrink-0 w-5 h-5">
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
-                                    class="w-full h-full"
-                                    viewBox="0 0 24 24"
                                     fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke-width="1.5"
                                     stroke="currentColor"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
+                                    class="size-5"
                                 >
                                     <path
-                                        d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"
                                     />
                                 </svg>
                             </div>
@@ -215,7 +236,9 @@ const toggleSidebar = () => {
                                     stroke-linecap="round"
                                     stroke-linejoin="round"
                                 >
-                                    <path d="M4 7h16M4 12h16M4 17h16" />
+                                    <path
+                                        d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"
+                                    />
                                 </svg>
                             </div>
                             <span
@@ -238,15 +261,26 @@ const toggleSidebar = () => {
                             <div class="flex-shrink-0 w-5 h-5">
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
+                                    class="size-5"
+                                    viewBox="0 0 48 48"
                                     fill="none"
-                                    viewBox="0 0 24 24"
                                     stroke="currentColor"
                                     stroke-width="2"
                                     stroke-linecap="round"
                                     stroke-linejoin="round"
-                                    class="size-5"
                                 >
-                                    <path d="m4.5 12.75 6 6 9-13.5" />
+                                    <path
+                                        d="M41.5,10.5v24c0,3.9-3.1,7-7,7h-21c-1.7,0-3-1.3-3-3v-2"
+                                    ></path>
+                                    <path
+                                        d="M36.5,17.6v15.9c0,1.7-1.3,3-3,3h-25c-1.7,0-3-1.3-3-3v-5.1"
+                                    ></path>
+                                    <path
+                                        d="M5.5,21.7V8.5c0-1.7,1.3-3,3-3h25c1.7,0,3,1.3,3,3v2.2"
+                                    ></path>
+                                    <polyline
+                                        points="15.5,21.5 19.5,25.5 28.5,16.5"
+                                    ></polyline>
                                 </svg>
                             </div>
                             <span
@@ -318,7 +352,7 @@ const toggleSidebar = () => {
                         <button
                             type="submit"
                             :class="[
-                                'w-full flex items-center justify-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-all text-white',
+                                'w-full flex items-center justify-center gap-2 px-4 py-2 bg-red-500/70 hover:bg-red-600/80 rounded-lg transition-all text-white',
                                 !isSidebarOpen && 'lg:px-2',
                             ]"
                         >
@@ -516,6 +550,37 @@ const toggleSidebar = () => {
                                         Pengaturan Profil
                                     </a>
                                 </div>
+                                <!-- <div class="py-1">
+                                    <button
+                                        @click="submit"
+                                        class="flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 w-full"
+                                    >
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            class="h-4 w-4"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                        >
+                                            <path
+                                                d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"
+                                            />
+                                            <polyline
+                                                points="16 17 21 12 16 7"
+                                            />
+                                            <line
+                                                x1="21"
+                                                y1="12"
+                                                x2="9"
+                                                y2="12"
+                                            />
+                                        </svg>
+                                        Logout
+                                    </button>
+                                </div> -->
                             </div>
                         </div>
                     </div>

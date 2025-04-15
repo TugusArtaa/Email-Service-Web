@@ -19,7 +19,7 @@ class AuthenticationController extends Controller
             'password' => ['required'],
         ]);
 
-        $remember = $request->has('remember');
+        $remember = $request->boolean('remember');
 
         if (Auth::attempt(['email' => $credentials['email'], 'password' => $credentials['password']], $remember)) {
             $request->session()->regenerate();

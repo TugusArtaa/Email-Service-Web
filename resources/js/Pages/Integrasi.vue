@@ -591,7 +591,7 @@ refreshData();
                             />
                         </svg>
                         <h3 class="mb-5 text-lg font-normal text-gray-500">
-                            Apakah anda yakin ingin menghapus
+                            Anda yakin ingin menghapus
                             <strong>{{ selectedIdsCount }}</strong> log
                             pengiriman email ini?
                         </h3>

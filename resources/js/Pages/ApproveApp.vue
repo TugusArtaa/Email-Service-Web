@@ -290,7 +290,7 @@ const thead = ref([
                     </svg>
                     <!-- Judul modal -->
                     <h3 class="mb-5 text-lg font-normal text-gray-500">
-                        Apakah Anda yakin ingin menyetujui ini?
+                        Anda yakin ingin menyetujui permohonan ini?
                     </h3>
                     <!-- Tombol konfirmasi -->
                     <button
@@ -369,7 +369,7 @@ const thead = ref([
                     </svg>
                     <!-- Judul modal -->
                     <h3 class="mb-5 text-lg font-normal text-gray-500">
-                        Apakah Anda yakin ingin menolak ini?
+                        Anda yakin ingin menolak permohonan ini?
                     </h3>
                     <!-- Tombol konfirmasi -->
                     <button
