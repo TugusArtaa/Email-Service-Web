@@ -6,50 +6,29 @@ use Illuminate\Support\Facades\Mail;
 
 class EngineService
 {
-    // Method untuk mengirim email yang dikonsumsi dari RabbitMQ
+    // Method to send email consumed from RabbitMQ
     public function sendEmail(array $data)
     {
-        // Define your standard header and footer (for HTML emails)
-        $header = "--------------------------------\n" .
-            "[Your Company Logo]\n" .
-            "Hello, this is an automated message from [Your Company].\n" .
-            "--------------------------------\n\n";
-
-        $footer = "\n\n--------------------------------\n" .
-            "Thank you for using our services!\n" .
-            "Contact us: support@yourcompany.com\n" .
-            "Unsubscribe here: [link]\n" .
-            "--------------------------------";
-
         // Get content and subject from data and handle null or empty cases
-        $content = isset($data['content']) ? $data['content'] : '';
-        $subject = isset($data['subject']) ? $data['subject'] : ''; // Default value for subject
+        $content = $data['content'] ?? ''; 
+        $subject = $data['subject'] ?? ''; 
 
-        // Check if content is HTML or plain text
-        if (preg_match("/<[^<]+>/", $content)) {
-            // If the content is HTML, add header and footer and use Mail::html
-            $content = $header . $content . $footer;
-            Mail::html($content, function ($message) use ($data, $subject) {
-                $message->to($data['to'])
-                    ->subject($subject); // Ensure subject is a string
-                if (!empty($data['attachment'])) {
-                    foreach ($data['attachment'] as $attachment) {
-                        $message->attach($attachment);
-                    }
+        // Convert HTML to readable plain text format
+        $content = str_replace(["<br>", "<br/>", "<br />"], "\n", $content); // Convert <br> to new lines
+        $content = preg_replace('/<\/p>/i', "\n\n", $content); // Convert </p> to paragraph spacing
+        $content = preg_replace('/<\/h1>/i', "\n\n", $content); // Convert </h1> to paragraph spacing
+        $content = strip_tags($content); // Remove remaining HTML tags
+        $content = trim(preg_replace('/\n\s*\n/', "\n\n", $content)); // Remove excessive blank lines
+
+        // Send the email as plain text
+        Mail::raw($content, function ($message) use ($data, $subject) {
+            $message->to($data['to'])->subject($subject);
+
+            if (!empty($data['attachment'])) {
+                foreach ($data['attachment'] as $attachment) {
+                    $message->attach($attachment);
                 }
-            });
-        } else {
-            // If the content is not HTML, use Mail::raw for plain text
-            $content = $header . strip_tags($content) . $footer; // Remove HTML tags for plain text
-            Mail::raw($content, function ($message) use ($data, $subject) {
-                $message->to($data['to'])
-                    ->subject($subject); // Ensure subject is a string
-                if (!empty($data['attachment'])) {
-                    foreach ($data['attachment'] as $attachment) {
-                        $message->attach($attachment);
-                    }
-                }
-            });
-        }
+            }
+        });
     }
 }
