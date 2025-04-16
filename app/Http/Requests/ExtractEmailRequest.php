@@ -12,13 +12,6 @@ class ExtractEmailRequest extends FormRequest
     {
         return [
             'id' => 'required|integer',
-            // 'mail' => 'required|array',
-            // 'mail.*.to' => 'required|email',
-            // 'mail.*.content' => 'nullable|string',
-            // 'mail.*.subject' => 'nullable|string',
-            // 'mail.*.priority' => 'required|string|in:low,medium,high',
-            // 'mail.*.attachment' => 'nullable|array',
-            // 'mail.*.attachment.*' => 'nullable|url'
         ];
     }
 

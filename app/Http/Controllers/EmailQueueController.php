@@ -29,11 +29,11 @@ class EmailQueueController extends Controller
         $application = Application::where('secret_key', $data['secret'])->first();
 
         if (!$application) {
-            return errorResponse('Invalid secret key', 422);
+            return errorResponse('Secret key tidak valid', 422);
         }
 
         if ($application->status !== 'enabled') {
-            return errorResponse('Application status is disabled', 422);
+            return errorResponse('Status aplikasi disabled', 422);
         }
 
         // Sort the emails by priority
@@ -56,7 +56,7 @@ class EmailQueueController extends Controller
             return errorResponse($result['error'], 422);
         }
 
-        return responseWithData('Email message(s) sent to queue', $result['messages']);
+        return responseWithData('Email masuk kedalam antrian', $result['messages']);
     }
     
     //Method untuk mengirim email dari file excel ke dalam queue RabbitMQ
@@ -65,7 +65,7 @@ class EmailQueueController extends Controller
         $file = $request->file('excel_file');
 
         if (!$file) {
-            return errorResponse('No file uploaded', 400); // Using errorResponse helper
+            return errorResponse('Tidak ada file yang diunggah', 400); // Menggunakan helper errorResponse
         }
 
         $result = $this->emailService->processEmailsFromExcel($file);
@@ -75,10 +75,10 @@ class EmailQueueController extends Controller
         }
 
         if (isset($result['validationErrors'])) {
-            return validationError($result['validationErrors']); // Using validationError helper
+            return validationError($result['validationErrors']); // Menggunakan errorResponse
         }
 
-        return queueSuccess($result['messages']); // Using queueSuccess helper
+        return queueSuccess($result['messages']); // Menggunakan ResponseHelper::success
     }
 
     //Method untuk mengambil data email log berdasarkan id

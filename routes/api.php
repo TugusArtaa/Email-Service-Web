@@ -16,19 +16,18 @@ Route::prefix('email-queue')->group(function () {
     Route::post('/send', [EmailQueueController::class, 'sendEmails']);
     Route::post('/retry', [EmailQueueController::class, 'retryEmails']);
     Route::post('/extract', [EmailQueueController::class, 'extractEmailData']);
-    //Route::get('/extract', [EmailQueueController::class, 'extractAllEmailData']);
 })->middleware('auth:sanctum');
 
 //Route untuk mengakses controller EmailLogController
 Route::prefix('email-logs')->group(function () {
     Route::get('/', [EmailLogController::class, 'integrasi']);
-    Route::delete('/delete-id', [EmailLogController::class, 'deleteAll']);
-    Route::delete('/delete-date', [EmailLogController::class, 'bulkDelete']);
+    // Route::delete('/delete-id', [EmailLogController::class, 'deleteAll']);
+    // Route::delete('/delete-date', [EmailLogController::class, 'bulkDelete']);
 })->middleware('auth:sanctum');
 
 //Route untuk mengakses controller ApplicationController
 Route::prefix('applications')->group(function () {
-    Route::post('/', [ApplicationController::class, 'store']);
+    // Route::post('/', [ApplicationController::class, 'store']);
     Route::get('/', [ApplicationController::class, 'getData']);
     Route::get('/approve', [ApplicationController::class, 'getApproveData']);
     Route::delete('/delete', [ApplicationController::class, 'delete']);

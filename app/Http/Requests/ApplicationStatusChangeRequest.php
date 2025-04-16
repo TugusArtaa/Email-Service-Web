@@ -17,7 +17,7 @@ class ApplicationStatusChangeRequest extends FormRequest
     {
         return [
             'id' => 'required|integer|exists:applications,id',
-            'status' => 'required|string|in:pending,enabled,disabled,rejected',
+            'status' => 'required|string|in:ubah-secret-key,enabled,disabled,rejected',
         ];
     }
 

@@ -101,7 +101,7 @@ class EmailLogService
             ];
 
             // Log to a specific channel (email) for Elasticsearch
-            Log::channel('email')->info('Email log created', $logMessage);
+            Log::channel('email')->info('Log email dibuat', $logMessage);
         }
     }
 }

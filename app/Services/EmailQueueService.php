@@ -6,6 +6,7 @@ use App\Http\Requests\SendEmailRequest;
 use App\Http\Requests\ExtractEmailRequest;
 use App\Models\Application;
 use PhpAmqpLib\Message\AMQPMessage;
+use App\Helpers\ResponseHelper; 
 use App\Models\EmailLog;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -26,7 +27,7 @@ class EmailQueueService
         ->first();
 
         if (!$application) {
-            return ['error' => 'Invalid secret key'];
+            return ['error' => 'Secret key tidak valid'];
         }
 
         $messages = [];
@@ -90,7 +91,7 @@ class EmailQueueService
 
                 $messages[] = $messageDataReturn; // Store the processed message data for response
             } catch (\Exception $e) {
-                return ['error' => 'Queue error: ' . $e->getMessage()];
+                return ['error' => 'Antrian error: ' . $e->getMessage()];
             }
         }
 
@@ -108,7 +109,7 @@ class EmailQueueService
         }, $file);
     
         if (empty($data) || !isset($data[0])) {
-            return ['error' => 'Invalid Excel file'];
+            return ['error' => 'File Excel tidak valid atau kosong'];
         }
     
         $rows = $data[0]; // First sheet
@@ -123,9 +124,9 @@ class EmailQueueService
             }
     
             // Skip entirely empty rows
-            if (empty(array_filter($row))) {
+            if (empty(array_filter($row, fn($value) => trim($value) !== ''))) {
                 continue;
-            }
+            }//fixed
     
             $processedRow = [
                 'secret' => trim($row[0] ?? null),
@@ -139,26 +140,28 @@ class EmailQueueService
             // Validate the row
             $errors = [];
             if (empty($processedRow['secret'])) {
-                $errors[] = 'Secret is required';
+                $errors[] = 'Secret key wajib diisi';
             }
             if (empty($processedRow['to'])) {
-                $errors[] = 'Recipient email ("to") is required';
+                $errors[] = 'Email penerima ("to") wajib diisi';
+            } elseif (!filter_var($processedRow['to'], FILTER_VALIDATE_EMAIL)) {
+                $errors[] = 'Format email tidak valid untuk kolom "to"';
             }
             if (empty($processedRow['priority']) || !in_array($processedRow['priority'], ['low', 'medium', 'high'], true)) {
-                $errors[] = 'Priority is required and must be one of: low, medium, high';
+                $errors[] = 'Prioritas wajib diisi dan harus salah satu dari: low, medium, high';
             }
     
             // Check if the application exists
             if (!empty($processedRow['secret'])) {
-                $application = Application::where('secret_key', $processedRow['secret'])
-                    ->where('status', 'enabled')
-                    ->first();
-    
+                $application = Application::where('secret_key', $processedRow['secret'])->first();
+
                 if (!$application) {
-                    $errors[] = 'Invalid secret key';
+                    $errors[] = 'Secret key tidak valid';
+                } elseif ($application->status !== 'enabled') {
+                    $errors[] = 'Status aplikasi disabled';
                 } else {
                     $processedRow['application_id'] = $application->id;
-                }
+                }                
             }
     
             if ($errors) {
@@ -180,7 +183,7 @@ class EmailQueueService
     
         // If no valid messages exist after validation, return an error
         if (empty($messages)) {
-            return ['error' => 'No valid email data found in the Excel file'];
+            return ['error' => 'Tidak ada data email yang valid ditemukan dalam file Excel'];
         }
     
         // Sort by priority
@@ -212,7 +215,7 @@ class EmailQueueService
         $emailLog = EmailLog::find($id);
 
         if (!$emailLog) {
-            return errorResponse('Email log entry not found.', 404);
+            return errorResponse('Data log email tidak ditemukan', 404);
         }
 
         try {
@@ -220,10 +223,10 @@ class EmailQueueService
 
 
             if (json_last_error() !== JSON_ERROR_NONE) {
-                return validationError(['Invalid JSON format in email log data.']);
+                return validationError(['Format JSON pada data log email tidak valid.'], 422);
             }
 
-            return responseWithData('Email log data extracted successfully', [
+            return responseWithData('Data log email berhasil di ekstrak', [
                 'to' => $emailData['to'] ?? '',
                 'subject' => $emailData['subject'] ?? '',
                 'content' => $emailData['content'] ?? '',
@@ -234,7 +237,7 @@ class EmailQueueService
                 'secret' => $emailData['secret'] ?? '',
             ]);
         } catch (\Exception $e) {
-            return queueError('Error processing email log data.');
+            return queueError('Terjadi kesalahan saat memproses data log email.');
         }
     }
 
@@ -281,7 +284,7 @@ class EmailQueueService
     
             return ['message' => $emailData];
         } catch (\Exception $e) {
-            return ['error' => 'Retry failed: ' . $e->getMessage()];
+            return ['error' => 'Kirim ulang gagal:' . $e->getMessage()];
         }
     }
 

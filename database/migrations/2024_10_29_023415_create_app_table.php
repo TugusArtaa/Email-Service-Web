@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('name')->unique();
             $table->text('description');
             $table->string('pic_name');
-            $table->enum('status', ['pending', 'enabled', 'disabled', 'request register'])->default('request register');
+            $table->enum('status', ['ubah-secret-key', 'enabled', 'disabled', 'registrasi-aplikasi'])->default('registrasi-aplikasi');
             $table->string('secret_key')->nullable();
             $table->timestamps();
         });

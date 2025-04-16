@@ -27,7 +27,7 @@ class AuthenticationController extends Controller
         }
 
         return back()->withErrors([
-            'invalid' => 'The provided credentials do not match our records.',
+            'invalid' => 'credentials tidak cocok.',
         ])->onlyInput('email');
     }
 }

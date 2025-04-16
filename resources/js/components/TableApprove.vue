@@ -117,7 +117,7 @@ const incrementedNumbers = computed(() => {
                     <span
                         :class="[
                             'px-2 py-1 rounded-full text-white',
-                            item.status === 'pending'
+                            item.status === 'ubah-secret-key'
                                 ? 'bg-yellow-500'
                                 : 'bg-yellow-500',
                         ]"

@@ -146,7 +146,7 @@ function getDetail(id) {
 // Inisialisasi form untuk regenerasi kunci
 const formKey = useForm({
     id: keyId.value,
-    status: "pending",
+    status: "ubah-secret-key",
     _token: pageInertia.props.csrf_token,
 });
 
@@ -168,7 +168,7 @@ async function generateKey() {
                 },
                 body: JSON.stringify({
                     id: keyId.value,
-                    status: "pending",
+                    status: "ubah-secret-key",
                 }),
             }
         );

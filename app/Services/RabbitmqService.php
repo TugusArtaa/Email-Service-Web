@@ -33,22 +33,26 @@ class RabbitMQService
 
             // Declare the queue with priority support (dynamic priority from 1 to 20)
             $this->channel->queue_declare('email_queue', false, true, false, false, false, [
-                'x-max-priority' => ['I', 20] // Priority range from 1 to 20
+                'x-max-priority' => ['I', 3] // Priority range from 1 to 20
             ]);
 
             // Bind the queue to the exchange with the routing key 'email'
             $this->channel->queue_bind('email_queue', 'email_exchange', 'email');
         } catch (\Exception $e) {
             dd($e);
-            return ['error' => 'Connection error: ' . $e->getMessage()];
+            return ['error' => 'Koneksi error: ' . $e->getMessage()];
         }
     }
 
     //Untuk mengonsumsi pesan dari RabbitMQ
     public function consume(string $queue, callable $callback)
     {
-        $this->channel->basic_consume($queue, '', false, true, false, false, $callback);
+        $this->channel->basic_consume($queue, '', false, false, false, false, function ($msg) use ($callback) {
+            $msg->ack();  // Acknowledge first to avoid duplicates
+            $callback($msg);  // Process the email after acknowledgment
+        });
     }
+    
 
     //Sebagai mekanisme agar kode menunggu jika ada message yang masuk di queue
     public function wait()

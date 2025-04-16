@@ -28,11 +28,6 @@ class ApplicationController extends Controller
         return Inertia::render('Application', [
             'data' => $applications
         ]);
-
-        // return responseWithData(
-        //     $applications->isEmpty() ? 'No applications found' : 'Applications retrieved successfully',
-        //     ['applications' => $applications]
-        // );
     }
 
     public function getData(Request $request)
@@ -43,7 +38,7 @@ class ApplicationController extends Controller
         $applications = $this->applicationService->getPaginatedApplications(search: $search, orderBy: $orderBy, orderDirection: $orderDirection);
 
         return responseWithData(
-            $applications->isEmpty() ? 'No applications found' : 'Applications retrieved successfully',
+            $applications->isEmpty() ? 'Aplikasi tidak ditemukan' : 'Aplikasi berhasil ditemukan',
             ['applications' => $applications]
         );
     }
@@ -56,7 +51,7 @@ class ApplicationController extends Controller
         $applications = $this->applicationService->getPaginatedApprove(search: $search, orderBy: $orderBy, orderDirection: $orderDirection);
 
         return responseWithData(
-            $applications->isEmpty() ? 'No applications found' : 'Applications retrieved successfully',
+            $applications->isEmpty() ? 'Aplikasi tidak ditemukan' : 'Aplikasi berhasil ditemukan',
             ['applications' => $applications]
         );
     }
@@ -84,15 +79,15 @@ class ApplicationController extends Controller
         // )->setStatusCode(201);
 
         return response()->json([
-            'message' => 'Application registered successfully',
-            'application' => $application
-        ], 201);
+            'message'=> 'Aplikasi sukses teregistrasi',
+            'application' => $application,
+        ], 201);    
     }
     //Method untuk menampilkan detail aplikasi berdasarkan id
     public function show(Application $application)
     {
         return responseWithData(
-            'Application details retrieved successfully',
+            'Detail aplikasi berhasil ditemukan',
             $this->applicationService->formatApplicationResponse($application)
         );
     }
@@ -103,15 +98,7 @@ class ApplicationController extends Controller
         $request->validate(['ids' => 'required']);
 
         $this->applicationService->deleteApplications($request->ids);
-
-        // return redirect()->back()->with('message', 'Applications deleted successfully');
-
-        return response()->json(['success' => true, 'message' => 'Applications deleted successfully']);
-
-        // return responseWithData(
-        //     'Applications deleted successfully',
-        //     []
-        // )->setStatusCode(200);
+        return response()->json(['success' => true, 'message' => 'Aplikasi berhasil dihapus']);
     }
 
     public function approveApplication(ApproveApplicationRequest $request)
@@ -121,7 +108,7 @@ class ApplicationController extends Controller
 
         // Kembalikan response sesuai hasil dari service
         return response()->json([
-            'message' => 'Application approved successfully',
+            'message' => 'Aplikasi berhasil disetujui',
             'result' => $result
         ]);
     }
@@ -130,14 +117,8 @@ class ApplicationController extends Controller
     {
         $id = $request->input('id');
         $status = $request->input('status');
-
         $result = $this->applicationService->handleApplicationStatusChange($id, $status);
-
-        // return response()->json([
-        //     'message' => 'Application status changed successfully',
-        //     'result' => $result
-        // ]);
         
-        return $result;
+       return $result;
     }
 }
