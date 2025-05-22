@@ -550,7 +550,7 @@ const toggleSidebar = () => {
                                         Pengaturan Profil
                                     </a>
                                 </div>
-                                <!-- <div class="py-1">
+                                <div class="py-1">
                                     <button
                                         @click="submit"
                                         class="flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 w-full"
@@ -580,7 +580,7 @@ const toggleSidebar = () => {
                                         </svg>
                                         Logout
                                     </button>
-                                </div> -->
+                                </div>
                             </div>
                         </div>
                     </div>

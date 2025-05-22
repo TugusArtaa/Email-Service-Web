@@ -1,261 +1,3 @@
-<script setup>
-// Impor modul dan komponen yang diperlukan
-import { ref, watch } from "vue";
-import { defineProps, computed } from "vue";
-import { onClickOutside, useFetch } from "@vueuse/core";
-import { useForm, usePage } from "@inertiajs/vue3";
-import NotificationToast from "../components/NotificationToast.vue";
-import { Tippy } from "vue-tippy";
-import "tippy.js/dist/tippy.css";
-
-// Mendefinisikan properti komponen
-const props = defineProps({
-    data: Object,
-    thead: Array,
-    title: String,
-    isFetching: Boolean,
-});
-
-// State untuk notifikasi toast
-const notification = ref({
-    show: false,
-    type: "",
-    message: "",
-    description: "",
-});
-
-// Mendefinisikan event yang akan diemit
-const emit = defineEmits(["checkbox", "refresh"]);
-
-// Mendefinisikan variabel reaktif
-const checked = ref([]);
-const application = ref({});
-
-// State untuk modal hapus
-const deleteModal = ref(null);
-const showDeleteModal = ref(false);
-const deleteOne = ref([]);
-
-// State untuk modal regenerasi kunci
-const keyModal = ref(null);
-const showKeyModal = ref(false);
-const keyId = ref(null);
-
-// State untuk modal detail
-const detailModal = ref(null);
-const showDetailModal = ref(false);
-const detailFetch = ref(false);
-
-// State untuk modal status
-const statusModal = ref(null);
-const showStatusModal = ref(false);
-const statusId = ref(null);
-const currentStatus = ref(null);
-
-// Mengawasi perubahan pada variabel checked dan emit event
-watch(checked, (newValue) => {
-    emit("checkbox", newValue);
-});
-
-// Menghitung nomor yang diincrement berdasarkan data
-const incrementedNumbers = computed(() => {
-    if (!props.data || !props.data.data) return [];
-    return props.data.data.map((_, index) => props.data.from + index);
-});
-
-// Menutup modal hapus saat klik di luar modal
-onClickOutside(deleteModal, (event) => {
-    showDeleteModal.value = false;
-});
-
-// Menutup modal detail saat klik di luar modal
-onClickOutside(detailModal, (event) => {
-    showDetailModal.value = false;
-});
-
-// Inisialisasi form untuk operasi hapus
-const pageInertia = usePage();
-const form = useForm({
-    ids: deleteOne.value,
-    _token: pageInertia.props.csrf_token,
-});
-
-// Mengawasi perubahan pada deleteOne dan memperbarui form
-watch(deleteOne, (newValue) => {
-    form.ids = [newValue];
-});
-
-// Fungsi Hapus Aplikasi
-function deleteApp() {
-    fetch("/api/applications/delete", {
-        method: "DELETE",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRF-TOKEN": pageInertia.props.csrf_token,
-        },
-        body: JSON.stringify({ ids: form.ids }),
-    })
-        .then((response) => response.json())
-        .then((data) => {
-            if (data.success) {
-                emit("refresh");
-                showDeleteModal.value = false;
-                notification.value = {
-                    show: true,
-                    type: "success",
-                    message: "Berhasil!",
-                    description: data.message,
-                };
-            } else {
-                notification.value = {
-                    show: true,
-                    type: "danger",
-                    message: "Gagal!",
-                    description: data.message || "Terjadi kesalahan.",
-                };
-            }
-        })
-        .catch((error) => {
-            notification.value = {
-                show: true,
-                type: "danger",
-                message: "Gagal!",
-                description: error.message || "Terjadi kesalahan.",
-            };
-        });
-}
-
-// URL dasar untuk permintaan API
-const baseUrl = import.meta.env.VITE_APP_URL;
-
-// Fungsi untuk mendapatkan detail aplikasi
-function getDetail(id) {
-    detailFetch.value = false;
-    application.value = {};
-    const fetchData = useFetch(`${baseUrl}/api/applications/${id}`)
-        .get()
-        .json();
-    watch(fetchData.data, (newData) => {
-        if (newData) {
-            application.value = newData.data.application;
-            detailFetch.value = true;
-        }
-    });
-}
-
-// Inisialisasi form untuk regenerasi kunci
-const formKey = useForm({
-    id: keyId.value,
-    status: "ubah-secret-key",
-    _token: pageInertia.props.csrf_token,
-});
-
-// Mengawasi perubahan pada keyId dan memperbarui form
-watch(keyId, (newValue) => {
-    formKey.id = newValue;
-});
-
-// Fungsi untuk meregenerasi kunci rahasia
-async function generateKey() {
-    try {
-        const response = await fetch(
-            `/api/applications/application-status-change`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRF-TOKEN": pageInertia.props.csrf_token,
-                },
-                body: JSON.stringify({
-                    id: keyId.value,
-                    status: "ubah-secret-key",
-                }),
-            }
-        );
-        const data = await response.json();
-        if (data.success) {
-            emit("refresh");
-            showKeyModal.value = false;
-            notification.value = {
-                show: true,
-                type: "success",
-                message: "Berhasil!",
-                description: data.message,
-            };
-        } else {
-            emit("refresh");
-            showKeyModal.value = false;
-            notification.value = {
-                show: true,
-                type: "danger",
-                message: "Gagal!",
-                description: data.message || "Terjadi kesalahan.",
-            };
-        }
-    } catch (error) {
-        showKeyModal.value = false;
-        notification.value = {
-            show: true,
-            type: "danger",
-            message: "Gagal!",
-            description: error.message || "Terjadi kesalahan.",
-        };
-    }
-}
-
-// Fungsi untuk membuka modal konfirmasi status
-function openStatusModal(id, status) {
-    statusId.value = id;
-    currentStatus.value = status;
-    showStatusModal.value = true;
-}
-
-// Fungsi untuk mengubah status aplikasi
-async function changeStatus() {
-    const newStatus =
-        currentStatus.value === "enabled" ? "disabled" : "enabled";
-    try {
-        const response = await fetch(
-            `/api/applications/application-status-change`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRF-TOKEN": pageInertia.props.csrf_token,
-                },
-                body: JSON.stringify({ id: statusId.value, status: newStatus }),
-            }
-        );
-        const data = await response.json();
-        if (data.success) {
-            emit("refresh");
-            showStatusModal.value = false;
-            notification.value = {
-                show: true,
-                type: "success",
-                message: "Berhasil!",
-                description: data.message,
-            };
-        } else {
-            notification.value = {
-                show: true,
-                type: "danger",
-                message: "Gagal!",
-                description: data.message || "Terjadi kesalahan.",
-            };
-        }
-    } catch (error) {
-        // Tampilkan notifikasi error
-        notification.value = {
-            show: true,
-            type: "danger",
-            message: "Gagal!",
-            description: error.message || "Terjadi kesalahan.",
-        };
-    }
-}
-</script>
-
 <template>
     <!-- NotificationToast -->
     <NotificationToast
@@ -856,3 +598,261 @@ async function changeStatus() {
         </div>
     </div>
 </template>
+
+<script setup>
+// Impor modul dan komponen yang diperlukan
+import { ref, watch } from "vue";
+import { defineProps, computed } from "vue";
+import { onClickOutside, useFetch } from "@vueuse/core";
+import { useForm, usePage } from "@inertiajs/vue3";
+import NotificationToast from "../components/NotificationToast.vue";
+import { Tippy } from "vue-tippy";
+import "tippy.js/dist/tippy.css";
+
+// Mendefinisikan properti komponen
+const props = defineProps({
+    data: Object,
+    thead: Array,
+    title: String,
+    isFetching: Boolean,
+});
+
+// State untuk notifikasi toast
+const notification = ref({
+    show: false,
+    type: "",
+    message: "",
+    description: "",
+});
+
+// Mendefinisikan event yang akan diemit
+const emit = defineEmits(["checkbox", "refresh"]);
+
+// Mendefinisikan variabel reaktif
+const checked = ref([]);
+const application = ref({});
+
+// State untuk modal hapus
+const deleteModal = ref(null);
+const showDeleteModal = ref(false);
+const deleteOne = ref([]);
+
+// State untuk modal regenerasi kunci
+const keyModal = ref(null);
+const showKeyModal = ref(false);
+const keyId = ref(null);
+
+// State untuk modal detail
+const detailModal = ref(null);
+const showDetailModal = ref(false);
+const detailFetch = ref(false);
+
+// State untuk modal status
+const statusModal = ref(null);
+const showStatusModal = ref(false);
+const statusId = ref(null);
+const currentStatus = ref(null);
+
+// Mengawasi perubahan pada variabel checked dan emit event
+watch(checked, (newValue) => {
+    emit("checkbox", newValue);
+});
+
+// Menghitung nomor yang diincrement berdasarkan data
+const incrementedNumbers = computed(() => {
+    if (!props.data || !props.data.data) return [];
+    return props.data.data.map((_, index) => props.data.from + index);
+});
+
+// Menutup modal hapus saat klik di luar modal
+onClickOutside(deleteModal, (event) => {
+    showDeleteModal.value = false;
+});
+
+// Menutup modal detail saat klik di luar modal
+onClickOutside(detailModal, (event) => {
+    showDetailModal.value = false;
+});
+
+// Inisialisasi form untuk operasi hapus
+const pageInertia = usePage();
+const form = useForm({
+    ids: deleteOne.value,
+    _token: pageInertia.props.csrf_token,
+});
+
+// Mengawasi perubahan pada deleteOne dan memperbarui form
+watch(deleteOne, (newValue) => {
+    form.ids = [newValue];
+});
+
+// Fungsi Hapus Aplikasi
+function deleteApp() {
+    fetch("/api/applications/delete", {
+        method: "DELETE",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-TOKEN": pageInertia.props.csrf_token,
+        },
+        body: JSON.stringify({ ids: form.ids }),
+    })
+        .then((response) => response.json())
+        .then((data) => {
+            if (data.success) {
+                emit("refresh");
+                showDeleteModal.value = false;
+                notification.value = {
+                    show: true,
+                    type: "success",
+                    message: "Berhasil!",
+                    description: data.message,
+                };
+            } else {
+                notification.value = {
+                    show: true,
+                    type: "danger",
+                    message: "Gagal!",
+                    description: data.message || "Terjadi kesalahan.",
+                };
+            }
+        })
+        .catch((error) => {
+            notification.value = {
+                show: true,
+                type: "danger",
+                message: "Gagal!",
+                description: error.message || "Terjadi kesalahan.",
+            };
+        });
+}
+
+// URL dasar untuk permintaan API
+const baseUrl = import.meta.env.VITE_APP_URL;
+
+// Fungsi untuk mendapatkan detail aplikasi
+function getDetail(id) {
+    detailFetch.value = false;
+    application.value = {};
+    const fetchData = useFetch(`${baseUrl}/api/applications/${id}`)
+        .get()
+        .json();
+    watch(fetchData.data, (newData) => {
+        if (newData) {
+            application.value = newData.data.application;
+            detailFetch.value = true;
+        }
+    });
+}
+
+// Inisialisasi form untuk regenerasi kunci
+const formKey = useForm({
+    id: keyId.value,
+    status: "ubah-secret-key",
+    _token: pageInertia.props.csrf_token,
+});
+
+// Mengawasi perubahan pada keyId dan memperbarui form
+watch(keyId, (newValue) => {
+    formKey.id = newValue;
+});
+
+// Fungsi untuk meregenerasi kunci rahasia
+async function generateKey() {
+    try {
+        const response = await fetch(
+            `/api/applications/application-status-change`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": pageInertia.props.csrf_token,
+                },
+                body: JSON.stringify({
+                    id: keyId.value,
+                    status: "ubah-secret-key",
+                }),
+            }
+        );
+        const data = await response.json();
+        if (data.success) {
+            emit("refresh");
+            showKeyModal.value = false;
+            notification.value = {
+                show: true,
+                type: "success",
+                message: "Berhasil!",
+                description: data.message,
+            };
+        } else {
+            emit("refresh");
+            showKeyModal.value = false;
+            notification.value = {
+                show: true,
+                type: "danger",
+                message: "Gagal!",
+                description: data.message || "Terjadi kesalahan.",
+            };
+        }
+    } catch (error) {
+        showKeyModal.value = false;
+        notification.value = {
+            show: true,
+            type: "danger",
+            message: "Gagal!",
+            description: error.message || "Terjadi kesalahan.",
+        };
+    }
+}
+
+// Fungsi untuk membuka modal konfirmasi status
+function openStatusModal(id, status) {
+    statusId.value = id;
+    currentStatus.value = status;
+    showStatusModal.value = true;
+}
+
+// Fungsi untuk mengubah status aplikasi
+async function changeStatus() {
+    const newStatus =
+        currentStatus.value === "enabled" ? "disabled" : "enabled";
+    try {
+        const response = await fetch(
+            `/api/applications/application-status-change`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": pageInertia.props.csrf_token,
+                },
+                body: JSON.stringify({ id: statusId.value, status: newStatus }),
+            }
+        );
+        const data = await response.json();
+        if (data.success) {
+            emit("refresh");
+            showStatusModal.value = false;
+            notification.value = {
+                show: true,
+                type: "success",
+                message: "Berhasil!",
+                description: data.message,
+            };
+        } else {
+            notification.value = {
+                show: true,
+                type: "danger",
+                message: "Gagal!",
+                description: data.message || "Terjadi kesalahan.",
+            };
+        }
+    } catch (error) {
+        // Tampilkan notifikasi error
+        notification.value = {
+            show: true,
+            type: "danger",
+            message: "Gagal!",
+            description: error.message || "Terjadi kesalahan.",
+        };
+    }
+}
+</script>

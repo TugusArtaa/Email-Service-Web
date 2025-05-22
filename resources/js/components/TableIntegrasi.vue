@@ -1,185 +1,3 @@
-<script setup>
-// Import library dan komponen yang diperlukan
-import { watch, ref } from "vue";
-import { Tippy } from "vue-tippy";
-import NotificationToast from "./NotificationToast.vue";
-import { onClickOutside, useFetch } from "@vueuse/core";
-import { useForm, usePage } from "@inertiajs/vue3";
-import axios from "axios";
-
-// Props yang diterima dari parent
-const props = defineProps({
-    thead: Array,
-    fetch: Boolean,
-    logs: Object,
-    search: String,
-});
-
-// Base URL untuk API
-const baseUrl = import.meta.env.VITE_APP_URL;
-
-// State untuk modal hapus
-const deleteModal = ref(null);
-const showDeleteModal = ref(false);
-const deleteOne = ref([]);
-
-// State untuk modal detail
-const detailModal = ref(null);
-const showDetailModal = ref(false);
-const detailFetch = ref(false);
-onClickOutside(detailModal, () => {
-    showDetailModal.value = false;
-});
-const logDetail = ref({});
-
-// State untuk modal edit
-const editModal = ref(null);
-const showEditModal = ref(false);
-const editFetch = ref(false);
-const logEdit = ref({});
-
-// State untuk pesan sukses dan error
-const successMessage = ref("");
-const errorMessage = ref("");
-
-// Emit event ke parent
-const emit = defineEmits(["checkbox", "refresh", "notification"]);
-
-// State untuk checkbox
-const checked = ref([]);
-watch(checked, (newChecked) => {
-    checked.value = newChecked;
-    emit("checkbox", checked.value);
-});
-
-// State untuk form hapus
-const pageInertia = usePage();
-const form = useForm({
-    ids: [],
-    _token: pageInertia.props.csrf_token,
-});
-
-// State untuk notifikasi
-const notification = ref({
-    show: false,
-    type: "",
-    message: "",
-    description: "",
-});
-
-// Fungsi untuk menghapus log
-function deleteLog() {
-    form.ids = deleteOne.value;
-    form.delete(`${baseUrl}/integrasi/delete`, {
-        onSuccess: (response) => {
-            emit(
-                "notification",
-                "success",
-                "Berhasil!",
-                response.message || "Log berhasil dihapus."
-            );
-            emit("refresh");
-            showDeleteModal.value = false;
-            form.reset();
-        },
-        onError: (error) => {
-            emit(
-                "notification",
-                "danger",
-                "Gagal!",
-                error.response?.data?.message || "Gagal menghapus log."
-            );
-        },
-    });
-}
-
-// Fungsi untuk mengambil detail log
-function getDetail(id) {
-    detailFetch.value = false;
-    logDetail.value = {};
-    axios
-        .post(`${baseUrl}/api/email-queue/extract`, { id })
-        .then((response) => {
-            logDetail.value = response.data.data;
-            detailFetch.value = true;
-        })
-        .catch((error) => {
-            detailFetch.value = false;
-        });
-}
-
-// State untuk form retry
-const formRetry = useForm({
-    id: 0,
-    secret: "",
-    mail: [
-        {
-            to: "",
-            subject: "",
-            content: "",
-            attachment: [],
-            priority: 0,
-        },
-    ],
-    _token: pageInertia.props.csrf_token,
-});
-
-// Fungsi untuk mengambil data log yang akan diedit
-function getEdit(id) {
-    editFetch.value = false;
-    logEdit.value = {};
-    axios
-        .post(`${baseUrl}/api/email-queue/extract`, { id })
-        .then((response) => {
-            const newData = response.data.data;
-            if (newData) {
-                formRetry.id = id;
-                formRetry.mail[0].to = newData.to;
-                formRetry.mail[0].subject = newData.subject;
-                formRetry.mail[0].content = newData.content;
-                formRetry.mail[0].attachment = newData.attachment || [];
-                formRetry.mail[0].priority = newData.priority;
-                formRetry.secret = newData.secret;
-                editFetch.value = true;
-            }
-        })
-        .catch((error) => {
-            editFetch.value = false;
-        });
-}
-
-// Fungsi untuk mengirim ulang email
-function handleRetry() {
-    axios
-        .post(`${baseUrl}/api/email-queue/send`, formRetry)
-        .then((response) => {
-            if (response.data.kode === 200) {
-                emit(
-                    "notification",
-                    "success",
-                    "Berhasil!",
-                    response.data.message
-                );
-            } else {
-                emit("notification", "danger", "Gagal!", response.data.message);
-            }
-        })
-        .catch((error) => {
-            emit(
-                "notification",
-                "danger",
-                "Gagal!",
-                error.response?.data?.message || "Terjadi kesalahan"
-            );
-        })
-        .finally(() => {
-            showEditModal.value = false;
-            formRetry.reset();
-            emit("refresh");
-        });
-}
-</script>
-
 <template>
     <!-- Notification Toast -->
     <NotificationToast
@@ -277,6 +95,8 @@ function handleRetry() {
                         :class="
                             item.status == 'success'
                                 ? 'bg-green-200 text-green-900'
+                                : item.status == 'pending'
+                                ? 'bg-orange-200 text-orange-800'
                                 : 'bg-red-200 text-red-900'
                         "
                         class="p-1 text-center rounded-full"
@@ -804,3 +624,185 @@ function handleRetry() {
         </div>
     </div>
 </template>
+
+<script setup>
+// Import library dan komponen yang diperlukan
+import { watch, ref } from "vue";
+import { Tippy } from "vue-tippy";
+import NotificationToast from "./NotificationToast.vue";
+import { onClickOutside, useFetch } from "@vueuse/core";
+import { useForm, usePage } from "@inertiajs/vue3";
+import axios from "axios";
+
+// Props yang diterima dari parent
+const props = defineProps({
+    thead: Array,
+    fetch: Boolean,
+    logs: Object,
+    search: String,
+});
+
+// Base URL untuk API
+const baseUrl = import.meta.env.VITE_APP_URL;
+
+// State untuk modal hapus
+const deleteModal = ref(null);
+const showDeleteModal = ref(false);
+const deleteOne = ref([]);
+
+// State untuk modal detail
+const detailModal = ref(null);
+const showDetailModal = ref(false);
+const detailFetch = ref(false);
+onClickOutside(detailModal, () => {
+    showDetailModal.value = false;
+});
+const logDetail = ref({});
+
+// State untuk modal edit
+const editModal = ref(null);
+const showEditModal = ref(false);
+const editFetch = ref(false);
+const logEdit = ref({});
+
+// State untuk pesan sukses dan error
+const successMessage = ref("");
+const errorMessage = ref("");
+
+// Emit event ke parent
+const emit = defineEmits(["checkbox", "refresh", "notification"]);
+
+// State untuk checkbox
+const checked = ref([]);
+watch(checked, (newChecked) => {
+    checked.value = newChecked;
+    emit("checkbox", checked.value);
+});
+
+// State untuk form hapus
+const pageInertia = usePage();
+const form = useForm({
+    ids: [],
+    _token: pageInertia.props.csrf_token,
+});
+
+// State untuk notifikasi
+const notification = ref({
+    show: false,
+    type: "",
+    message: "",
+    description: "",
+});
+
+// Fungsi untuk menghapus log
+function deleteLog() {
+    form.ids = deleteOne.value;
+    form.delete(`${baseUrl}/integrasi/delete`, {
+        onSuccess: (response) => {
+            emit(
+                "notification",
+                "success",
+                "Berhasil!",
+                response.message || "Log berhasil dihapus."
+            );
+            emit("refresh");
+            showDeleteModal.value = false;
+            form.reset();
+        },
+        onError: (error) => {
+            emit(
+                "notification",
+                "danger",
+                "Gagal!",
+                error.response?.data?.message || "Gagal menghapus log."
+            );
+        },
+    });
+}
+
+// Fungsi untuk mengambil detail log
+function getDetail(id) {
+    detailFetch.value = false;
+    logDetail.value = {};
+    axios
+        .post(`${baseUrl}/api/email-queue/extract`, { id })
+        .then((response) => {
+            logDetail.value = response.data.data;
+            detailFetch.value = true;
+        })
+        .catch((error) => {
+            detailFetch.value = false;
+        });
+}
+
+// State untuk form retry
+const formRetry = useForm({
+    id: 0,
+    secret: "",
+    mail: [
+        {
+            to: "",
+            subject: "",
+            content: "",
+            attachment: [],
+            priority: 0,
+        },
+    ],
+    _token: pageInertia.props.csrf_token,
+});
+
+// Fungsi untuk mengambil data log yang akan diedit
+function getEdit(id) {
+    editFetch.value = false;
+    logEdit.value = {};
+    axios
+        .post(`${baseUrl}/api/email-queue/extract`, { id })
+        .then((response) => {
+            const newData = response.data.data;
+            if (newData) {
+                formRetry.id = id;
+                formRetry.mail[0].to = newData.to;
+                formRetry.mail[0].subject = newData.subject;
+                formRetry.mail[0].content = newData.content;
+                formRetry.mail[0].attachment = newData.attachment || [];
+                formRetry.mail[0].priority = newData.priority;
+                formRetry.secret = newData.secret;
+                editFetch.value = true;
+            }
+        })
+        .catch((error) => {
+            editFetch.value = false;
+        });
+}
+
+// Fungsi untuk mengirim ulang email
+function handleRetry() {
+    axios
+        .post(`${baseUrl}/api/email-queue/send`, formRetry)
+        .then((response) => {
+            if (response.data.kode === 200) {
+                emit(
+                    "notification",
+                    "success",
+                    "Berhasil!",
+                    response.data.message
+                );
+            } else {
+                emit("notification", "danger", "Gagal!", response.data.message);
+            }
+        })
+        .catch((error) => {
+            emit(
+                "notification",
+                "danger",
+                "Gagal!",
+                error.response?.data?.message || "Terjadi kesalahan"
+            );
+        })
+        .finally(() => {
+            showEditModal.value = false;
+            formRetry.reset();
+            emit("refresh");
+        });
+}
+</script>

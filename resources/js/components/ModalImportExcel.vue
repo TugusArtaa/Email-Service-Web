@@ -1,127 +1,3 @@
-<script setup>
-// Import library Vue dan Axios
-import { ref, watch } from "vue";
-import axios from "axios";
-
-// Props untuk menerima data dari parent component
-const props = defineProps({
-    show: Boolean,
-});
-
-// Emit untuk mengirim event ke parent component
-const emit = defineEmits(["close", "notification"]);
-
-// State untuk menyimpan file, error, dan elemen input
-const selectedFile = ref(null);
-const fileInput = ref(null);
-const fileError = ref(null);
-const formatError = ref(null);
-const error = ref("");
-const modalExcel = ref(null);
-
-// URL API dari environment variable
-const baseUrl = import.meta.env.VITE_APP_URL;
-
-// Fungsi untuk menangani upload file
-function handleFileUpload(event) {
-    const file = event.target.files[0];
-    if (file) {
-        const fileExtension = file.name.split(".").pop().toLowerCase();
-        const isExcel = ["xlsx", "xls"].includes(fileExtension);
-        if (!isExcel) {
-            fileError.value = [
-                "Hanya file Excel (.xlsx, .xls) yang diizinkan.",
-            ];
-            if (fileInput.value) {
-                fileInput.value.value = null;
-            }
-            return;
-        }
-        fileError.value = null;
-        selectedFile.value = file;
-    }
-}
-
-// Fungsi untuk membatalkan upload file
-function cancelFileUpload() {
-    selectedFile.value = null;
-    if (fileInput.value) {
-        fileInput.value.value = null;
-    }
-    fileError.value = null;
-}
-
-// Fungsi untuk mengunggah file ke server
-async function uploadFile() {
-    if (!selectedFile.value) {
-        error.value = "Silakan pilih file terlebih dahulu.";
-        return;
-    }
-    const formData = new FormData();
-    formData.append("excel_file", selectedFile.value);
-    try {
-        const response = await axios.post(
-            `${baseUrl}/api/email-queue/sendExcel`,
-            formData,
-            {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
-            }
-        );
-        // Emit notification success
-        emit("notification", "success", "Berhasil!", response.data.message);
-        selectedFile.value = null;
-        emit("close");
-        if (fileInput.value) {
-            fileInput.value.value = null;
-        }
-    } catch (error) {
-        fileError.value = null;
-        formatError.value = null;
-        error.value = "Terjadi kesalahan saat mengunggah berkas.";
-        try {
-            const errMessage = JSON.parse(error.request.response);
-            if (
-                errMessage.original &&
-                errMessage.original.messages &&
-                errMessage.original.messages.excel_file
-            ) {
-                fileError.value = errMessage.original.messages.excel_file;
-            } else {
-                formatError.value = errMessage.messages;
-            }
-        } catch (parseError) {
-            console.error(
-                "Terjadi kesalahan saat mengurai respons server:",
-                parseError
-            );
-        }
-    }
-}
-
-// Fungsi untuk menutup modal
-function closeModal() {
-    emit("close");
-}
-
-// Watcher untuk reset state saat modal ditutup
-watch(
-    () => props.show,
-    (newValue) => {
-        if (!newValue) {
-            fileError.value = null;
-            formatError.value = null;
-            error.value = "";
-            selectedFile.value = null;
-            if (fileInput.value) {
-                fileInput.value.value = null;
-            }
-        }
-    }
-);
-</script>
-
 <template>
     <!-- Modal utama -->
     <div
@@ -316,13 +192,38 @@ watch(
                     </div>
 
                     <!-- Submit Button -->
+                    <!-- Submit Button -->
                     <div class="flex justify-end mt-6">
                         <button
                             @click="uploadFile"
-                            :disabled="!selectedFile"
-                            class="px-4 py-2 text-sm font-medium text-white bg-emerald-500 hover:bg-emerald-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-300"
+                            :disabled="!selectedFile || isLoading"
+                            class="px-4 py-2 text-sm font-medium text-white bg-emerald-500 hover:bg-emerald-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-300 flex items-center space-x-2"
                         >
-                            Upload
+                            <!-- Loader spinner saat isLoading true -->
+                            <svg
+                                v-if="isLoading"
+                                class="animate-spin h-4 w-4 text-white"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                            >
+                                <circle
+                                    class="opacity-25"
+                                    cx="12"
+                                    cy="12"
+                                    r="10"
+                                    stroke="currentColor"
+                                    stroke-width="4"
+                                ></circle>
+                                <path
+                                    class="opacity-75"
+                                    fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                ></path>
+                            </svg>
+                            <span>{{
+                                isLoading ? "Mengupload..." : "Upload"
+                            }}</span>
                         </button>
                     </div>
                 </div>
@@ -330,3 +231,136 @@ watch(
         </div>
     </div>
 </template>
+
+<script setup>
+// Import library Vue dan Axios
+import { ref, watch } from "vue";
+import axios from "axios";
+
+// Props untuk menerima data dari parent component
+const props = defineProps({
+    show: Boolean,
+});
+
+// Emit untuk mengirim event ke parent component
+const emit = defineEmits(["close", "notification"]);
+
+// State untuk menyimpan file, error, dan elemen input
+const selectedFile = ref(null);
+const fileInput = ref(null);
+const fileError = ref(null);
+const formatError = ref(null);
+const error = ref("");
+const modalExcel = ref(null);
+const isLoading = ref(false);
+
+// URL API dari environment variable
+const baseUrl = import.meta.env.VITE_APP_URL;
+
+// Fungsi untuk menangani upload file
+function handleFileUpload(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const fileExtension = file.name.split(".").pop().toLowerCase();
+        const isExcel = ["xlsx", "xls"].includes(fileExtension);
+        if (!isExcel) {
+            fileError.value = [
+                "Hanya file Excel (.xlsx, .xls) yang diizinkan.",
+            ];
+            if (fileInput.value) {
+                fileInput.value.value = null;
+            }
+            return;
+        }
+        fileError.value = null;
+        selectedFile.value = file;
+    }
+}
+
+// Fungsi untuk membatalkan upload file
+function cancelFileUpload() {
+    selectedFile.value = null;
+    if (fileInput.value) {
+        fileInput.value.value = null;
+    }
+    fileError.value = null;
+}
+
+// Fungsi untuk mengunggah file ke server
+async function uploadFile() {
+    if (!selectedFile.value) {
+        error.value = "Silakan pilih file terlebih dahulu.";
+        return;
+    }
+
+    // Set loading state ke true
+    isLoading.value = true;
+
+    const formData = new FormData();
+    formData.append("excel_file", selectedFile.value);
+    try {
+        const response = await axios.post(
+            `${baseUrl}/api/email-queue/sendExcel`,
+            formData,
+            {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            }
+        );
+        // Emit notification success
+        emit("notification", "success", "Berhasil!", response.data.message);
+        selectedFile.value = null;
+        emit("close");
+        if (fileInput.value) {
+            fileInput.value.value = null;
+        }
+    } catch (error) {
+        fileError.value = null;
+        formatError.value = null;
+        error.value = "Terjadi kesalahan saat mengunggah berkas.";
+        try {
+            const errMessage = JSON.parse(error.request.response);
+            if (
+                errMessage.original &&
+                errMessage.original.messages &&
+                errMessage.original.messages.excel_file
+            ) {
+                fileError.value = errMessage.original.messages.excel_file;
+            } else {
+                formatError.value = errMessage.messages;
+            }
+        } catch (parseError) {
+            console.error(
+                "Terjadi kesalahan saat mengurai respons server:",
+                parseError
+            );
+        }
+    } finally {
+        // Pastikan loading state diatur ke false setelah selesai, baik sukses maupun error
+        isLoading.value = false;
+    }
+}
+
+// Fungsi untuk menutup modal
+function closeModal() {
+    emit("close");
+}
+
+// Watcher untuk reset state saat modal ditutup
+watch(
+    () => props.show,
+    (newValue) => {
+        if (!newValue) {
+            fileError.value = null;
+            formatError.value = null;
+            error.value = "";
+            selectedFile.value = null;
+            isLoading.value = false;
+            if (fileInput.value) {
+                fileInput.value.value = null;
+            }
+        }
+    }
+);
+</script>

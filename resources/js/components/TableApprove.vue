@@ -1,36 +1,3 @@
-<script setup>
-import { ref, computed } from "vue";
-import { Tippy } from "vue-tippy";
-import "tippy.js/dist/tippy.css";
-
-// Mendefinisikan properti komponen
-const props = defineProps({
-    data: Object,
-    thead: Array,
-    isFetching: Boolean,
-    page: Number,
-});
-
-// Mendefinisikan event yang akan diemit
-const emit = defineEmits(["approve", "reject"]);
-
-// Fungsi untuk membuka modal approve
-const openApproveModal = (application) => {
-    emit("approve", application);
-};
-
-// Fungsi untuk membuka modal reject
-const openRejectModal = (application) => {
-    emit("reject", application);
-};
-
-// Menghitung nomor yang diincrement berdasarkan data
-const incrementedNumbers = computed(() => {
-    if (!props.data || !props.data.data) return [];
-    return props.data.data.map((_, index) => props.data.from + index);
-});
-</script>
-
 <template>
     <!-- Tabel data aplikasi -->
     <table class="w-full text-sm text-left text-gray-500 border rounded-2xl">
@@ -184,3 +151,36 @@ const incrementedNumbers = computed(() => {
         </tbody>
     </table>
 </template>
+
+<script setup>
+import { ref, computed } from "vue";
+import { Tippy } from "vue-tippy";
+import "tippy.js/dist/tippy.css";
+
+// Mendefinisikan properti komponen
+const props = defineProps({
+    data: Object,
+    thead: Array,
+    isFetching: Boolean,
+    page: Number,
+});
+
+// Mendefinisikan event yang akan diemit
+const emit = defineEmits(["approve", "reject"]);
+
+// Fungsi untuk membuka modal approve
+const openApproveModal = (application) => {
+    emit("approve", application);
+};
+
+// Fungsi untuk membuka modal reject
+const openRejectModal = (application) => {
+    emit("reject", application);
+};
+
+// Menghitung nomor yang diincrement berdasarkan data
+const incrementedNumbers = computed(() => {
+    if (!props.data || !props.data.data) return [];
+    return props.data.data.map((_, index) => props.data.from + index);
+});
+</script>

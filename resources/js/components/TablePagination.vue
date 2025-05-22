@@ -1,52 +1,3 @@
-<script setup>
-import { computed } from "vue";
-import { Link } from "@inertiajs/vue3";
-
-const props = defineProps({
-    current: Number,
-    last: Number,
-    from: Number,
-    to: Number,
-    total: Number,
-});
-
-const pages = computed(() => {
-    const range = [];
-    let from, end;
-
-    if (props.current <= 3) {
-        from = 1;
-        end = Math.min(5, props.last);
-    } else if (props.current >= props.last - 2) {
-        from = Math.max(1, props.last - 4);
-        end = props.last;
-    } else {
-        from = props.current - 2;
-        end = props.current + 2;
-    }
-
-    for (let i = from; i <= end; i++) {
-        range.push(i);
-    }
-
-    return range;
-});
-
-const prev = computed(() => {
-    return props.current > 1 ? props.current - 1 : 1;
-});
-
-const next = computed(() => {
-    return props.current < props.last ? props.current + 1 : props.last;
-});
-
-const isCurrent = (page) => {
-    return page === props.current;
-};
-
-const emit = defineEmits(["page-change"]);
-</script>
-
 <template>
     <div class="flex items-center justify-between mt-5">
         <span class="text-sm text-gray-700">
@@ -121,3 +72,52 @@ const emit = defineEmits(["page-change"]);
         </nav>
     </div>
 </template>
+
+<script setup>
+import { computed } from "vue";
+import { Link } from "@inertiajs/vue3";
+
+const props = defineProps({
+    current: Number,
+    last: Number,
+    from: Number,
+    to: Number,
+    total: Number,
+});
+
+const pages = computed(() => {
+    const range = [];
+    let from, end;
+
+    if (props.current <= 3) {
+        from = 1;
+        end = Math.min(5, props.last);
+    } else if (props.current >= props.last - 2) {
+        from = Math.max(1, props.last - 4);
+        end = props.last;
+    } else {
+        from = props.current - 2;
+        end = props.current + 2;
+    }
+
+    for (let i = from; i <= end; i++) {
+        range.push(i);
+    }
+
+    return range;
+});
+
+const prev = computed(() => {
+    return props.current > 1 ? props.current - 1 : 1;
+});
+
+const next = computed(() => {
+    return props.current < props.last ? props.current + 1 : props.last;
+});
+
+const isCurrent = (page) => {
+    return page === props.current;
+};
+
+const emit = defineEmits(["page-change"]);
+</script>

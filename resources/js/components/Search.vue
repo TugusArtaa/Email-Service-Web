@@ -1,20 +1,3 @@
-<script setup>
-import { ref, watch } from "vue";
-import { debounce } from "lodash";
-
-const searchQuery = ref();
-
-const emit = defineEmits(["search"]);
-
-const emitSearch = debounce((query) => {
-    emit("search", query);
-}, 300);
-
-const handleInput = () => {
-    emitSearch(searchQuery.value);
-};
-</script>
-
 <template>
     <form class="flex items-center">
         <label for="simple-search" class="sr-only">Search</label>
@@ -47,3 +30,20 @@ const handleInput = () => {
         </div>
     </form>
 </template>
+
+<script setup>
+import { ref, watch } from "vue";
+import { debounce } from "lodash";
+
+const searchQuery = ref();
+
+const emit = defineEmits(["search"]);
+
+const emitSearch = debounce((query) => {
+    emit("search", query);
+}, 300);
+
+const handleInput = () => {
+    emitSearch(searchQuery.value);
+};
+</script>

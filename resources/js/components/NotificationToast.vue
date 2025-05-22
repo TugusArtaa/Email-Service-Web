@@ -1,36 +1,3 @@
-<script setup>
-//Impor fungsi reaktif dari vue
-import { reactive, toRefs, watch } from "vue";
-
-// Mendefinisikan properti `notification` yang wajib diisi dan bertipe objek
-const props = defineProps({
-    notification: {
-        type: Object,
-        required: true,
-    },
-});
-
-// Mendefinisikan event `close` yang dapat dipancarkan (emit)
-const emit = defineEmits(["close"]);
-
-// Fungsi untuk menutup notifikasi dengan memancarkan event `close`
-const closeNotification = () => {
-    emit("close");
-};
-
-// Mengawasi perubahan pada `notification.show`
-watch(
-    () => props.notification.show,
-    (newVal) => {
-        if (newVal) {
-            setTimeout(() => {
-                emit("close");
-            }, 3000);
-        }
-    }
-);
-</script>
-
 <template>
     <div
         v-if="notification.show"
@@ -145,3 +112,36 @@ watch(
         </div>
     </div>
 </template>
+
+<script setup>
+//Impor fungsi reaktif dari vue
+import { reactive, toRefs, watch } from "vue";
+
+// Mendefinisikan properti `notification` yang wajib diisi dan bertipe objek
+const props = defineProps({
+    notification: {
+        type: Object,
+        required: true,
+    },
+});
+
+// Mendefinisikan event `close` yang dapat dipancarkan (emit)
+const emit = defineEmits(["close"]);
+
+// Fungsi untuk menutup notifikasi dengan memancarkan event `close`
+const closeNotification = () => {
+    emit("close");
+};
+
+// Mengawasi perubahan pada `notification.show`
+watch(
+    () => props.notification.show,
+    (newVal) => {
+        if (newVal) {
+            setTimeout(() => {
+                emit("close");
+            }, 3000);
+        }
+    }
+);
+</script>

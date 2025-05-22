@@ -1,225 +1,3 @@
-<script setup>
-// Import modul dan library yang diperlukan
-import { ref, onMounted, watch } from "vue";
-import { vAutoAnimate } from "@formkit/auto-animate";
-import axios from "axios";
-
-// Base URL untuk API
-const baseUrl = import.meta.env.VITE_APP_URL;
-
-// State untuk mengontrol modal form
-const formModal = ref(false);
-
-// Emit event ke parent component
-const emit = defineEmits(["close", "notification"]);
-
-// State untuk menyimpan data email yang akan dikirim
-const emails = ref({
-    secret: "",
-    mail: [],
-});
-
-// State untuk menyimpan data email yang sedang diedit atau ditambahkan
-const email = ref({
-    subject: "",
-    to: "",
-    priority: "low",
-    content: "",
-    attachment: [],
-});
-
-// State untuk pesan sukses, error, dan validasi
-const successMessage = ref("");
-const errorMessage = ref({});
-const invalidKey = ref("");
-const detailErrors = ref({});
-const emailIndex = ref(null);
-
-// Lifecycle hook untuk mengambil data email dari localStorage
-onMounted(() => {
-    const storedEmails = localStorage.getItem("emails");
-    if (storedEmails) {
-        emails.value = JSON.parse(storedEmails);
-    }
-});
-
-// Watcher untuk menyimpan perubahan data emails ke localStorage
-watch(
-    emails,
-    (newEmails) => {
-        localStorage.setItem("emails", JSON.stringify(newEmails));
-    },
-    { deep: true }
-);
-
-// Fungsi untuk mengirim email
-async function handleSubmit() {
-    invalidKey.value = "";
-    try {
-        const response = await axios.post(
-            `${baseUrl}/api/email-queue/send`,
-            emails.value
-        );
-        // Emit notification success
-        emit("notification", "success", "Berhasil!", response.data.message);
-        emit("close");
-    } catch (error) {
-        if (
-            error.response &&
-            error.response.data &&
-            error.response.data.errors
-        ) {
-            errorMessage.value = error.response.data.errors;
-        } else if (error.response && error.response.data) {
-            invalidKey.value = error.response.data.error;
-        } else {
-            errorMessage.value = {
-                general: ["Terjadi kesalahan yang tidak diketahui"],
-            };
-        }
-        // Emit notification error
-        emit(
-            "notification",
-            "danger",
-            "Gagal!",
-            error.response?.data?.message ||
-                "Terjadi kesalahan yang tidak diketahui"
-        );
-    }
-}
-
-// Fungsi untuk validasi data email
-function validateEmail() {
-    let isValid = true;
-    const tempErrors = {};
-    // Validasi alamat email penerima
-    if (!email.value.to) {
-        if (!tempErrors[`mail.${emailIndex.value}.to`]) {
-            tempErrors[`mail.${emailIndex.value}.to`] = [];
-        }
-        tempErrors[`mail.${emailIndex.value}.to`].push(
-            "Alamat email penerima wajib diisi"
-        );
-        isValid = false;
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.to)) {
-        if (!tempErrors[`mail.${emailIndex.value}.to`]) {
-            tempErrors[`mail.${emailIndex.value}.to`] = [];
-        }
-        tempErrors[`mail.${emailIndex.value}.to`].push(
-            "Format email tidak valid"
-        );
-        isValid = false;
-    }
-    // Validasi prioritas
-    if (!email.value.priority) {
-        if (!tempErrors[`mail.${emailIndex.value}.priority`]) {
-            tempErrors[`mail.${emailIndex.value}.priority`] = [];
-        }
-        tempErrors[`mail.${emailIndex.value}.priority`].push(
-            "Prioritas wajib dipilih"
-        );
-        isValid = false;
-    }
-    // Validasi secret key sebelum menambahkan email
-    if (!emails.value.secret) {
-        invalidKey.value = "Secret key wajib diisi";
-        isValid = false;
-    } else {
-        invalidKey.value = "";
-    }
-
-    detailErrors.value = tempErrors;
-    return isValid;
-}
-
-// Fungsi untuk menambahkan email baru
-function addEmail(newEmail) {
-    // Tetapkan indeks email baru
-    emailIndex.value = emails.value.mail.length;
-    // Gunakan fungsi validateEmail untuk validasi
-    if (validateEmail()) {
-        // Jika validasi berhasil, tambahkan email ke daftar
-        emails.value.mail.push(newEmail);
-        // Tutup modal
-        formModal.value = false;
-        // Reset pesan error
-        errorMessage.value = {};
-        invalidKey.value = "";
-        detailErrors.value = {};
-    }
-}
-
-// Fungsi untuk melihat detail email
-function detailEmail(index) {
-    detailErrors.value = Object.keys(errorMessage.value || {})
-        .filter((key) => key.startsWith(`mail.${index}.`))
-        .reduce((acc, key) => {
-            acc[key] = errorMessage.value[key];
-            return acc;
-        }, {});
-    email.value = JSON.parse(JSON.stringify(emails.value.mail[index]));
-    emailIndex.value = index;
-}
-
-// Fungsi untuk membuat email baru
-function newEmail() {
-    detailErrors.value = {};
-    email.value = {
-        subject: "",
-        to: "",
-        priority: "low",
-        content: "",
-        attachment: [],
-    };
-    invalidKey.value = "";
-    emailIndex.value = null;
-}
-
-// Fungsi untuk menyimpan perubahan pada email yang diedit
-function saveEdit() {
-    if (validateEmail()) {
-        emails.value.mail[emailIndex.value] = email.value;
-        formModal.value = false;
-        errorMessage.value = Object.keys(errorMessage.value || {})
-            .filter((key) => !key.startsWith(`mail.${emailIndex.value}.`))
-            .reduce((acc, key) => {
-                acc[key] = errorMessage.value[key];
-                return acc;
-            }, {});
-        invalidKey.value = "";
-        detailErrors.value = {};
-    }
-}
-
-// Fungsi untuk menghapus email dari daftar
-function removeEmail(index) {
-    emails.value.mail.splice(index, 1);
-}
-
-// Fungsi untuk menambahkan lampiran
-function addAttachment() {
-    email.value.attachment.push("");
-}
-
-// Fungsi untuk menghapus lampiran
-function removeAttachment(index) {
-    email.value.attachment.splice(index, 1);
-}
-
-// Fungsi untuk validasi sebelum mengirim email
-function validateBeforeSubmit() {
-    if (!emails.value.secret) {
-        invalidKey.value = "Secret key wajib diisi";
-        return false;
-    }
-    if (emails.value.mail.length === 0) {
-        invalidKey.value = "Tambahkan minimal satu email";
-        return false;
-    }
-    return true;
-}
-</script>
-
 <template>
     <div>
         <!-- Background overlay untuk modal -->
@@ -663,3 +441,225 @@ function validateBeforeSubmit() {
         </div>
     </div>
 </template>
+
+<script setup>
+// Import modul dan library yang diperlukan
+import { ref, onMounted, watch } from "vue";
+import { vAutoAnimate } from "@formkit/auto-animate";
+import axios from "axios";
+
+// Base URL untuk API
+const baseUrl = import.meta.env.VITE_APP_URL;
+
+// State untuk mengontrol modal form
+const formModal = ref(false);
+
+// Emit event ke parent component
+const emit = defineEmits(["close", "notification"]);
+
+// State untuk menyimpan data email yang akan dikirim
+const emails = ref({
+    secret: "",
+    mail: [],
+});
+
+// State untuk menyimpan data email yang sedang diedit atau ditambahkan
+const email = ref({
+    subject: "",
+    to: "",
+    priority: "low",
+    content: "",
+    attachment: [],
+});
+
+// State untuk pesan sukses, error, dan validasi
+const successMessage = ref("");
+const errorMessage = ref({});
+const invalidKey = ref("");
+const detailErrors = ref({});
+const emailIndex = ref(null);
+
+// Lifecycle hook untuk mengambil data email dari localStorage
+onMounted(() => {
+    const storedEmails = localStorage.getItem("emails");
+    if (storedEmails) {
+        emails.value = JSON.parse(storedEmails);
+    }
+});
+
+// Watcher untuk menyimpan perubahan data emails ke localStorage
+watch(
+    emails,
+    (newEmails) => {
+        localStorage.setItem("emails", JSON.stringify(newEmails));
+    },
+    { deep: true }
+);
+
+// Fungsi untuk mengirim email
+async function handleSubmit() {
+    invalidKey.value = "";
+    try {
+        const response = await axios.post(
+            `${baseUrl}/api/email-queue/send`,
+            emails.value
+        );
+        // Emit notification success
+        emit("notification", "success", "Berhasil!", response.data.message);
+        emit("close");
+    } catch (error) {
+        if (
+            error.response &&
+            error.response.data &&
+            error.response.data.errors
+        ) {
+            errorMessage.value = error.response.data.errors;
+        } else if (error.response && error.response.data) {
+            invalidKey.value = error.response.data.error;
+        } else {
+            errorMessage.value = {
+                general: ["Terjadi kesalahan yang tidak diketahui"],
+            };
+        }
+        // Emit notification error
+        emit(
+            "notification",
+            "danger",
+            "Gagal!",
+            error.response?.data?.message ||
+                "Terjadi kesalahan yang tidak diketahui"
+        );
+    }
+}
+
+// Fungsi untuk validasi data email
+function validateEmail() {
+    let isValid = true;
+    const tempErrors = {};
+    // Validasi alamat email penerima
+    if (!email.value.to) {
+        if (!tempErrors[`mail.${emailIndex.value}.to`]) {
+            tempErrors[`mail.${emailIndex.value}.to`] = [];
+        }
+        tempErrors[`mail.${emailIndex.value}.to`].push(
+            "Alamat email penerima wajib diisi"
+        );
+        isValid = false;
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.to)) {
+        if (!tempErrors[`mail.${emailIndex.value}.to`]) {
+            tempErrors[`mail.${emailIndex.value}.to`] = [];
+        }
+        tempErrors[`mail.${emailIndex.value}.to`].push(
+            "Format email tidak valid"
+        );
+        isValid = false;
+    }
+    // Validasi prioritas
+    if (!email.value.priority) {
+        if (!tempErrors[`mail.${emailIndex.value}.priority`]) {
+            tempErrors[`mail.${emailIndex.value}.priority`] = [];
+        }
+        tempErrors[`mail.${emailIndex.value}.priority`].push(
+            "Prioritas wajib dipilih"
+        );
+        isValid = false;
+    }
+    // Validasi secret key sebelum menambahkan email
+    if (!emails.value.secret) {
+        invalidKey.value = "Secret key wajib diisi";
+        isValid = false;
+    } else {
+        invalidKey.value = "";
+    }
+
+    detailErrors.value = tempErrors;
+    return isValid;
+}
+
+// Fungsi untuk menambahkan email baru
+function addEmail(newEmail) {
+    // Tetapkan indeks email baru
+    emailIndex.value = emails.value.mail.length;
+    // Gunakan fungsi validateEmail untuk validasi
+    if (validateEmail()) {
+        // Jika validasi berhasil, tambahkan email ke daftar
+        emails.value.mail.push(newEmail);
+        // Tutup modal
+        formModal.value = false;
+        // Reset pesan error
+        errorMessage.value = {};
+        invalidKey.value = "";
+        detailErrors.value = {};
+    }
+}
+
+// Fungsi untuk melihat detail email
+function detailEmail(index) {
+    detailErrors.value = Object.keys(errorMessage.value || {})
+        .filter((key) => key.startsWith(`mail.${index}.`))
+        .reduce((acc, key) => {
+            acc[key] = errorMessage.value[key];
+            return acc;
+        }, {});
+    email.value = JSON.parse(JSON.stringify(emails.value.mail[index]));
+    emailIndex.value = index;
+}
+
+// Fungsi untuk membuat email baru
+function newEmail() {
+    detailErrors.value = {};
+    email.value = {
+        subject: "",
+        to: "",
+        priority: "low",
+        content: "",
+        attachment: [],
+    };
+    invalidKey.value = "";
+    emailIndex.value = null;
+}
+
+// Fungsi untuk menyimpan perubahan pada email yang diedit
+function saveEdit() {
+    if (validateEmail()) {
+        emails.value.mail[emailIndex.value] = email.value;
+        formModal.value = false;
+        errorMessage.value = Object.keys(errorMessage.value || {})
+            .filter((key) => !key.startsWith(`mail.${emailIndex.value}.`))
+            .reduce((acc, key) => {
+                acc[key] = errorMessage.value[key];
+                return acc;
+            }, {});
+        invalidKey.value = "";
+        detailErrors.value = {};
+    }
+}
+
+// Fungsi untuk menghapus email dari daftar
+function removeEmail(index) {
+    emails.value.mail.splice(index, 1);
+}
+
+// Fungsi untuk menambahkan lampiran
+function addAttachment() {
+    email.value.attachment.push("");
+}
+
+// Fungsi untuk menghapus lampiran
+function removeAttachment(index) {
+    email.value.attachment.splice(index, 1);
+}
+
+// Fungsi untuk validasi sebelum mengirim email
+function validateBeforeSubmit() {
+    if (!emails.value.secret) {
+        invalidKey.value = "Secret key wajib diisi";
+        return false;
+    }
+    if (emails.value.mail.length === 0) {
+        invalidKey.value = "Tambahkan minimal satu email";
+        return false;
+    }
+    return true;
+}
+</script>
