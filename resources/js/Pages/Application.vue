@@ -1,274 +1,3 @@
-<script setup>
-// Impor modul dan komponen yang diperlukan
-import axios from "axios";
-import { ref, watch, Suspense } from "vue";
-import Layout from "./Layout.vue";
-import Table from "../components/TableApp.vue";
-import Search from "../components/Search.vue";
-import TablePagination from "../components/TablePagination.vue";
-import NotificationToast from "../components/NotificationToast.vue";
-import { Head, useForm, usePage } from "@inertiajs/vue3";
-import { useFetch, onClickOutside, useStorage } from "@vueuse/core";
-
-// Mendefinisikan URL dasar untuk API
-const baseUrl = import.meta.env.VITE_APP_URL;
-
-// Menyimpan urutan dan arah urutan di local storage
-const orderBy = useStorage("orderBy", "created_at");
-const orderDirection = useStorage("orderDirection", "desc");
-
-// Mendefinisikan URL untuk permintaan data aplikasi
-const url = ref(
-    `${baseUrl}/api/applications?orderBy=${orderBy.value}&orderDirection=${orderDirection.value}`
-);
-
-// Mendefinisikan variabel reaktif untuk menyimpan data aplikasi
-const applications = ref({ data: [] });
-
-// Variabel untuk pencarian, halaman, dan checkbox yang dipilih
-const search = ref("");
-const checked = ref([]);
-const page = ref(1);
-const selectedIdsCount = ref(0);
-
-// Variabel untuk dropdown urutan dan modal
-const orderDropdown = ref(false);
-const btnOrder = ref(null);
-const modalOrder = ref(null);
-const deleteModal = ref(null);
-const showDeleteModal = ref(false);
-
-// Variabel untuk modal tambah aplikasi
-const addModal = ref(null);
-const showAddModal = ref(false);
-const appName = ref("");
-const appDescription = ref("");
-const appPicName = ref("");
-const validationErrors = ref({});
-
-// Mengambil data dari API
-const { isFetching, error, data } = useFetch(url, { refetch: true })
-    .get()
-    .json();
-
-// State untuk notifikasi
-const notification = ref({
-    show: false,
-    type: "",
-    message: "",
-    description: "",
-});
-
-// Mengawasi perubahan data dan memperbarui variabel applications
-watch(data, (newData) => {
-    if (newData) {
-        applications.value = newData.data.applications;
-    }
-});
-
-// Fungsi untuk menangani perubahan halaman
-const handlePageChange = (page) => {
-    if (page === applications.value.current_page) {
-        return;
-    }
-    url.value = `${baseUrl}/api/applications?page=${page}&search=${search.value}&orderBy=${orderBy.value}&orderDirection=${orderDirection.value}`;
-    applications.value = { data: [] };
-};
-
-// Fungsi untuk menangani pencarian
-const handleSearch = (query) => {
-    if (query === search.value) {
-        return;
-    }
-    url.value = `${baseUrl}/api/applications?search=${query}&page=1&orderBy=${orderBy.value}&orderDirection=${orderDirection.value}&filterBy=name,pic_name`;
-    search.value = query;
-    applications.value = { data: [] };
-};
-
-// Fungsi untuk mengatur urutan data
-function order(newOrderBy, newOrderDirection) {
-    if (
-        orderBy.value === newOrderBy &&
-        orderDirection.value === newOrderDirection
-    ) {
-        return;
-    }
-    orderBy.value = newOrderBy;
-    orderDirection.value = newOrderDirection;
-    url.value = `${baseUrl}/api/applications?page=${page}&search=${search.value}&orderBy=${newOrderBy}&orderDirection=${newOrderDirection}`;
-    applications.value = { data: [] };
-}
-
-// Menutup dropdown urutan saat klik di luar modal
-onClickOutside(modalOrder, (event) => {
-    if (event.target !== btnOrder.value) {
-        orderDropdown.value = false;
-    }
-});
-
-// Menutup modal hapus saat klik di luar modal
-onClickOutside(deleteModal, (event) => {
-    showDeleteModal.value = false;
-});
-
-// Header tabel
-const thead = ref([
-    "",
-    "No",
-    "Nama Aplikasi",
-    "Nama PIC",
-    "Dibuat Pada",
-    "Status",
-    "Aksi",
-]);
-
-// Inisialisasi form untuk operasi hapus
-const pageInertia = usePage();
-const form = useForm({
-    ids: checked.value,
-    _token: pageInertia.props.csrf_token,
-});
-
-// Fungsi untuk menghapus aplikasi banyak
-function deleteApp() {
-    fetch("/api/applications/delete", {
-        method: "DELETE",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRF-TOKEN": pageInertia.props.csrf_token,
-        },
-        body: JSON.stringify({ ids: form.ids }),
-    })
-        .then((response) => response.json())
-        .then((data) => {
-            if (data.success) {
-                checked.value = [];
-                form.ids = [];
-                showDeleteModal.value = false;
-                refreshData();
-                notification.value = {
-                    show: true,
-                    type: "success",
-                    message: "Berhasil!",
-                    description: data.message,
-                };
-            } else {
-                notification.value = {
-                    show: true,
-                    type: "danger",
-                    message: "Gagal!",
-                    description: data.message || "Terjadi kesalahan.",
-                };
-            }
-        })
-        .catch((error) => {
-            notification.value = {
-                show: true,
-                type: "danger",
-                message: "Gagal!",
-                description: error.message || "Terjadi kesalahan.",
-            };
-        });
-}
-
-// Fungsi untuk menyegarkan data aplikasi
-function refreshData() {
-    const { data } = useFetch(
-        `${baseUrl}/api/applications?orderBy=${orderBy.value}&orderDirection=${orderDirection.value}`,
-        { refetch: true }
-    )
-        .get()
-        .json();
-    watch(data, (newData) => {
-        if (newData) {
-            applications.value = newData.data.applications;
-        } else {
-            notification.value = {
-                show: true,
-                type: "danger",
-                message: "Gagal Memuat Data!",
-                description: "Terjadi kesalahan saat menyegarkan data.",
-            };
-        }
-    });
-}
-
-//Fungsi untuk checkbox
-function handleCheckbox(selectedIds) {
-    form.ids = selectedIds;
-}
-
-// Fungsi untuk menangani perubahan checkbox
-const handleDeleteCheckbox = () => {
-    if (form.ids.length > 0) {
-        selectedIdsCount.value = form.ids.length;
-        showDeleteModal.value = true;
-    } else {
-        showNotification("error", "Tidak ada data yang dipilih!");
-    }
-};
-
-// Inisialisasi form untuk operasi tambah
-const Addform = useForm({
-    name: appName.value,
-    description: appDescription.value,
-    pic_name: appPicName.value,
-    _token: pageInertia.props.csrf_token,
-});
-
-// Mengawasi perubahan pada variabel appName dan memperbarui form
-watch(appName, (newAppName) => {
-    Addform.name = newAppName;
-});
-
-// Mengawasi perubahan pada variabel appDescription dan memperbarui form
-watch(appDescription, (newAppDescription) => {
-    Addform.description = newAppDescription;
-});
-
-// Mengawasi perubahan pada variabel appPicName dan memperbarui form
-watch(appPicName, (newAppPicName) => {
-    Addform.pic_name = newAppPicName;
-});
-
-// Fungsi untuk menambah aplikasi baru
-const addApplication = async (event) => {
-    event.preventDefault();
-    validationErrors.value = {};
-    try {
-        const response = await axios.post("/application", {
-            name: appName.value,
-            description: appDescription.value,
-            pic_name: appPicName.value,
-            _token: pageInertia.props.csrf_token,
-        });
-        appName.value = "";
-        appDescription.value = "";
-        appPicName.value = "";
-        showAddModal.value = false;
-        refreshData();
-        notification.value = {
-            show: true,
-            type: "success",
-            message: "Berhasil!",
-            description: response.data.message,
-        };
-    } catch (error) {
-        if (error.response?.status === 422) {
-            validationErrors.value = error.response.data.errors;
-        } else {
-            notification.value = {
-                show: true,
-                type: "danger",
-                message: "Gagal!",
-                description:
-                    error.response?.data?.message || "Terjadi kesalahan.",
-            };
-        }
-    }
-};
-</script>
-
 <template>
     <Head>
         <title>Manajemen aplikasi</title>
@@ -723,3 +452,274 @@ const addApplication = async (event) => {
         </div>
     </div>
 </template>
+
+<script setup>
+// Impor modul dan komponen yang diperlukan
+import axios from "axios";
+import { ref, watch, Suspense } from "vue";
+import Layout from "./Layout.vue";
+import Table from "../components/TableApp.vue";
+import Search from "../components/Search.vue";
+import TablePagination from "../components/TablePagination.vue";
+import NotificationToast from "../components/NotificationToast.vue";
+import { Head, useForm, usePage } from "@inertiajs/vue3";
+import { useFetch, onClickOutside, useStorage } from "@vueuse/core";
+
+// Mendefinisikan URL dasar untuk API
+const baseUrl = import.meta.env.VITE_APP_URL;
+
+// Menyimpan urutan dan arah urutan di local storage
+const orderBy = useStorage("orderBy", "created_at");
+const orderDirection = useStorage("orderDirection", "desc");
+
+// Mendefinisikan URL untuk permintaan data aplikasi
+const url = ref(
+    `${baseUrl}/api/applications?orderBy=${orderBy.value}&orderDirection=${orderDirection.value}`
+);
+
+// Mendefinisikan variabel reaktif untuk menyimpan data aplikasi
+const applications = ref({ data: [] });
+
+// Variabel untuk pencarian, halaman, dan checkbox yang dipilih
+const search = ref("");
+const checked = ref([]);
+const page = ref(1);
+const selectedIdsCount = ref(0);
+
+// Variabel untuk dropdown urutan dan modal
+const orderDropdown = ref(false);
+const btnOrder = ref(null);
+const modalOrder = ref(null);
+const deleteModal = ref(null);
+const showDeleteModal = ref(false);
+
+// Variabel untuk modal tambah aplikasi
+const addModal = ref(null);
+const showAddModal = ref(false);
+const appName = ref("");
+const appDescription = ref("");
+const appPicName = ref("");
+const validationErrors = ref({});
+
+// Mengambil data dari API
+const { isFetching, error, data } = useFetch(url, { refetch: true })
+    .get()
+    .json();
+
+// State untuk notifikasi
+const notification = ref({
+    show: false,
+    type: "",
+    message: "",
+    description: "",
+});
+
+// Mengawasi perubahan data dan memperbarui variabel applications
+watch(data, (newData) => {
+    if (newData) {
+        applications.value = newData.data.applications;
+    }
+});
+
+// Fungsi untuk menangani perubahan halaman
+const handlePageChange = (page) => {
+    if (page === applications.value.current_page) {
+        return;
+    }
+    url.value = `${baseUrl}/api/applications?page=${page}&search=${search.value}&orderBy=${orderBy.value}&orderDirection=${orderDirection.value}`;
+    applications.value = { data: [] };
+};
+
+// Fungsi untuk menangani pencarian
+const handleSearch = (query) => {
+    if (query === search.value) {
+        return;
+    }
+    url.value = `${baseUrl}/api/applications?search=${query}&page=1&orderBy=${orderBy.value}&orderDirection=${orderDirection.value}&filterBy=name,pic_name`;
+    search.value = query;
+    applications.value = { data: [] };
+};
+
+// Fungsi untuk mengatur urutan data
+function order(newOrderBy, newOrderDirection) {
+    if (
+        orderBy.value === newOrderBy &&
+        orderDirection.value === newOrderDirection
+    ) {
+        return;
+    }
+    orderBy.value = newOrderBy;
+    orderDirection.value = newOrderDirection;
+    url.value = `${baseUrl}/api/applications?page=${page}&search=${search.value}&orderBy=${newOrderBy}&orderDirection=${newOrderDirection}`;
+    applications.value = { data: [] };
+}
+
+// Menutup dropdown urutan saat klik di luar modal
+onClickOutside(modalOrder, (event) => {
+    if (event.target !== btnOrder.value) {
+        orderDropdown.value = false;
+    }
+});
+
+// Menutup modal hapus saat klik di luar modal
+onClickOutside(deleteModal, (event) => {
+    showDeleteModal.value = false;
+});
+
+// Header tabel
+const thead = ref([
+    "",
+    "No",
+    "Nama Aplikasi",
+    "Nama PIC",
+    "Dibuat Pada",
+    "Status",
+    "Aksi",
+]);
+
+// Inisialisasi form untuk operasi hapus
+const pageInertia = usePage();
+const form = useForm({
+    ids: checked.value,
+    _token: pageInertia.props.csrf_token,
+});
+
+// Fungsi untuk menghapus aplikasi banyak
+function deleteApp() {
+    fetch("/api/applications/delete", {
+        method: "DELETE",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-TOKEN": pageInertia.props.csrf_token,
+        },
+        body: JSON.stringify({ ids: form.ids }),
+    })
+        .then((response) => response.json())
+        .then((data) => {
+            if (data.success) {
+                checked.value = [];
+                form.ids = [];
+                showDeleteModal.value = false;
+                refreshData();
+                notification.value = {
+                    show: true,
+                    type: "success",
+                    message: "Berhasil!",
+                    description: data.message,
+                };
+            } else {
+                notification.value = {
+                    show: true,
+                    type: "danger",
+                    message: "Gagal!",
+                    description: data.message || "Terjadi kesalahan.",
+                };
+            }
+        })
+        .catch((error) => {
+            notification.value = {
+                show: true,
+                type: "danger",
+                message: "Gagal!",
+                description: error.message || "Terjadi kesalahan.",
+            };
+        });
+}
+
+// Fungsi untuk menyegarkan data aplikasi
+function refreshData() {
+    const { data } = useFetch(
+        `${baseUrl}/api/applications?orderBy=${orderBy.value}&orderDirection=${orderDirection.value}`,
+        { refetch: true }
+    )
+        .get()
+        .json();
+    watch(data, (newData) => {
+        if (newData) {
+            applications.value = newData.data.applications;
+        } else {
+            notification.value = {
+                show: true,
+                type: "danger",
+                message: "Gagal Memuat Data!",
+                description: "Terjadi kesalahan saat menyegarkan data.",
+            };
+        }
+    });
+}
+
+//Fungsi untuk checkbox
+function handleCheckbox(selectedIds) {
+    form.ids = selectedIds;
+}
+
+// Fungsi untuk menangani perubahan checkbox
+const handleDeleteCheckbox = () => {
+    if (form.ids.length > 0) {
+        selectedIdsCount.value = form.ids.length;
+        showDeleteModal.value = true;
+    } else {
+        showNotification("error", "Tidak ada data yang dipilih!");
+    }
+};
+
+// Inisialisasi form untuk operasi tambah
+const Addform = useForm({
+    name: appName.value,
+    description: appDescription.value,
+    pic_name: appPicName.value,
+    _token: pageInertia.props.csrf_token,
+});
+
+// Mengawasi perubahan pada variabel appName dan memperbarui form
+watch(appName, (newAppName) => {
+    Addform.name = newAppName;
+});
+
+// Mengawasi perubahan pada variabel appDescription dan memperbarui form
+watch(appDescription, (newAppDescription) => {
+    Addform.description = newAppDescription;
+});
+
+// Mengawasi perubahan pada variabel appPicName dan memperbarui form
+watch(appPicName, (newAppPicName) => {
+    Addform.pic_name = newAppPicName;
+});
+
+// Fungsi untuk menambah aplikasi baru
+const addApplication = async (event) => {
+    event.preventDefault();
+    validationErrors.value = {};
+    try {
+        const response = await axios.post("/application", {
+            name: appName.value,
+            description: appDescription.value,
+            pic_name: appPicName.value,
+            _token: pageInertia.props.csrf_token,
+        });
+        appName.value = "";
+        appDescription.value = "";
+        appPicName.value = "";
+        showAddModal.value = false;
+        refreshData();
+        notification.value = {
+            show: true,
+            type: "success",
+            message: "Berhasil!",
+            description: response.data.message,
+        };
+    } catch (error) {
+        if (error.response?.status === 422) {
+            validationErrors.value = error.response.data.errors;
+        } else {
+            notification.value = {
+                show: true,
+                type: "danger",
+                message: "Gagal!",
+                description:
+                    error.response?.data?.message || "Terjadi kesalahan.",
+            };
+        }
+    }
+};
+</script>

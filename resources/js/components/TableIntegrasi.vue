@@ -93,9 +93,11 @@
                 <td class="px-6 py-4">
                     <div
                         :class="
-                            item.status == 'success'
+                            item.status &&
+                            item.status.toLowerCase() === 'success'
                                 ? 'bg-green-200 text-green-900'
-                                : item.status == 'pending'
+                                : item.status &&
+                                  item.status.toLowerCase() === 'pending'
                                 ? 'bg-orange-200 text-orange-800'
                                 : 'bg-red-200 text-red-900'
                         "

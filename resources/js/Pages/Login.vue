@@ -1,48 +1,3 @@
-<script setup>
-// Mengimpor komponen dan fungsi dari Inertia.js dan Vue
-import { Head, useForm } from "@inertiajs/vue3";
-import { router, usePage } from "@inertiajs/vue3";
-import { ref } from "vue";
-
-// Mendapatkan data halaman saat ini menggunakan `usePage`
-const page = usePage();
-
-// Variabel reaktif untuk mengontrol visibilitas password
-const showPassword = ref(false);
-
-// Membuat form menggunakan `useForm` dengan data awal
-const form = useForm({
-    email: "",
-    password: "",
-    remember: false,
-    _token: page.props.csrf_token,
-});
-
-// Fungsi untuk mengirimkan form ke endpoint `/login`
-function submit() {
-    form.post("/login", {
-        onSuccess: () => {
-            if (form.remember) {
-                // Simpan email dan password ke localStorage
-                localStorage.setItem("remember_email", form.email);
-                localStorage.setItem("remember_password", form.password);
-            } else {
-                // Hapus email dan password dari localStorage
-                localStorage.removeItem("remember_email");
-                localStorage.removeItem("remember_password");
-            }
-        },
-    });
-}
-
-// Saat halaman dimuat, isi form dengan data dari localStorage jika ada
-if (localStorage.getItem("remember_email")) {
-    form.email = localStorage.getItem("remember_email");
-    form.password = localStorage.getItem("remember_password");
-    form.remember = true;
-}
-</script>
-
 <template>
     <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
         <Head>
@@ -348,3 +303,48 @@ if (localStorage.getItem("remember_email")) {
         </div>
     </div>
 </template>
+
+<script setup>
+// Mengimpor komponen dan fungsi dari Inertia.js dan Vue
+import { Head, useForm } from "@inertiajs/vue3";
+import { router, usePage } from "@inertiajs/vue3";
+import { ref } from "vue";
+
+// Mendapatkan data halaman saat ini menggunakan `usePage`
+const page = usePage();
+
+// Variabel reaktif untuk mengontrol visibilitas password
+const showPassword = ref(false);
+
+// Membuat form menggunakan `useForm` dengan data awal
+const form = useForm({
+    email: "",
+    password: "",
+    remember: false,
+    _token: page.props.csrf_token,
+});
+
+// Fungsi untuk mengirimkan form ke endpoint `/login`
+function submit() {
+    form.post("/login", {
+        onSuccess: () => {
+            if (form.remember) {
+                // Simpan email dan password ke localStorage
+                localStorage.setItem("remember_email", form.email);
+                localStorage.setItem("remember_password", form.password);
+            } else {
+                // Hapus email dan password dari localStorage
+                localStorage.removeItem("remember_email");
+                localStorage.removeItem("remember_password");
+            }
+        },
+    });
+}
+
+// Saat halaman dimuat, isi form dengan data dari localStorage jika ada
+if (localStorage.getItem("remember_email")) {
+    form.email = localStorage.getItem("remember_email");
+    form.password = localStorage.getItem("remember_password");
+    form.remember = true;
+}
+</script>

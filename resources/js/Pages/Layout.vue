@@ -1,73 +1,3 @@
-<style>
-html,
-body {
-    height: 100%;
-    overflow: hidden;
-}
-
-main {
-    overflow-y: auto;
-}
-</style>
-
-<script setup>
-import { ref, computed } from "vue";
-import { usePage, useForm } from "@inertiajs/vue3";
-
-// State untuk menampilkan atau menyembunyikan menu dropdown admin
-const showAdminMenu = ref(false);
-
-// State untuk menampilkan atau menyembunyikan sidebar
-const isSidebarOpen = ref(true);
-
-// Mengambil data halaman dan pengguna dari Inertia.js
-const page = usePage();
-const user = page.props.auth.user;
-
-// Form untuk logout menggunakan Inertia.js
-const form = useForm({
-    _token: page.props.csrf_token,
-});
-
-// Fungsi untuk mengirimkan form logout
-function submit() {
-    form.post("/logout");
-}
-
-// Menghitung path URL saat ini
-const currentPath = computed(() => {
-    return window.location.pathname;
-});
-
-// Menghitung judul halaman berdasarkan path URL
-const pageTitle = computed(() => {
-    switch (currentPath.value) {
-        case "/dashboard":
-            return "Dashboard";
-        case "/integrasi":
-            return "Manajemen Email";
-        case "/application":
-            return "Manajemen Aplikasi";
-        case "/approve":
-            return "Approve Aplikasi";
-        case "/profile":
-            return "Profil";
-        default:
-            return "Dashboard";
-    }
-});
-
-// Fungsi untuk toggle (menampilkan/menyembunyikan) menu dropdown admin
-const toggleAdminMenu = () => {
-    showAdminMenu.value = !showAdminMenu.value;
-};
-
-// Fungsi untuk toggle (menampilkan/menyembunyikan) sidebar
-const toggleSidebar = () => {
-    isSidebarOpen.value = !isSidebarOpen.value;
-};
-</script>
-
 <template>
     <div class="flex h-screen bg-gray-100 overflow-hidden">
         <!-- Sidebar -->
@@ -599,3 +529,73 @@ const toggleSidebar = () => {
         </div>
     </div>
 </template>
+
+<script setup>
+import { ref, computed } from "vue";
+import { usePage, useForm } from "@inertiajs/vue3";
+
+// State untuk menampilkan atau menyembunyikan menu dropdown admin
+const showAdminMenu = ref(false);
+
+// State untuk menampilkan atau menyembunyikan sidebar
+const isSidebarOpen = ref(true);
+
+// Mengambil data halaman dan pengguna dari Inertia.js
+const page = usePage();
+const user = page.props.auth.user;
+
+// Form untuk logout menggunakan Inertia.js
+const form = useForm({
+    _token: page.props.csrf_token,
+});
+
+// Fungsi untuk mengirimkan form logout
+function submit() {
+    form.post("/logout");
+}
+
+// Menghitung path URL saat ini
+const currentPath = computed(() => {
+    return window.location.pathname;
+});
+
+// Menghitung judul halaman berdasarkan path URL
+const pageTitle = computed(() => {
+    switch (currentPath.value) {
+        case "/dashboard":
+            return "Dashboard";
+        case "/integrasi":
+            return "Manajemen Email";
+        case "/application":
+            return "Manajemen Aplikasi";
+        case "/approve":
+            return "Approve Aplikasi";
+        case "/profile":
+            return "Profil";
+        default:
+            return "Dashboard";
+    }
+});
+
+// Fungsi untuk toggle (menampilkan/menyembunyikan) menu dropdown admin
+const toggleAdminMenu = () => {
+    showAdminMenu.value = !showAdminMenu.value;
+};
+
+// Fungsi untuk toggle (menampilkan/menyembunyikan) sidebar
+const toggleSidebar = () => {
+    isSidebarOpen.value = !isSidebarOpen.value;
+};
+</script>
+
+<style>
+html,
+body {
+    height: 100%;
+    overflow: hidden;
+}
+
+main {
+    overflow-y: auto;
+}
+</style>

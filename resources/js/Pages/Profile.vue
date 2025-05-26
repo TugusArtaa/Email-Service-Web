@@ -1,83 +1,3 @@
-<script setup>
-// Mengimpor fungsi dan komponen yang diperlukan
-import { Head } from "@inertiajs/vue3";
-import { reactive } from "vue";
-import { useForm, usePage } from "@inertiajs/vue3";
-import Layout from "./Layout.vue";
-import NotificationToast from "../Components/NotificationToast.vue";
-
-// Mendapatkan data pengguna dari properti halaman
-const page = usePage();
-const user = page.props.auth.user;
-
-// State untuk notifikasi
-const notification = reactive({
-    show: false,
-    type: "",
-    message: "",
-    timeout: null,
-});
-
-// Forms for profile and password updates
-const form = useForm({
-    name: user.name,
-    email: user.email,
-});
-
-// Form untuk memperbarui profil pengguna
-const passwordForm = useForm({
-    current_password: "",
-    new_password: "",
-    new_password_confirmation: "",
-});
-
-// Form untuk memperbarui password pengguna
-const updateProfile = () => {
-    form.put("/profile", {
-        preserveScroll: true,
-        onSuccess: (data) => {
-            notification.show = true;
-            notification.type = "success";
-            notification.message = "Berhasil!";
-            notification.description = "Profil berhasil diperbarui.";
-        },
-        onError: (errors) => {
-            notification.show = true;
-            notification.type = "danger";
-            notification.message = "Gagal!";
-            notification.description =
-                errors.name || errors.email || "Terjadi kesalahan.";
-        },
-    });
-};
-
-// Fungsi untuk memperbarui password pengguna
-const updatePassword = () => {
-    passwordForm.put("/profile/password", {
-        preserveScroll: true,
-        onSuccess: (data) => {
-            passwordForm.reset();
-            notification.show = true;
-            notification.type = "success";
-            notification.message = "Berhasil!";
-            notification.description = "Password berhasil diperbarui.";
-        },
-        onError: (errors) => {
-            notification.show = true;
-            notification.type = "danger";
-            notification.message = "Gagal!";
-            notification.description =
-                errors.current_password ||
-                errors.new_password ||
-                "Terjadi kesalahan.";
-        },
-    });
-};
-
-// State untuk mengelola tab aktif (e.g., "profile" atau "security")
-const activeTab = reactive({ current: "profile" });
-</script>
-
 <template>
     <Head><title>Profile</title></Head>
     <Layout>
@@ -509,3 +429,83 @@ const activeTab = reactive({ current: "profile" });
         </div>
     </Layout>
 </template>
+
+<script setup>
+// Mengimpor fungsi dan komponen yang diperlukan
+import { Head } from "@inertiajs/vue3";
+import { reactive } from "vue";
+import { useForm, usePage } from "@inertiajs/vue3";
+import Layout from "./Layout.vue";
+import NotificationToast from "../Components/NotificationToast.vue";
+
+// Mendapatkan data pengguna dari properti halaman
+const page = usePage();
+const user = page.props.auth.user;
+
+// State untuk notifikasi
+const notification = reactive({
+    show: false,
+    type: "",
+    message: "",
+    timeout: null,
+});
+
+// Forms for profile and password updates
+const form = useForm({
+    name: user.name,
+    email: user.email,
+});
+
+// Form untuk memperbarui profil pengguna
+const passwordForm = useForm({
+    current_password: "",
+    new_password: "",
+    new_password_confirmation: "",
+});
+
+// Form untuk memperbarui password pengguna
+const updateProfile = () => {
+    form.put("/profile", {
+        preserveScroll: true,
+        onSuccess: (data) => {
+            notification.show = true;
+            notification.type = "success";
+            notification.message = "Berhasil!";
+            notification.description = "Profil berhasil diperbarui.";
+        },
+        onError: (errors) => {
+            notification.show = true;
+            notification.type = "danger";
+            notification.message = "Gagal!";
+            notification.description =
+                errors.name || errors.email || "Terjadi kesalahan.";
+        },
+    });
+};
+
+// Fungsi untuk memperbarui password pengguna
+const updatePassword = () => {
+    passwordForm.put("/profile/password", {
+        preserveScroll: true,
+        onSuccess: (data) => {
+            passwordForm.reset();
+            notification.show = true;
+            notification.type = "success";
+            notification.message = "Berhasil!";
+            notification.description = "Password berhasil diperbarui.";
+        },
+        onError: (errors) => {
+            notification.show = true;
+            notification.type = "danger";
+            notification.message = "Gagal!";
+            notification.description =
+                errors.current_password ||
+                errors.new_password ||
+                "Terjadi kesalahan.";
+        },
+    });
+};
+
+// State untuk mengelola tab aktif (e.g., "profile" atau "security")
+const activeTab = reactive({ current: "profile" });
+</script>

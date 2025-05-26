@@ -1,208 +1,3 @@
-<script setup>
-// Import komponen dan library yang diperlukan
-import Layout from "./Layout.vue";
-import { ref, watch } from "vue";
-import Table from "../components/TableIntegrasi.vue";
-import Pagination from "../components/TablePagination.vue";
-import Search from "../components/Search.vue";
-import AddModal from "../components/ModalAddEmail.vue";
-import ModalImportExcel from "../components/ModalImportExcel.vue";
-import NotificationToast from "../components/NotificationToast.vue";
-import { Head, useForm, usePage } from "@inertiajs/vue3";
-import { useFetch, onClickOutside, useStorage } from "@vueuse/core";
-import axios from "axios";
-
-// State dan variabel reaktif
-const baseUrl = import.meta.env.VITE_APP_URL;
-const success = ref("");
-const error = ref("");
-const thead = ref([
-    "",
-    "Nama Aplikasi",
-    "Email Penerima",
-    "Subjek",
-    "Status",
-    "Tanggal",
-    "Aksi",
-]);
-const logs = ref([]);
-const fetchData = ref(false);
-const currentPage = ref(1);
-const search = ref("");
-const orderBy = useStorage("integrasi-orderBy", "desc");
-const date = ref("");
-const addModal = ref(false);
-const orderDropdown = ref(false);
-const modalOrder = ref(null);
-const showButtonsModal = ref(false);
-const btnOrder = ref(null);
-const addExcel = ref(false);
-const showDeleteModal = ref(false);
-const selectedIdsCount = ref(0);
-const pageInertia = usePage();
-const form = useForm({
-    ids: [],
-    _token: pageInertia.props.csrf_token,
-});
-const formDate = useForm({
-    start_date: "",
-    end_date: "",
-    _token: pageInertia.props.csrf_token,
-});
-const notification = ref({
-    show: false,
-    type: "",
-    message: "",
-    description: "",
-});
-
-// Fungsi untuk menutup modal
-function handleCloseAddModal() {
-    addModal.value = false;
-}
-function handleCloseExcelModal() {
-    addExcel.value = false;
-}
-
-// Fungsi untuk menutup dropdown jika klik di luar
-onClickOutside(modalOrder, (event) => {
-    if (event.target !== btnOrder.value) {
-        orderDropdown.value = false;
-    }
-});
-
-// Fungsi untuk menangani perubahan halaman
-const handlePageChange = (page) => {
-    if (page === logs.value.current_page) {
-        return;
-    }
-    refreshData(page);
-};
-
-// Fungsi untuk menangani pencarian
-const handleSearch = (query) => {
-    search.value = query;
-    refreshData();
-};
-
-// Fungsi untuk menangani checkbox
-const handleCheckbox = (checked) => {
-    form.ids = checked;
-};
-
-// Fungsi untuk memuat ulang data
-function refreshData(page = 1) {
-    currentPage.value = page;
-    const { data, isFetching } = useFetch(
-        `${baseUrl}/api/email-logs?orderBy=${orderBy.value}&search=${search.value}&page=${page}&date=${date.value}`,
-        { refetch: true }
-    )
-        .get()
-        .json();
-    watch(data, (newData) => {
-        if (newData) {
-            logs.value = [];
-            logs.value = newData.data.emailLogs;
-        }
-    });
-    watch(isFetching, (newIsFetching) => {
-        fetchData.value = newIsFetching;
-    });
-}
-
-// Fungsi untuk memuat ulang data tanpa loading
-function refreshDataWithoutFetchLoad() {
-    const { data } = useFetch(
-        `${baseUrl}/api/email-logs?orderBy=${orderBy.value}&search=${search.value}&page=${currentPage.value}`,
-        { refetch: true }
-    )
-        .get()
-        .json();
-    watch(data, (newData) => {
-        if (newData) {
-            logs.value = [];
-            logs.value = newData.data.emailLogs;
-        }
-    });
-}
-
-// Interval untuk memuat ulang data setiap 2 detik
-setInterval(() => {
-    refreshDataWithoutFetchLoad();
-}, 2000);
-
-// Fungsi untuk memuat ulang data secara manual
-function handleRefresh() {
-    refreshData();
-}
-
-// Fungsi untuk menghapus data yang dipilih
-function handleDeleteCheckbox() {
-    if (form.ids.length > 0) {
-        selectedIdsCount.value = form.ids.length;
-        showDeleteModal.value = true;
-    } else {
-        notification.value = {
-            show: true,
-            type: "danger",
-            message: "Gagal!",
-            description: "Tidak ada data yang dipilih!",
-        };
-    }
-}
-
-//Fungsi Delete Checkbox
-function confirmDelete() {
-    form.delete(`${baseUrl}/integrasi/delete`, {
-        onSuccess: (response) => {
-            notification.value = {
-                show: true,
-                type: "success",
-                message: "Berhasil!",
-                description: response.message || "Data berhasil dihapus!",
-            };
-            form.ids = [];
-            refreshData();
-            showDeleteModal.value = false;
-        },
-        onError: (error) => {
-            notification.value = {
-                show: true,
-                type: "danger",
-                message: "Gagal!",
-                description:
-                    error.response?.data?.message || "Gagal menghapus data!",
-            };
-        },
-    });
-}
-
-//Untuk Notification
-function handleNotification(type, message, description = "") {
-    notification.value = {
-        show: true,
-        type,
-        message,
-        description,
-    };
-}
-
-// Pantau perubahan pada error dan tampilkan notifikasi jika ada
-watch(error, (newError) => {
-    if (newError) {
-        notification.value = {
-            show: true,
-            type: "danger",
-            message: "Gagal!",
-            description: newError,
-        };
-    }
-});
-
-// Inisialisasi data saat komponen dimuat
-refreshData();
-</script>
-
 <template>
     <Head>
         <title>Manajemen Email</title>
@@ -615,3 +410,208 @@ refreshData();
         </div>
     </Layout>
 </template>
+
+<script setup>
+// Import komponen dan library yang diperlukan
+import Layout from "./Layout.vue";
+import { ref, watch } from "vue";
+import Table from "../components/TableIntegrasi.vue";
+import Pagination from "../components/TablePagination.vue";
+import Search from "../components/Search.vue";
+import AddModal from "../components/ModalAddEmail.vue";
+import ModalImportExcel from "../components/ModalImportExcel.vue";
+import NotificationToast from "../components/NotificationToast.vue";
+import { Head, useForm, usePage } from "@inertiajs/vue3";
+import { useFetch, onClickOutside, useStorage } from "@vueuse/core";
+import axios from "axios";
+
+// State dan variabel reaktif
+const baseUrl = import.meta.env.VITE_APP_URL;
+const success = ref("");
+const error = ref("");
+const thead = ref([
+    "",
+    "Nama Aplikasi",
+    "Email Penerima",
+    "Subjek",
+    "Status",
+    "Tanggal",
+    "Aksi",
+]);
+const logs = ref([]);
+const fetchData = ref(false);
+const currentPage = ref(1);
+const search = ref("");
+const orderBy = useStorage("integrasi-orderBy", "desc");
+const date = ref("");
+const addModal = ref(false);
+const orderDropdown = ref(false);
+const modalOrder = ref(null);
+const showButtonsModal = ref(false);
+const btnOrder = ref(null);
+const addExcel = ref(false);
+const showDeleteModal = ref(false);
+const selectedIdsCount = ref(0);
+const pageInertia = usePage();
+const form = useForm({
+    ids: [],
+    _token: pageInertia.props.csrf_token,
+});
+const formDate = useForm({
+    start_date: "",
+    end_date: "",
+    _token: pageInertia.props.csrf_token,
+});
+const notification = ref({
+    show: false,
+    type: "",
+    message: "",
+    description: "",
+});
+
+// Fungsi untuk menutup modal
+function handleCloseAddModal() {
+    addModal.value = false;
+}
+function handleCloseExcelModal() {
+    addExcel.value = false;
+}
+
+// Fungsi untuk menutup dropdown jika klik di luar
+onClickOutside(modalOrder, (event) => {
+    if (event.target !== btnOrder.value) {
+        orderDropdown.value = false;
+    }
+});
+
+// Fungsi untuk menangani perubahan halaman
+const handlePageChange = (page) => {
+    if (page === logs.value.current_page) {
+        return;
+    }
+    refreshData(page);
+};
+
+// Fungsi untuk menangani pencarian
+const handleSearch = (query) => {
+    search.value = query;
+    refreshData();
+};
+
+// Fungsi untuk menangani checkbox
+const handleCheckbox = (checked) => {
+    form.ids = checked;
+};
+
+// Fungsi untuk memuat ulang data
+function refreshData(page = 1) {
+    currentPage.value = page;
+    const { data, isFetching } = useFetch(
+        `${baseUrl}/api/email-logs?orderBy=${orderBy.value}&search=${search.value}&page=${page}&date=${date.value}`,
+        { refetch: true }
+    )
+        .get()
+        .json();
+    watch(data, (newData) => {
+        if (newData) {
+            logs.value = [];
+            logs.value = newData.data.emailLogs;
+        }
+    });
+    watch(isFetching, (newIsFetching) => {
+        fetchData.value = newIsFetching;
+    });
+}
+
+// Fungsi untuk memuat ulang data tanpa loading
+function refreshDataWithoutFetchLoad() {
+    const { data } = useFetch(
+        `${baseUrl}/api/email-logs?orderBy=${orderBy.value}&search=${search.value}&page=${currentPage.value}`,
+        { refetch: true }
+    )
+        .get()
+        .json();
+    watch(data, (newData) => {
+        if (newData) {
+            logs.value = [];
+            logs.value = newData.data.emailLogs;
+        }
+    });
+}
+
+// Interval untuk memuat ulang data setiap 2 detik
+setInterval(() => {
+    refreshDataWithoutFetchLoad();
+}, 2000);
+
+// Fungsi untuk memuat ulang data secara manual
+function handleRefresh() {
+    refreshData();
+}
+
+// Fungsi untuk menghapus data yang dipilih
+function handleDeleteCheckbox() {
+    if (form.ids.length > 0) {
+        selectedIdsCount.value = form.ids.length;
+        showDeleteModal.value = true;
+    } else {
+        notification.value = {
+            show: true,
+            type: "danger",
+            message: "Gagal!",
+            description: "Tidak ada data yang dipilih!",
+        };
+    }
+}
+
+//Fungsi Delete Checkbox
+function confirmDelete() {
+    form.delete(`${baseUrl}/integrasi/delete`, {
+        onSuccess: (response) => {
+            notification.value = {
+                show: true,
+                type: "success",
+                message: "Berhasil!",
+                description: response.message || "Data berhasil dihapus!",
+            };
+            form.ids = [];
+            refreshData();
+            showDeleteModal.value = false;
+        },
+        onError: (error) => {
+            notification.value = {
+                show: true,
+                type: "danger",
+                message: "Gagal!",
+                description:
+                    error.response?.data?.message || "Gagal menghapus data!",
+            };
+        },
+    });
+}
+
+//Untuk Notification
+function handleNotification(type, message, description = "") {
+    notification.value = {
+        show: true,
+        type,
+        message,
+        description,
+    };
+}
+
+// Pantau perubahan pada error dan tampilkan notifikasi jika ada
+watch(error, (newError) => {
+    if (newError) {
+        notification.value = {
+            show: true,
+            type: "danger",
+            message: "Gagal!",
+            description: newError,
+        };
+    }
+});
+
+// Inisialisasi data saat komponen dimuat
+refreshData();
+</script>

@@ -1,54 +1,3 @@
-<script setup>
-import { ref, computed } from "vue";
-import Layout from "./Layout.vue";
-import Chart from "../components/Chart.vue";
-
-// Mendefinisikan props yang diterima dari parent, berupa data
-const props = defineProps({
-    data: {
-        type: Object,
-        required: true,
-    },
-});
-
-// Menghitung statistik email berdasarkan data
-const emailStats = computed(() => ({
-    sent: props.data.filter((log) => log.status === "success").length,
-    failed: props.data.filter((log) => log.status === "failed").length,
-    total: props.data.length,
-}));
-
-// Menghitung persentase keberhasilan dan kegagalan
-const successRate = computed(() =>
-    ((emailStats.value.sent / emailStats.value.total) * 100).toFixed(2)
-);
-const failureRate = computed(() =>
-    ((emailStats.value.failed / emailStats.value.total) * 100).toFixed(2)
-);
-
-// Fungsi `getColorClass` menentukan kelas warna berdasarkan jenis card (`type`).
-const getColorClass = (type) => {
-    const colors = {
-        success: {
-            bg: "bg-green-100",
-            text: "text-green-500",
-            stroke: "stroke-[#007E39]",
-        },
-        error: {
-            bg: "bg-red-100",
-            text: "text-red-500",
-            stroke: "stroke-[#A30000]",
-        },
-        default: {
-            bg: "bg-gray-100",
-            text: "text-gray-500",
-            stroke: "stroke-current",
-        },
-    };
-    return colors[type];
-};
-</script>
-
 <template>
     <head>
         <title>Email Dashboard</title>
@@ -356,3 +305,54 @@ const getColorClass = (type) => {
         </div>
     </Layout>
 </template>
+
+<script setup>
+import { ref, computed } from "vue";
+import Layout from "./Layout.vue";
+import Chart from "../components/Chart.vue";
+
+// Mendefinisikan props yang diterima dari parent, berupa data
+const props = defineProps({
+    data: {
+        type: Object,
+        required: true,
+    },
+});
+
+// Menghitung statistik email berdasarkan data
+const emailStats = computed(() => ({
+    sent: props.data.filter((log) => log.status === "success").length,
+    failed: props.data.filter((log) => log.status === "failed").length,
+    total: props.data.length,
+}));
+
+// Menghitung persentase keberhasilan dan kegagalan
+const successRate = computed(() =>
+    ((emailStats.value.sent / emailStats.value.total) * 100).toFixed(2)
+);
+const failureRate = computed(() =>
+    ((emailStats.value.failed / emailStats.value.total) * 100).toFixed(2)
+);
+
+// Fungsi `getColorClass` menentukan kelas warna berdasarkan jenis card (`type`).
+const getColorClass = (type) => {
+    const colors = {
+        success: {
+            bg: "bg-green-100",
+            text: "text-green-500",
+            stroke: "stroke-[#007E39]",
+        },
+        error: {
+            bg: "bg-red-100",
+            text: "text-red-500",
+            stroke: "stroke-[#A30000]",
+        },
+        default: {
+            bg: "bg-gray-100",
+            text: "text-gray-500",
+            stroke: "stroke-current",
+        },
+    };
+    return colors[type];
+};
+</script>
