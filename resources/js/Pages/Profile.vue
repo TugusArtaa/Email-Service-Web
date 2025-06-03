@@ -436,7 +436,7 @@ import { Head } from "@inertiajs/vue3";
 import { reactive } from "vue";
 import { useForm, usePage } from "@inertiajs/vue3";
 import Layout from "./Layout.vue";
-import NotificationToast from "../Components/NotificationToast.vue";
+import NotificationToast from "../components/NotificationToast.vue";
 
 // Mendapatkan data pengguna dari properti halaman
 const page = usePage();

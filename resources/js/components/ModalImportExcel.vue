@@ -165,33 +165,41 @@
                                 >Harap perbaiki kesalahan berikut:</span
                             >
                         </div>
-                        <ul v-if="fileError" class="ml-5 space-y-1">
-                            <li
-                                v-for="err in fileError"
-                                class="text-sm text-red-600 list-disc"
-                            >
-                                {{ err }}
-                            </li>
-                        </ul>
-                        <div v-if="formatError" class="space-y-3">
-                            <div v-for="err in formatError" class="ml-1">
-                                <p class="text-sm font-medium text-red-700">
-                                    Kesalahan excel pada nomor baris
-                                    {{ err.row }}
-                                </p>
-                                <ul class="ml-5 space-y-1">
-                                    <li
-                                        v-for="message in err.errors"
-                                        class="text-sm text-red-600 list-disc"
-                                    >
-                                        {{ message }}
-                                    </li>
-                                </ul>
+                        <!-- Scroll wrapper dengan scrollbar custom -->
+                        <div
+                            class="max-h-64 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-red-300 scrollbar-track-red-100 scrollbar-thumb-rounded transition-all duration-200"
+                            style="
+                                scrollbar-color: #f87171 #fee2e2;
+                                scrollbar-width: thin;
+                            "
+                        >
+                            <ul v-if="fileError" class="ml-5 space-y-1">
+                                <li
+                                    v-for="err in fileError"
+                                    class="text-sm text-red-600 list-disc"
+                                >
+                                    {{ err }}
+                                </li>
+                            </ul>
+                            <div v-if="formatError" class="space-y-3">
+                                <div v-for="err in formatError" class="ml-1">
+                                    <p class="text-sm font-medium text-red-700">
+                                        Kesalahan excel pada nomor baris
+                                        {{ err.row }}
+                                    </p>
+                                    <ul class="ml-5 space-y-1">
+                                        <li
+                                            v-for="message in err.errors"
+                                            class="text-sm text-red-600 list-disc"
+                                        >
+                                            {{ message }}
+                                        </li>
+                                    </ul>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Submit Button -->
                     <!-- Submit Button -->
                     <div class="flex justify-end mt-6">
                         <button
@@ -284,6 +292,7 @@ function cancelFileUpload() {
         fileInput.value.value = null;
     }
     fileError.value = null;
+    formatError.value = null;
 }
 
 // Fungsi untuk mengunggah file ke server
