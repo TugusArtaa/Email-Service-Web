@@ -28,18 +28,17 @@ class RabbitMQService
     public function initializeEmailQueue()
     {
         try {
-            // Declare the exchange as 'direct' for routing emails
+            // Deklarasi exchange dengan tipe 'direct'
             $this->channel->exchange_declare('email_exchange', 'direct', false, true, false);
 
-            // Declare the queue with priority support (dynamic priority from 1 to 20)
+            // Deklarasi queue dengan nama 'email_queue' dan mendukung prioritas
             $this->channel->queue_declare('email_queue', false, true, false, false, false, [
-                'x-max-priority' => ['I', 3] // Priority range from 1 to 20
+                'x-max-priority' => ['I', 3] // Jangkauan prioritas 0-3
             ]);
 
-            // Bind the queue to the exchange with the routing key 'email'
+            // Bind queue ke exchange dengan routing key 'email'
             $this->channel->queue_bind('email_queue', 'email_exchange', 'email');
         } catch (\Exception $e) {
-            dd($e);
             return ['error' => 'Koneksi error: ' . $e->getMessage()];
         }
     }
@@ -52,7 +51,7 @@ class RabbitMQService
             $callback($msg);  // Process the email after acknowledgment
         });
     }
-    
+
 
     //Sebagai mekanisme agar kode menunggu jika ada message yang masuk di queue
     public function wait()
@@ -65,7 +64,11 @@ class RabbitMQService
     //Untuk menutup koneksi ke RabbitMQ
     public function close()
     {
-        $this->channel->close();
-        $this->connection->close();
+        if ($this->channel) {
+            $this->channel->close();
+        }
+        if ($this->connection) {
+            $this->connection->close();
+        }
     }
 }

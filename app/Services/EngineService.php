@@ -6,28 +6,76 @@ use Illuminate\Support\Facades\Mail;
 
 class EngineService
 {
-    // Method to send email consumed from RabbitMQ
+    // Function untuk mengonsumsi pesan email dari RabbitMQ dan mengirim email
     public function sendEmail(array $data)
     {
-        // Get content and subject from data and handle null or empty cases
-        $content = $data['content'] ?? ''; 
-        $subject = $data['subject'] ?? ''; 
+        if (empty($data['to'])) {
+            throw new \InvalidArgumentException("Field 'to' harus diisi.");
+        }
 
-        // Convert HTML to readable plain text format
-        $content = str_replace(["<br>", "<br/>", "<br />"], "\n", $content); // Convert <br> to new lines
-        $content = preg_replace('/<\/?(h[1-6]|p)>/i', "\n\n", $content);  // Convert </p> to paragraph spacing
-        $content = strip_tags($content); // Remove remaining HTML tags
-        $content = trim(preg_replace('/\n\s*\n/', "\n\n", $content)); // Remove excessive blank lines
+        $subject = $data['subject'] ?? '';
+        $rawContent = $data['content'] ?? '';
+        $content = $this->convertHtmlToPlainText($rawContent);
 
-        // Send the email as plain text
-        Mail::raw($content, function ($message) use ($data, $subject) {
-            $message->to($data['to'])->subject($subject);
-
-            if (!empty($data['attachment'])) {
-                foreach ($data['attachment'] as $attachment) {
-                    $message->attach($attachment);
+        // Download attachments terlebih dahulu
+        $tempFiles = [];
+        if (!empty($data['attachment'])) {
+            foreach ($data['attachment'] as $attachmentUrl) {
+                // Skip jika kosong
+                if ($attachmentUrl === null || $attachmentUrl === '') {
+                    continue;
+                }
+                // Validasi URL
+                if (!filter_var($attachmentUrl, FILTER_VALIDATE_URL)) {
+                    foreach ($tempFiles as $file) {
+                        @unlink($file['path']);
+                    }
+                    throw new \Exception("Attachment URL tidak valid: $attachmentUrl");
+                }
+                $tempPath = tempnam(sys_get_temp_dir(), 'mail_attach_');
+                try {
+                    $fileContents = @file_get_contents($attachmentUrl);
+                    if ($fileContents === false) {
+                        foreach ($tempFiles as $file) {
+                            @unlink($file['path']);
+                        }
+                        throw new \Exception("Gagal mengunduh attachment: $attachmentUrl");
+                    }
+                    file_put_contents($tempPath, $fileContents);
+                    $tempFiles[] = [
+                        'path' => $tempPath,
+                        'name' => basename(parse_url($attachmentUrl, PHP_URL_PATH))
+                    ];
+                } catch (\Exception $e) {
+                    foreach ($tempFiles as $file) {
+                        @unlink($file['path']);
+                    }
+                    throw new \Exception($e->getMessage());
                 }
             }
+        }
+
+        // Kirim email sebagai teks biasa
+        Mail::raw($content, function ($message) use ($data, $subject, $tempFiles) {
+            $message->to($data['to'])->subject($subject);
+
+            foreach ($tempFiles as $file) {
+                $message->attach($file['path'], ['as' => $file['name']]);
+            }
         });
+
+        // Hapus file sementara setelah email terkirim
+        foreach ($tempFiles as $file) {
+            @unlink($file['path']);
+        }
+    }
+
+    // Function untuk mengonversi HTML ke teks biasa
+    private function convertHtmlToPlainText(string $html): string
+    {
+        $text = str_replace(["<br>", "<br/>", "<br />"], "\n", $html); // Convert <br> menjadi barisan baru
+        $text = preg_replace('/<\/?(h[1-6]|p)>/i', "\n\n", $text); // Convert <h1> hingga <h6> dan <p> menjadi barisan baru
+        $text = strip_tags($text); // Hapus tag HTML lainnya
+        return trim(preg_replace('/\n\s*\n/', "\n\n", $text)); // Hapus barisan kosong berlebihan
     }
 }

@@ -29,14 +29,12 @@ Route::post('/login', [AuthenticationController::class, 'authenticate']);
 
 Route::get('/', [EmailLogController::class, 'index'])->middleware('auth')->name('dashboard');
 
-Route::prefix('integrasi')->group(function () {
+Route::prefix('integrasi')->middleware('auth')->group(function () {
     Route::get('/', function () {
         return Inertia::render('Integrasi');
     })->name('integrasi.index');
     Route::post('/send', [EmailQueueController::class, 'sendEmails']);
     Route::delete('/delete', [EmailLogController::class, 'deleteAll'])->name('application.delete');
-    Route::delete('/delete-date', [EmailLogController::class, 'bulkDelete'])->name('application.deleteDate');
-
 });
 
 Route::middleware('auth')->group(function () {
@@ -48,8 +46,6 @@ Route::middleware('auth')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::get('/application', [ApplicationController::class, 'index'])->name('application.index');
     Route::post('/application', [ApplicationController::class, 'store'])->name('application.index');
-    // Route::delete('/application/delete', [ApplicationController::class, 'delete'])->name('application.delete');
-    // Route::post('/application/{application}/regenerate-secret', [ApplicationController::class, 'regenerateSecret'])->name('application.delete');
 });
 
 Route::prefix('approve')->middleware('auth')->middleware(CheckUserLevel::class . ':supervisor')->group(function () {

@@ -8,20 +8,14 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class ApplicationService
 {
-    // Method untuk mendapatkan aplikasi dalam database
-    public function getAllApplications(): Collection
-    {
-        return Application::select('id', 'name', 'description', 'created_at')->get();
-    }
-
-    // Function untuk mendapatkan aplikasi berdasarkan ID 
+    // Function untuk mendapatkan semua aplikasi dengan paginasi 
     public function getPaginatedApplications(
         int $perPage = 10,
         string $orderBy = 'id',
         string $orderDirection = 'desc',
         string $search = ''
     ): LengthAwarePaginator {
-        return Application::select('id', 'name', 'pic_name', 'secret_key', 'created_at', 'status')
+        return Application::select('id', 'name', 'pic_name', 'created_at', 'status')
             ->where(function ($query) use ($search) {
                 $query->where('name', 'like', "%$search%")
                     ->orWhere('pic_name', 'like', "%$search%");
@@ -31,7 +25,7 @@ class ApplicationService
             ->paginate($perPage);
     }
 
-    // Function untuk mendapatkan aplikasi berdasarkan ID
+    // Function untuk mendapatkan aplikasi yang perlu disetujui (dengan paginasi)
     public function getPaginatedApprove(int $perPage = 10, string $orderBy = 'id', string $orderDirection = 'desc', string $search = ''): LengthAwarePaginator
     {
         return Application::select('id', 'name', 'pic_name', 'secret_key', 'created_at', 'status')
@@ -41,6 +35,7 @@ class ApplicationService
             ->paginate($perPage);
     }
 
+    // Function untuk membuat aplikasi baru
     public function createApplication(array $validated): Application
     {
         return Application::create([
@@ -50,15 +45,7 @@ class ApplicationService
         ]);
     }
 
-    // Function untuk mengecek apakah aplikasi sudah ada di database
-    public function checkApplicationExists(string $name): bool
-    {
-        return Application::where('name', $name)->exists();
-    }
-
-
-
-    //Untuk mengatur format response aplikasi
+    //Function untuk return format response aplikasi
     public function formatApplicationResponse(Application $application, ?string $secretKey = null): array
     {
         $response = [
@@ -72,63 +59,56 @@ class ApplicationService
             ]
         ];
 
-        if ($secretKey) {
-            $response['secret_key'] = $secretKey;
-        }
-
         return $response;
     }
 
+    // Function untuk menghapus aplikasi berdasarkan ID
     public function deleteApplications(array $ids): void
     {
         Application::whereIn('id', $ids)->delete();
     }
 
+    // Function untuk approval regenerate secret key 
     public function approveGenerateSecretKey($id)
     {
         try {
-            // Mencari aplikasi berdasarkan ID
             $application = Application::find($id);
 
             if (!$application) {
-                return response()->json([
+                return [
                     'success' => false,
-                    'message' => 'Aplikasi tidak ditemukan'
-                ], 404);
+                    'message' => 'Aplikasi tidak ditemukan',
+                    'status' => 404
+                ];
             }
 
-            // Pastikan status aplikasi ubah-secret-key atau register
             if ($application->status !== 'ubah-secret-key' && $application->status !== 'registrasi-aplikasi') {
-                return response()->json([
+                return [
                     'success' => false,
-                    'message' => 'Status aplikasi tidak valid'
-                ], 400);
+                    'message' => 'Status aplikasi tidak valid',
+                    'status' => 400
+                ];
             }
 
-            // Generate secret key baru
-            $SecretKey = Application::generateSecretKey();
-
-            // Update secret key aplikasi 
-            $application->secret_key = $SecretKey;
-            // Update status aplikasi menjadi 'enabled'
+            $secretKey = Application::generateSecretKey();
+            $application->secret_key = $secretKey;
             $application->status = 'enabled';
-
             $application->save();
 
-            // Kembalikan response sukses
-            return response()->json([
+            return [
                 'success' => true,
                 'message' => 'Approved sukses',
                 'data' => [
-                    'secret_key' => $SecretKey
-                ]
-                ], 200);
+                    'secret_key' => $secretKey
+                ],
+                'status' => 200
+            ];
         } catch (\Exception $e) {
-            // Kembalikan response error
-            return response()->json([
+            return [
                 'success' => false,
-                'message' => 'Terjadi kesalahan saat memproses permintaan.'
-            ], 500);
+                'message' => 'Terjadi kesalahan saat memproses permintaan.',
+                'status' => 500
+            ];
         }
     }
 
@@ -140,7 +120,11 @@ class ApplicationService
             $application = Application::find($id);
 
             if (!$application) {
-                return response()->json(['success' => false, 'message' => 'Aplikasi tidak ditemukan'], 404);;
+                return [
+                    'success' => false,
+                    'message' => 'Aplikasi tidak ditemukan',
+                    'status' => 404
+                ];
             }
 
             switch ($status) {
@@ -149,28 +133,38 @@ class ApplicationService
                 // Jika tidak, metode ini memperbarui status aplikasi menjadi ubah-secret-key dan menyimpan perubahan tersebut.
                 case 'ubah-secret-key':
                     if ($application->status === 'ubah-secret-key') {
-                        return response()->json(['success' => false, 'message' => 'Permintaan regenerasi secret key sudah dalam proses'], 400);
+                        return [
+                            'success' => false,
+                            'message' => 'Permintaan regenerasi secret key sudah dalam proses',
+                            'status' => 400
+                        ];
                     }
                     $application->status = 'ubah-secret-key';
                     $application->save();
 
-                    return response()->json(['success' => true, 'message' => 'Permintaan regenerasi secret key sedang diproses'], 200);
+                    return [
+                        'success' => true,
+                        'message' => 'Permintaan regenerasi secret key sedang diproses',
+                        'status' => 200
+                    ];
                 // Jika status enabled, metode ini memeriksa apakah status aplikasi saat ini adalah disabled.
                 // Jika tidak, metode ini mengembalikan respons kesalahan yang menunjukkan status tidak valid untuk perubahan.
                 // Jika ya, metode ini memperbarui status aplikasi menjadi enabled 
                 case 'enabled':
                     if ($application->status !== 'disabled') {
-                        return response()->json([
+                        return [
                             'success' => false,
-                            'message' => 'Status perubahan tidak valid'
-                        ], 400);
+                            'message' => 'Status perubahan tidak valid',
+                            'status' => 400
+                        ];
                     }
                     $application->status = 'enabled';
                     $application->save();
-                    return response()->json([
+                    return [
                         'success' => true,
-                        'message' => 'Status aplikasi diubah menjadi enabled'
-                    ], 200);
+                        'message' => 'Status aplikasi diubah menjadi enabled',
+                        'status' => 200
+                    ];
                 // Jika status adalah disabled, metode ini memeriksa apakah status aplikasi saat ini adalah enabled atau ubah-secret-key.
                 // Jika status saat ini adalah enabled, metode ini memperbarui status menjadi disabled 
                 // Jika status saat ini adalah ubah-secret-key, metode ini memperbarui status menjadi disabled yang menunjukkan bahwa permintaan regenerasi telah ditolak.
@@ -178,15 +172,17 @@ class ApplicationService
                     if ($application->status === 'enabled') {
                         $application->status = 'disabled';
                         $application->save();
-                        return response()->json([
+                        return [
                             'success' => true,
-                            'message' => 'Status aplikasi diubah menjadi disabled.'
-                        ], 200);
+                            'message' => 'Status aplikasi diubah menjadi disabled.',
+                            'status' => 200
+                        ];
                     } else {
-                        return response()->json([
+                        return [
                             'success' => false,
-                            'message' => 'Status perubahan tidak valid'
-                        ], 400);
+                            'message' => 'Status perubahan tidak valid',
+                            'status' => 400
+                        ];
                     }
                 // Jika status adalah rejected, memeriksa apakah status aplikasi saat ini adalah ubah-secret-key dan apakah secret_key adalah null.
                 // Jika salah satu kondisi tidak terpenuhi, metode ini mengembalikan respons kesalahan yang menunjukkan status tidak valid untuk penolakan.
@@ -195,33 +191,38 @@ class ApplicationService
                     if ($application->status === 'ubah-secret-key' && $application->secret_key !== null) {
                         $application->status = 'enabled';
                         $application->save();
-                        return response()->json([
+                        return [
                             'success' => true,
-                            'message' => 'Permintaan ditolak'
-                        ], 200);
+                            'message' => 'Permintaan ditolak',
+                            'status' => 200
+                        ];
                     }
                     if ($application->status !== 'registrasi-aplikasi' || $application->secret_key !== null) {
-                        return response()->json([
+                        return [
                             'success' => false,
-                            'message' => 'Status tidak valid'
-                        ], 400);
+                            'message' => 'Status tidak valid',
+                            'status' => 400
+                        ];
                     }
                     $this->deleteApplications([$id]);
-                    return response()->json([
+                    return [
                         'success' => true,
-                        'message' => 'Aplikasi telah ditolak'
-                    ], 200);
+                        'message' => 'Aplikasi telah ditolak',
+                        'status' => 200
+                    ];
                 default:
-                    return response()->json([
+                    return [
                         'success' => false,
-                        'message' => 'Status tidak valid'
-                    ], 400);
+                        'message' => 'Status tidak valid',
+                        'status' => 400
+                    ];
             }
         } catch (\Exception $e) {
-            return response()->json([
+            return [
                 'success' => false,
-                'message' => 'Terjadi kesalahan saat memproses permintaan.'
-            ], 500);
+                'message' => 'Terjadi kesalahan saat memproses permintaan.',
+                'status' => 500
+            ];
         }
     }
 }

@@ -10,17 +10,14 @@ use Illuminate\Validation\ValidationException;
 
 class ProfileController extends Controller
 {
-    /**
-     * Display the profile page.
-     */
+
+    // Function untuk menampilkan halaman profil pengguna
     public function edit()
     {
         return Inertia::render('Profile');
     }
 
-    /**
-     * Update the user's profile information.
-     */
+    // Function untuk mengupdate profil pengguna
     public function update(Request $request)
     {
         $user = $request->user();
@@ -28,29 +25,38 @@ class ProfileController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->getKey()],
+        ], [
+            'name.required' => 'Nama lengkap wajib diisi.',
+            'email.required' => 'Alamat email wajib diisi.',
+            'email.email' => 'Alamat email tidak valid.',
+            'email.unique' => 'Alamat email sudah digunakan.',
         ]);
 
         $user->update($validated);
 
-        return back()->with('success', 'Profile updated successfully.');
+        return back()->with('success', 'Profil berhasil diupdate.');
     }
 
-    /**
-     * Update the user's password.
-     */
+    // Function untuk mengupdate password pengguna
     public function updatePassword(Request $request)
     {
         $validated = $request->validate([
             'current_password' => ['required', 'string'],
             'new_password' => ['required', 'confirmed', Password::defaults()],
             'new_password_confirmation' => ['required'],
+        ], [
+            'current_password.required' => 'Password saat ini wajib diisi.',
+            'new_password.required' => 'Password baru wajib diisi.',
+            'new_password.min' => 'Password baru minimal harus :min karakter.',
+            'new_password.confirmed' => 'Konfirmasi password baru tidak cocok.',
+            'new_password_confirmation.required' => 'Konfirmasi password baru wajib diisi.',
         ]);
 
         $user = $request->user();
 
         if (!Hash::check($validated['current_password'], $user->password)) {
             throw ValidationException::withMessages([
-                'current_password' => 'The provided password does not match your current password.',
+                'current_password' => 'Password yang diisi tidak sama dengan password saat ini.',
             ]);
         }
 
@@ -58,6 +64,6 @@ class ProfileController extends Controller
             'password' => Hash::make($validated['new_password']),
         ]);
 
-        return back()->with('success', 'Password updated successfully.');
+        return back()->with('success', 'Password berhasil diupdate.');
     }
 }

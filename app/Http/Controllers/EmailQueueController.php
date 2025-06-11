@@ -15,17 +15,19 @@ use PhpOffice\PhpSpreadsheet\Calculation\TextData\Extract;
 class EmailQueueController extends Controller
 {
     private $emailService;
+
+    //Constructor untuk menginisialisasi service 
     public function __construct(EmailQueueService $emailService)
     {
         $this->emailService = $emailService;
     }
 
-    //Method untuk mengirim email ke dalam queue RabbitMQ
+    //Function untuk mengirim email ke dalam queue RabbitMQ
     public function sendEmails(SendEmailRequest $request)
     {
         $data = $request->json()->all();
 
-        // Retrieve the application based on the secret key
+        // Ambiil aplikasi berdasarkan secret key
         $application = Application::where('secret_key', $data['secret'])->first();
 
         if (!$application) {
@@ -36,7 +38,6 @@ class EmailQueueController extends Controller
             return errorResponse('Status aplikasi disabled', 422);
         }
 
-        // Sort the emails by priority
         usort($data['mail'], function ($a, $b) {
             $priorityMap = ['low' => 1, 'medium' => 2, 'high' => 3];
             return $priorityMap[$b['priority']] <=> $priorityMap[$a['priority']];
@@ -44,13 +45,13 @@ class EmailQueueController extends Controller
 
         $messages = [];
         foreach ($data['mail'] as $mail) {
-            // Create the log entry with pending status
+            // Buat entry log dengan status 'pending'
             $emailLog = app(EmailLogService::class)->logEmail($mail, $application->id);
-            $mail['id'] = $emailLog->id; // Add the log ID to the message data
+            $mail['id'] = $emailLog->id; // Tambah ID log email ke data mail
             $messages[] = $mail;
         }
 
-        // Process and queue the emails
+        // Email di proses dan dimasukkan ke dalam antrian RabbitMQ
         $result = $this->emailService->processAndQueueEmails($messages, $data['secret']);
         if (isset($result['error'])) {
             return errorResponse($result['error'], 422);
@@ -59,45 +60,32 @@ class EmailQueueController extends Controller
         return responseWithData('Email masuk kedalam antrian', $result['messages']);
     }
     
-    //Method untuk mengirim email dari file excel ke dalam queue RabbitMQ
+    //Function untuk mengirim email dari file excel ke dalam queue RabbitMQ
     public function sendEmailsFromExcel(ExcelRequest $request)
     {
         $file = $request->file('excel_file');
 
         if (!$file) {
-            return errorResponse('Tidak ada file yang diunggah', 400); // Menggunakan helper errorResponse
+            return errorResponse('Tidak ada file yang diunggah', 400);
         }
 
         $result = $this->emailService->processEmailsFromExcel($file);
 
         if (isset($result['error'])) {
-            return errorResponse($result['error'], 400); // Using errorResponse helper
+            return errorResponse($result['error'], 400);
         }
 
         if (isset($result['validationErrors'])) {
-            return validationError($result['validationErrors']); // Menggunakan errorResponse
+            return validationError($result['validationErrors']);
         }
 
-        return queueSuccess($result['messages']); // Menggunakan ResponseHelper::success
+        return queueSuccess($result['messages']);
     }
 
-    //Method untuk mengambil data email log berdasarkan id
+    //Function untuk mengambil data email log berdasarkan id
     public function extractEmailData(ExtractEmailRequest $request)
     {
         return $this->emailService->extractEmailLogData($request);
-    }
-
-    public function retryEmails(RetryEmailRequest $request)
-    {
-        $data = $request->validated();
-
-        $result = $this->emailService->retryEmails($data);
-
-        if (isset($result['error'])) {
-            return errorResponse($result['error'], 422);
-        }
-
-        return responseWithData('Email retried successfully', $result['message']);
     }
 
 }
