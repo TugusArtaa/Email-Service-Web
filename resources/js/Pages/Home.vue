@@ -321,9 +321,9 @@ const props = defineProps({
 
 // Menghitung statistik email berdasarkan data
 const emailStats = computed(() => ({
-    sent: props.data.filter((log) => log.status === "success").length,
-    failed: props.data.filter((log) => log.status === "failed").length,
-    total: props.data.length,
+    sent: props.data.sent,
+    failed: props.data.failed,
+    total: props.data.total,
 }));
 
 // Menghitung persentase keberhasilan dan kegagalan

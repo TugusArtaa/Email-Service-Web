@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Auth;
 
 class AuthenticationController extends Controller
 {
-    //Method untuk mengautentikasi user
+    //Function untuk mengautentikasi user
     public function authenticate(Request $request): RedirectResponse
     {
         // dd(Hash::make($request->input('password')));
@@ -27,7 +27,7 @@ class AuthenticationController extends Controller
         }
 
         return back()->withErrors([
-            'invalid' => 'credentials tidak cocok.',
+            'invalid' => 'Email/Password Invalid.',
         ])->onlyInput('email');
     }
 }

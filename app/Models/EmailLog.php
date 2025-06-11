@@ -18,12 +18,10 @@ class EmailLog extends Model
     ];
 
     protected $casts = [
-        'request' => 'array', // Allows easy JSON manipulation
+        'request' => 'array', // Untuk manipulasikan data JSON
     ];
 
-    /**
-     * Relationship to Application.
-     */
+    // Relasi dengan model Application
     public function application()
     {
         return $this->belongsTo(Application::class);

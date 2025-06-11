@@ -16,7 +16,7 @@ class CheckUserLevel
     public function handle(Request $request, Closure $next, $level)
     {
         if (auth()->check() && auth()->user()->level !== $level) {
-            return redirect('/'); // Redirect ke halaman yang sesuai
+            abort(403, 'Unauthorized action.');
         }
 
         return $next($request);

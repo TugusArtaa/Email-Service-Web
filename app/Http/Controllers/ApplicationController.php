@@ -19,7 +19,7 @@ class ApplicationController extends Controller
         $this->applicationService = $applicationService;
     }
 
-    //Method untuk menampilkan semua data aplikasi
+    //Function untuk menampilkan semua data aplikasi
     public function index(Request $request)
     {
         $search = $request->query('search', '');
@@ -30,6 +30,7 @@ class ApplicationController extends Controller
         ]);
     }
 
+    //Function untuk ambil data aplikasi yang sudah terdaftar
     public function getData(Request $request)
     {
         $search = $request->query('search', '');
@@ -43,6 +44,7 @@ class ApplicationController extends Controller
         );
     }
 
+    //Function untuk ambil data aplikasi yang perlu disetujui
     public function getApproveData(Request $request)
     {
         $search = $request->query('search', '');
@@ -56,34 +58,20 @@ class ApplicationController extends Controller
         );
     }
 
-    //  Method untuk menyimpan data aplikasi
+    //Function untuk menyimpan data aplikasi yang diregistrasi
     public function store(ApplicationRequest $request)
     {
         $validated = $request->validated();
 
-        // if ($this->applicationService->checkApplicationExists($validated['name'])) {
-        //     return errorResponse('Aplikasi sudah terdaftar', 422);
-        // }
-
-        if ($this->applicationService->checkApplicationExists($validated['name'])) {
-            return response()->json(['errors' => ['name' => ['Aplikasi sudah terdaftar']]], 422);
-        }
-
         $application = $this->applicationService->createApplication($validated);
 
-
-        // return redirect()->back()->with('message', 'Aplikasi berhasil didaftarkan');
-        // return responseWithData(
-        //     'Application registered successfully',
-        //     $this->applicationService->formatApplicationResponse($application, $application->secret_key)
-        // )->setStatusCode(201);
-
         return response()->json([
-            'message'=> 'Aplikasi sukses teregistrasi',
+            'message' => 'Aplikasi sukses teregistrasi',
             'application' => $application,
-        ], 201);    
+        ], 201);
     }
-    //Method untuk menampilkan detail aplikasi berdasarkan id
+
+    //Function untuk menampilkan detail aplikasi berdasarkan id
     public function show(Application $application)
     {
         return responseWithData(
@@ -92,7 +80,7 @@ class ApplicationController extends Controller
         );
     }
 
-    //Method untuk menghapus aplikasi
+    //Function untuk menghapus aplikasi
     public function delete(Application $application, Request $request)
     {
         $request->validate(['ids' => 'required']);
@@ -101,24 +89,27 @@ class ApplicationController extends Controller
         return response()->json(['success' => true, 'message' => 'Aplikasi berhasil dihapus']);
     }
 
+    //Function untuk approve aplikasi
     public function approveApplication(ApproveApplicationRequest $request)
     {
-        // Panggil service untuk memproses regenerasi secret key
         $result = $this->applicationService->approveGenerateSecretKey($request->id);
 
-        // Kembalikan response sesuai hasil dari service
         return response()->json([
             'message' => 'Aplikasi berhasil disetujui',
             'result' => $result
         ]);
     }
 
+    //Function untuk handle perubahan status aplikasi
     public function handleApplicationStatusChange(ApplicationStatusChangeRequest $request)
     {
         $id = $request->input('id');
         $status = $request->input('status');
         $result = $this->applicationService->handleApplicationStatusChange($id, $status);
-        
-       return $result;
+
+        return response()->json([
+            'success' => $result['success'],
+            'message' => $result['message'],
+        ], $result['status']);
     }
 }

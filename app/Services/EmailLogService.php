@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Log;
 
 class EmailLogService
 {
+    // Function untuk mengambil semua log email
     public function getAllEmailLogs()
     {
         return EmailLog::with('application')
@@ -14,6 +15,17 @@ class EmailLogService
             ->get();
     }
 
+    public function countByStatus($status)
+    {
+        return EmailLog::where('status', $status)->count();
+    }
+
+    public function countAll()
+    {
+        return EmailLog::count();
+    }
+
+    // Function untuk mengambil log email dengan pagination, pencarian, dan pengurutan
     public function getEmailLogs($perPage = 10, $search = null, $orderBy = 'desc')
     {
         $query = EmailLog::with('application');
@@ -34,25 +46,16 @@ class EmailLogService
             ->paginate($perPage);
     }
 
-    public function deleteEmailLogs($startDate, $endDate)
-    {
-        $query = EmailLog::query();
-
-        if ($startDate && $endDate) {
-            $query->whereBetween('created_at', [$startDate, $endDate]);
-        }
-        return $query->delete();
-    }
-
-    public function deleteEmailLogsByIds(array $ids)
+    // Function untuk menghapus log email
+    public function deleteEmailLogsByIds(array $ids): int
     {
         return EmailLog::whereIn('id', $ids)->delete();
     }
 
-    // Method untuk menyimpan log email ke dalam databse
-    public function logEmail(array $data, int $applicationId)
+    // Function untuk menyimpan log email pending ketika email akan dikirim
+    public function logEmail(array $data, int $applicationId): EmailLog
     {
-        // Create the email log entry with default pending status
+        // Buat log email sementara dengan status 'pending'
         $emailLog = EmailLog::create([
             'application_id' => $applicationId,
             'request' => json_encode($data),
@@ -61,36 +64,34 @@ class EmailLogService
             'sent_at' => null, // Not sent yet
         ]);
 
-        // Return the created log entry
         return $emailLog;
     }
 
+    // Function untuk memperbarui log email setelah pengiriman dilakukan
     public function updateLog(array $data, string $status, ?string $errorMessage, int $applicationId)
     {
         // Find the existing email log by ID
         $emailLog = EmailLog::find($data['id']);
+        if (!$emailLog) {
+            Log::error("Log dengan id {$data['id']} tidak ditemukan.");
+            return;
+        }
 
         if ($emailLog) {
-            // Ensure we are updating the request field with the latest data
             $updatedEmailData = $data['mail'] ?? $data;
+            unset($updatedEmailData['id']); // hapus id dari data yang akan disimpan
 
-            unset($updatedEmailData['id']); // Remove the ID from the updated data
-
-            // If status is 'success', clear the error_message and set sent_at
+            // Jika status adalah 'success', set sent_at ke waktu saat ini
             if ($status === 'success') {
-                $errorMessage = null;  // Remove error_message on success
-                $emailLog->sent_at = now(); // Set sent_at to current time if successful
+                $errorMessage = null;
+                $emailLog->sent_at = now();
             }
 
-            // Update the email log status, error_message, and request field
             $emailLog->status = $status;
             $emailLog->error_message = $errorMessage;
-            $emailLog->request = json_encode($updatedEmailData); // Store the latest JSON request
-
-            // Save the updated email log
+            $emailLog->request = json_encode($updatedEmailData);
             $emailLog->save();
 
-            // Log the update action with the same structure as the initial log
             $logMessage = [
                 'id' => $emailLog->id,
                 'application_id' => $applicationId,
@@ -100,7 +101,7 @@ class EmailLogService
                 'sent_at' => $status === 'success' ? now() : null,
             ];
 
-            // Log to a specific channel (email) for Elasticsearch
+            // Log ke dalam direktori log laravel untuk kebutuhan elastic search
             Log::channel('email')->info('Log email dibuat', $logMessage);
         }
     }

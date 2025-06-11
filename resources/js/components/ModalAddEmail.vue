@@ -498,13 +498,18 @@ watch(
 
 // Fungsi untuk mengirim email
 async function handleSubmit() {
+    if (!validateBeforeSubmit()) {
+        return;
+    }
+    
     invalidKey.value = "";
     try {
         const response = await axios.post(
             `${baseUrl}/api/email-queue/send`,
             emails.value
         );
-        // Emit notification success
+        
+        // Emit notification untuk success
         emit("notification", "success", "Berhasil!", response.data.message);
         emit("close");
     } catch (error) {
@@ -513,22 +518,36 @@ async function handleSubmit() {
             error.response.data &&
             error.response.data.errors
         ) {
+            // Error validasi dari Laravel validator
             errorMessage.value = error.response.data.errors;
         } else if (error.response && error.response.data) {
-            invalidKey.value = error.response.data.error;
+            // Error server lainnya (termasuk secret key disabled)
+            if (error.response.status === 422) {
+                // Tampilkan error di invalidKey untuk ditampilkan di form
+                invalidKey.value = error.response.data.error || error.response.data.message;
+                // Tidak emit notification - error ditampilkan di form
+            } else {
+                // Error server lainnya (500, dll) - tampilkan notification
+                invalidKey.value = error.response.data.error || error.response.data.message;
+                emit(
+                    "notification",
+                    "danger",
+                    "Gagal!",
+                    error.response.data.error || error.response.data.message
+                );
+            }
         } else {
+            // Error jaringan atau tidak diketahui
             errorMessage.value = {
                 general: ["Terjadi kesalahan yang tidak diketahui"],
             };
-        }
-        // Emit notification error
-        emit(
-            "notification",
-            "danger",
-            "Gagal!",
-            error.response?.data?.message ||
+            emit(
+                "notification",
+                "danger",
+                "Gagal!",
                 "Terjadi kesalahan yang tidak diketahui"
-        );
+            );
+        }
     }
 }
 

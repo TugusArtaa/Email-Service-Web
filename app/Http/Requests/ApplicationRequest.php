@@ -21,6 +21,14 @@ class ApplicationRequest extends FormRequest
         ];
     }
 
+    public function messages()
+    {
+        return [
+            'name.unique' => 'Nama aplikasi sudah terdaftar.',
+            'description.required' => 'Deskripsi aplikasi wajib diisi.',
+        ];
+    }
+
     protected function failedValidation(Validator $validator)
     {
         throw new HttpResponseException(response()->json([

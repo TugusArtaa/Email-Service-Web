@@ -264,6 +264,9 @@
                                 placeholder="Email penerima"
                                 required=""
                             />
+                            <p v-if="validationErrors.to" class="mt-1 text-sm text-red-600">
+                                {{ validationErrors.to }}
+                            </p>
                         </div>
                         <div class="col-span-2">
                             <label
@@ -671,6 +674,9 @@ const logEdit = ref({});
 const successMessage = ref("");
 const errorMessage = ref("");
 
+// State untuk error validasi
+const validationErrors = ref({});
+
 // Emit event ke parent
 const emit = defineEmits(["checkbox", "refresh", "notification"]);
 
@@ -777,8 +783,27 @@ function getEdit(id) {
         });
 }
 
+// Fungsi untuk validasi form retry
+function validateRetryForm() {
+    validationErrors.value = {};
+    let isValid = true;
+
+    // Validasi email penerima
+    if (!formRetry.mail[0].to) {
+        validationErrors.value.to = "Alamat email penerima wajib diisi";
+        isValid = false;
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formRetry.mail[0].to)) {
+        validationErrors.value.to = "Format email tidak valid";
+        isValid = false;
+    }
+    return isValid;
+}
+
 // Fungsi untuk mengirim ulang email
 function handleRetry() {
+    if (!validateRetryForm()) {
+        return;
+    }
     axios
         .post(`${baseUrl}/api/email-queue/send`, formRetry)
         .then((response) => {

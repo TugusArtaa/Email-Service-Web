@@ -35,21 +35,13 @@ ChartJS.register(
 // Mendefinisikan props yang diterima oleh komponen, yaitu data array log email
 const props = defineProps({
     data: {
-        type: Array,
+        type: Object,
         required: true,
     },
 });
 
 // Membuat data chart secara reaktif berdasarkan props yang diterima
 const chartData = computed(() => {
-    const counts = props.data.reduce(
-        (acc, log) => {
-            if (log.status === "success") acc[0]++;
-            else if (log.status === "failed") acc[1]++;
-            return acc;
-        },
-        [0, 0]
-    );
     return {
         labels: ["Terkirim", "Gagal"],
         datasets: [
@@ -59,7 +51,7 @@ const chartData = computed(() => {
                 borderColor: ["rgb(16, 185, 129)", "rgb(225, 29, 72)"],
                 borderWidth: 1,
                 borderRadius: 6,
-                data: counts,
+                data: [props.data.sent, props.data.failed],
             },
         ],
     };
