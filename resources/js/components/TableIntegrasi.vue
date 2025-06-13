@@ -244,29 +244,114 @@
                                 for="name"
                                 class="block mb-2 text-sm font-medium text-gray-900"
                             >
-                                Kepada
+                                Kepada <span class="text-red-500">*</span>
                             </label>
                             <input
                                 type="hidden"
                                 name="secret"
                                 id="name"
                                 v-model="formRetry.secret"
+                                @focus="clearRetryError('secret')"
                                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
                                 placeholder="Secret"
                                 required=""
                             />
+                            <div
+                                v-if="validationErrors.secret"
+                                class="relative mt-2"
+                            >
+                                <div
+                                    class="bg-red-500 text-white text-xs rounded-lg py-2 px-3 relative shadow-lg"
+                                >
+                                    <div class="flex items-center gap-2">
+                                        <svg
+                                            class="w-4 h-4 flex-shrink-0"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                        >
+                                            <path
+                                                d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"
+                                            ></path>
+                                            <line
+                                                x1="12"
+                                                y1="9"
+                                                x2="12"
+                                                y2="13"
+                                            ></line>
+                                            <line
+                                                x1="12"
+                                                y1="17"
+                                                x2="12.01"
+                                                y2="17"
+                                            ></line>
+                                        </svg>
+                                        <span>
+                                            {{ validationErrors.secret }}
+                                        </span>
+                                    </div>
+                                    <div
+                                        class="absolute -top-1 left-4 w-2 h-2 bg-red-500 rotate-45"
+                                    ></div>
+                                </div>
+                            </div>
                             <input
                                 type="text"
                                 name="name"
                                 id="name"
                                 v-model="formRetry.mail[0].to"
+                                @focus="clearRetryError('mail.0.to')"
                                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
                                 placeholder="Email penerima"
                                 required=""
                             />
-                            <p v-if="validationErrors.to" class="mt-1 text-sm text-red-600">
-                                {{ validationErrors.to }}
-                            </p>
+                            <div
+                                v-if="validationErrors['mail.0.to']"
+                                class="relative mt-2"
+                            >
+                                <div
+                                    class="bg-red-500 text-white text-xs rounded-lg py-2 px-3 relative shadow-lg"
+                                >
+                                    <div class="flex items-center gap-2">
+                                        <svg
+                                            class="w-4 h-4 flex-shrink-0"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                        >
+                                            <path
+                                                d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"
+                                            ></path>
+                                            <line
+                                                x1="12"
+                                                y1="9"
+                                                x2="12"
+                                                y2="13"
+                                            ></line>
+                                            <line
+                                                x1="12"
+                                                y1="17"
+                                                x2="12.01"
+                                                y2="17"
+                                            ></line>
+                                        </svg>
+                                        <span>
+                                            {{ validationErrors["mail.0.to"] }}
+                                        </span>
+                                    </div>
+                                    <div
+                                        class="absolute -top-1 left-4 w-2 h-2 bg-red-500 rotate-45"
+                                    ></div>
+                                </div>
+                            </div>
                         </div>
                         <div class="col-span-2">
                             <label
@@ -280,10 +365,58 @@
                                 name="name"
                                 id="name"
                                 v-model="formRetry.mail[0].subject"
+                                @focus="clearRetryError('mail.0.subject')"
                                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
                                 placeholder="Subjek email"
                                 required=""
                             />
+                            <div
+                                v-if="validationErrors['mail.0.subject']"
+                                class="relative mt-2"
+                            >
+                                <div
+                                    class="bg-red-500 text-white text-xs rounded-lg py-2 px-3 relative shadow-lg"
+                                >
+                                    <div class="flex items-center gap-2">
+                                        <svg
+                                            class="w-4 h-4 flex-shrink-0"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                        >
+                                            <path
+                                                d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"
+                                            ></path>
+                                            <line
+                                                x1="12"
+                                                y1="9"
+                                                x2="12"
+                                                y2="13"
+                                            ></line>
+                                            <line
+                                                x1="12"
+                                                y1="17"
+                                                x2="12.01"
+                                                y2="17"
+                                            ></line>
+                                        </svg>
+                                        <span>
+                                            {{
+                                                validationErrors[
+                                                    "mail.0.subject"
+                                                ]
+                                            }}
+                                        </span>
+                                    </div>
+                                    <div
+                                        class="absolute -top-1 left-4 w-2 h-2 bg-red-500 rotate-45"
+                                    ></div>
+                                </div>
+                            </div>
                         </div>
                         <div class="col-span-2">
                             <label
@@ -295,9 +428,57 @@
                                 id="description"
                                 rows="4"
                                 v-model="formRetry.mail[0].content"
+                                @focus="clearRetryError('mail.0.content')"
                                 class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
                                 placeholder="Tulis yang akan dikirim disini"
                             ></textarea>
+                            <div
+                                v-if="validationErrors['mail.0.content']"
+                                class="relative mt-2"
+                            >
+                                <div
+                                    class="bg-red-500 text-white text-xs rounded-lg py-2 px-3 relative shadow-lg"
+                                >
+                                    <div class="flex items-center gap-2">
+                                        <svg
+                                            class="w-4 h-4 flex-shrink-0"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                        >
+                                            <path
+                                                d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"
+                                            ></path>
+                                            <line
+                                                x1="12"
+                                                y1="9"
+                                                x2="12"
+                                                y2="13"
+                                            ></line>
+                                            <line
+                                                x1="12"
+                                                y1="17"
+                                                x2="12.01"
+                                                y2="17"
+                                            ></line>
+                                        </svg>
+                                        <span>
+                                            {{
+                                                validationErrors[
+                                                    "mail.0.content"
+                                                ]
+                                            }}
+                                        </span>
+                                    </div>
+                                    <div
+                                        class="absolute -top-1 left-4 w-2 h-2 bg-red-500 rotate-45"
+                                    ></div>
+                                </div>
+                            </div>
                         </div>
                         <div
                             class="col-span-2"
@@ -317,26 +498,131 @@
                                 name="name"
                                 :id="'name-' + index"
                                 v-model="formRetry.mail[0].attachment[index]"
+                                @focus="
+                                    clearRetryError(
+                                        `mail.0.attachment.${index}`
+                                    )
+                                "
                                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
                                 placeholder="URL Lampiran..."
                                 required=""
                             />
+                            <div
+                                v-if="
+                                    validationErrors[
+                                        `mail.0.attachment.${index}`
+                                    ]
+                                "
+                                class="relative mt-2"
+                            >
+                                <div
+                                    class="bg-red-500 text-white text-xs rounded-lg py-2 px-3 relative shadow-lg"
+                                >
+                                    <div class="flex items-center gap-2">
+                                        <svg
+                                            class="w-4 h-4 flex-shrink-0"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                        >
+                                            <path
+                                                d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"
+                                            ></path>
+                                            <line
+                                                x1="12"
+                                                y1="9"
+                                                x2="12"
+                                                y2="13"
+                                            ></line>
+                                            <line
+                                                x1="12"
+                                                y1="17"
+                                                x2="12.01"
+                                                y2="17"
+                                            ></line>
+                                        </svg>
+                                        <span>
+                                            {{
+                                                validationErrors[
+                                                    `mail.0.attachment.${index}`
+                                                ]
+                                            }}
+                                        </span>
+                                    </div>
+                                    <div
+                                        class="absolute -top-1 left-4 w-2 h-2 bg-red-500 rotate-45"
+                                    ></div>
+                                </div>
+                            </div>
                         </div>
                         <div class="col-span-2">
                             <label
                                 for="priority"
                                 class="block mb-2 text-sm font-medium text-gray-900"
-                                >Pilih Prioritas</label
+                                >Pilih Prioritas
+                                <span class="text-red-500">*</span></label
                             >
                             <select
                                 id="priority"
                                 v-model="formRetry.mail[0].priority"
+                                @focus="clearRetryError('mail.0.priority')"
                                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                             >
                                 <option value="high">High</option>
                                 <option value="medium">Medium</option>
                                 <option value="low">Low</option>
                             </select>
+                            <div
+                                v-if="validationErrors['mail.0.priority']"
+                                class="relative mt-2"
+                            >
+                                <div
+                                    class="bg-red-500 text-white text-xs rounded-lg py-2 px-3 relative shadow-lg"
+                                >
+                                    <div class="flex items-center gap-2">
+                                        <svg
+                                            class="w-4 h-4 flex-shrink-0"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                        >
+                                            <path
+                                                d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"
+                                            ></path>
+                                            <line
+                                                x1="12"
+                                                y1="9"
+                                                x2="12"
+                                                y2="13"
+                                            ></line>
+                                            <line
+                                                x1="12"
+                                                y1="17"
+                                                x2="12.01"
+                                                y2="17"
+                                            ></line>
+                                        </svg>
+                                        <span>
+                                            {{
+                                                validationErrors[
+                                                    "mail.0.priority"
+                                                ]
+                                            }}
+                                        </span>
+                                    </div>
+                                    <div
+                                        class="absolute -top-1 left-4 w-2 h-2 bg-red-500 rotate-45"
+                                    ></div>
+                                </div>
+                            </div>
                         </div>
                         <div class="col-span-2 flex justify-end">
                             <button
@@ -635,9 +921,9 @@
 import { watch, ref } from "vue";
 import { Tippy } from "vue-tippy";
 import NotificationToast from "./NotificationToast.vue";
-import { onClickOutside, useFetch } from "@vueuse/core";
+import { onClickOutside } from "@vueuse/core";
 import { useForm, usePage } from "@inertiajs/vue3";
-import axios from "axios";
+import * as IntegrasiAPI from "../api/IntegrasiAPI";
 
 // Props yang diterima dari parent
 const props = defineProps({
@@ -703,44 +989,42 @@ const notification = ref({
 });
 
 // Fungsi untuk menghapus log
-function deleteLog() {
+async function deleteLog() {
     form.ids = deleteOne.value;
-    form.delete(`${baseUrl}/integrasi/delete`, {
-        onSuccess: (response) => {
-            emit(
-                "notification",
-                "success",
-                "Berhasil!",
-                response.message || "Log berhasil dihapus."
-            );
-            emit("refresh");
-            showDeleteModal.value = false;
-            form.reset();
-        },
-        onError: (error) => {
-            emit(
-                "notification",
-                "danger",
-                "Gagal!",
-                error.response?.data?.message || "Gagal menghapus log."
-            );
-        },
-    });
+    try {
+        await IntegrasiAPI.deleteEmailLogs(form.ids, baseUrl);
+        emit("notification", "success", "Berhasil!", "Log berhasil dihapus.");
+        emit("refresh");
+        showDeleteModal.value = false;
+        form.reset();
+    } catch (error) {
+        emit(
+            "notification",
+            "danger",
+            "Gagal!",
+            error?.response?.data?.message || "Gagal menghapus log."
+        );
+    }
 }
 
 // Fungsi untuk mengambil detail log
-function getDetail(id) {
+async function getDetail(id) {
     detailFetch.value = false;
     logDetail.value = {};
-    axios
-        .post(`${baseUrl}/api/email-queue/extract`, { id })
-        .then((response) => {
-            logDetail.value = response.data.data;
+    try {
+        const response = await IntegrasiAPI.extractEmailLog(id);
+        // Ambil data dari response.data.data.original.data
+        let data = response?.data?.data?.original?.data;
+        if (!data) {
+            logDetail.value = {};
             detailFetch.value = true;
-        })
-        .catch((error) => {
-            detailFetch.value = false;
-        });
+            return;
+        }
+        logDetail.value = data;
+        detailFetch.value = true;
+    } catch (error) {
+        detailFetch.value = false;
+    }
 }
 
 // State untuk form retry
@@ -760,27 +1044,25 @@ const formRetry = useForm({
 });
 
 // Fungsi untuk mengambil data log yang akan diedit
-function getEdit(id) {
+async function getEdit(id) {
     editFetch.value = false;
     logEdit.value = {};
-    axios
-        .post(`${baseUrl}/api/email-queue/extract`, { id })
-        .then((response) => {
-            const newData = response.data.data;
-            if (newData) {
-                formRetry.id = id;
-                formRetry.mail[0].to = newData.to;
-                formRetry.mail[0].subject = newData.subject;
-                formRetry.mail[0].content = newData.content;
-                formRetry.mail[0].attachment = newData.attachment || [];
-                formRetry.mail[0].priority = newData.priority;
-                formRetry.secret = newData.secret;
-                editFetch.value = true;
-            }
-        })
-        .catch((error) => {
-            editFetch.value = false;
-        });
+    try {
+        const response = await IntegrasiAPI.extractEmailLog(id);
+        const newData = response?.data?.data?.original?.data;
+        if (newData) {
+            formRetry.id = id;
+            formRetry.mail[0].to = newData.to;
+            formRetry.mail[0].subject = newData.subject;
+            formRetry.mail[0].content = newData.content;
+            formRetry.mail[0].attachment = newData.attachment || [];
+            formRetry.mail[0].priority = newData.priority;
+            formRetry.secret = newData.secret;
+            editFetch.value = true;
+        }
+    } catch (error) {
+        editFetch.value = false;
+    }
 }
 
 // Fungsi untuk validasi form retry
@@ -788,48 +1070,124 @@ function validateRetryForm() {
     validationErrors.value = {};
     let isValid = true;
 
-    // Validasi email penerima
-    if (!formRetry.mail[0].to) {
-        validationErrors.value.to = "Alamat email penerima wajib diisi";
-        isValid = false;
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formRetry.mail[0].to)) {
-        validationErrors.value.to = "Format email tidak valid";
+    // Validasi secret
+    if (!formRetry.secret) {
+        validationErrors.value.secret = "Secret key wajib diisi.";
         isValid = false;
     }
+
+    // Validasi mail array
+    if (
+        !formRetry.mail ||
+        !Array.isArray(formRetry.mail) ||
+        formRetry.mail.length === 0
+    ) {
+        validationErrors.value.mail = 'Data email ("mail") wajib diisi.';
+        isValid = false;
+        return isValid;
+    }
+
+    // Validasi setiap mail
+    formRetry.mail.forEach((mail, idx) => {
+        // to
+        if (!mail.to) {
+            validationErrors.value[`mail.${idx}.to`] =
+                'Email penerima ("kepada") wajib diisi.';
+            isValid = false;
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail.to)) {
+            validationErrors.value[`mail.${idx}.to`] =
+                'Format email pada kolom "kepada" tidak valid.';
+            isValid = false;
+        }
+        // content
+        if (mail.content && typeof mail.content !== "string") {
+            validationErrors.value[`mail.${idx}.content`] =
+                'Isi email ("content") harus berupa teks.';
+            isValid = false;
+        }
+        // subject
+        if (mail.subject && typeof mail.subject !== "string") {
+            validationErrors.value[`mail.${idx}.subject`] =
+                'Subjek email ("subject") harus berupa teks.';
+            isValid = false;
+        }
+        // priority
+        if (!mail.priority) {
+            validationErrors.value[`mail.${idx}.priority`] =
+                "Prioritas email wajib diisi.";
+            isValid = false;
+        } else if (typeof mail.priority !== "string") {
+            validationErrors.value[`mail.${idx}.priority`] =
+                "Prioritas email harus berupa teks.";
+            isValid = false;
+        } else if (!["low", "medium", "high"].includes(mail.priority)) {
+            validationErrors.value[`mail.${idx}.priority`] =
+                "Prioritas email harus salah satu dari: low, medium, high.";
+            isValid = false;
+        }
+        // attachment
+        if (mail.attachment && !Array.isArray(mail.attachment)) {
+            validationErrors.value[`mail.${idx}.attachment`] =
+                "Attachment harus berupa array.";
+            isValid = false;
+        }
+        if (Array.isArray(mail.attachment)) {
+            mail.attachment.forEach((att, attIdx) => {
+                if (
+                    att &&
+                    typeof att === "string" &&
+                    !/^https?:\/\/[^\s$.?#].[^\s]*$/.test(att)
+                ) {
+                    validationErrors.value[`mail.${idx}.attachment.${attIdx}`] =
+                        "Setiap attachment harus berupa URL yang valid.";
+                    isValid = false;
+                }
+            });
+        }
+    });
+
     return isValid;
 }
 
 // Fungsi untuk mengirim ulang email
-function handleRetry() {
+async function handleRetry() {
     if (!validateRetryForm()) {
         return;
     }
-    axios
-        .post(`${baseUrl}/api/email-queue/send`, formRetry)
-        .then((response) => {
-            if (response.data.kode === 200) {
-                emit(
-                    "notification",
-                    "success",
-                    "Berhasil!",
-                    response.data.message
-                );
-            } else {
-                emit("notification", "danger", "Gagal!", response.data.message);
-            }
-        })
-        .catch((error) => {
+    try {
+        const response = await IntegrasiAPI.retrySendEmail(formRetry);
+        if (response.data.success === true) {
+            emit(
+                "notification",
+                "success",
+                "Berhasil!",
+                response.data.message || "Email masuk kedalam antrian"
+            );
+        } else {
             emit(
                 "notification",
                 "danger",
                 "Gagal!",
-                error.response?.data?.message || "Terjadi kesalahan"
+                response.data.message || "Email gagal dikirim"
             );
-        })
-        .finally(() => {
-            showEditModal.value = false;
-            formRetry.reset();
-            emit("refresh");
-        });
+        }
+    } catch (error) {
+        emit(
+            "notification",
+            "danger",
+            "Gagal!",
+            error?.response?.data?.message || "Terjadi kesalahan"
+        );
+    } finally {
+        showEditModal.value = false;
+        formRetry.reset();
+        emit("refresh");
+    }
+}
+
+function clearRetryError(field) {
+    if (validationErrors.value[field]) {
+        validationErrors.value[field] = "";
+    }
 }
 </script>

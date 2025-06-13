@@ -307,7 +307,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import Layout from "./Layout.vue";
 import Chart from "../components/Chart.vue";
 
@@ -355,4 +355,12 @@ const getColorClass = (type) => {
     };
     return colors[type];
 };
+
+// Menghapus atribut data-page
+onMounted(() => {
+    const appDiv = document.getElementById("app");
+    if (appDiv) {
+        appDiv.removeAttribute("data-page");
+    }
+});
 </script>

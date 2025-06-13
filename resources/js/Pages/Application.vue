@@ -228,6 +228,13 @@
         </section>
         <!-- Tabel -->
         <Table
+            :key="
+                applications.current_page +
+                '-' +
+                applications.total +
+                '-' +
+                applications.data?.length
+            "
             :data="applications"
             :thead="thead"
             :title="'Daftar Aplikasi'"
@@ -367,68 +374,198 @@
                             <label
                                 for="pic_name"
                                 class="block mb-2 text-sm font-medium text-gray-900"
-                                >Nama PIC</label
-                            >
-                            <!-- Tampilkan pesan error jika ada -->
-                            <span
-                                v-if="validationErrors.pic_name"
-                                class="text-red-600 text-sm"
-                                >{{ validationErrors.pic_name[0] }}</span
+                                >Nama PIC
+                                <span class="text-red-500">*</span></label
                             >
                             <!-- Input Nama PIC -->
                             <input
                                 type="text"
                                 name="pic_name"
                                 v-model="appPicName"
+                                @focus="clearValidationError('pic_name')"
                                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
                                 placeholder="Ketik nama PIC"
-                                required=""
                             />
+                            <div
+                                v-if="validationErrors.pic_name"
+                                class="relative mt-2"
+                            >
+                                <div
+                                    class="bg-red-500 text-white text-xs rounded-lg py-2 px-3 relative shadow-lg"
+                                >
+                                    <div class="flex items-center gap-2">
+                                        <svg
+                                            class="w-4 h-4 flex-shrink-0"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                        >
+                                            <path
+                                                d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"
+                                            ></path>
+                                            <line
+                                                x1="12"
+                                                y1="9"
+                                                x2="12"
+                                                y2="13"
+                                            ></line>
+                                            <line
+                                                x1="12"
+                                                y1="17"
+                                                x2="12.01"
+                                                y2="17"
+                                            ></line>
+                                        </svg>
+                                        <span>
+                                            <span
+                                                v-for="err in validationErrors.pic_name"
+                                                :key="err"
+                                            >
+                                                {{ err }}<br />
+                                            </span>
+                                        </span>
+                                    </div>
+                                    <div
+                                        class="absolute -top-1 left-4 w-2 h-2 bg-red-500 rotate-45"
+                                    ></div>
+                                </div>
+                            </div>
                         </div>
                         <div class="col-span-2">
                             <!-- Label Nama Aplikasi -->
                             <label
                                 for="name"
                                 class="block mb-2 text-sm font-medium text-gray-900"
-                                >Nama Aplikasi</label
-                            >
-                            <!-- Tampilkan pesan error jika ada -->
-                            <span
-                                v-if="validationErrors.name"
-                                class="text-red-600 text-sm"
-                                >{{ validationErrors.name[0] }}</span
-                            >
+                                >Nama Aplikasi
+                                <span class="text-red-500">*</span>
+                            </label>
                             <!-- Input Application name -->
                             <input
                                 type="text"
                                 name="name"
                                 v-model="appName"
+                                @focus="clearValidationError('name')"
                                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
                                 placeholder="Ketik nama aplikasi"
-                                required=""
                             />
+                            <div
+                                v-if="validationErrors.name"
+                                class="relative mt-2"
+                            >
+                                <div
+                                    class="bg-red-500 text-white text-xs rounded-lg py-2 px-3 relative shadow-lg"
+                                >
+                                    <div class="flex items-center gap-2">
+                                        <svg
+                                            class="w-4 h-4 flex-shrink-0"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                        >
+                                            <path
+                                                d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"
+                                            ></path>
+                                            <line
+                                                x1="12"
+                                                y1="9"
+                                                x2="12"
+                                                y2="13"
+                                            ></line>
+                                            <line
+                                                x1="12"
+                                                y1="17"
+                                                x2="12.01"
+                                                y2="17"
+                                            ></line>
+                                        </svg>
+                                        <span>
+                                            <span
+                                                v-for="err in validationErrors.name"
+                                                :key="err"
+                                            >
+                                                {{ err }}<br />
+                                            </span>
+                                        </span>
+                                    </div>
+                                    <div
+                                        class="absolute -top-1 left-4 w-2 h-2 bg-red-500 rotate-45"
+                                    ></div>
+                                </div>
+                            </div>
                         </div>
                         <div class="col-span-2">
                             <!-- Label Deskripsi Aplikasi -->
                             <label
                                 for="description"
                                 class="block mb-2 text-sm font-medium text-gray-900"
-                                >Deskripsi Aplikasi</label
-                            >
-                            <!-- Tampilkan pesan error jika ada -->
-                            <span
-                                v-if="validationErrors.description"
-                                class="text-red-600 text-sm"
-                                >{{ validationErrors.description[0] }}</span
+                                >Deskripsi Aplikasi
+                                <span class="text-red-500">*</span></label
                             >
                             <!-- Input Deskripsi Aplikasi -->
                             <textarea
                                 id="description"
                                 rows="4"
                                 v-model="appDescription"
+                                @focus="clearValidationError('description')"
                                 class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
                                 placeholder="Tulis deskripsi aplikasi di sini"
                             ></textarea>
+                            <div
+                                v-if="validationErrors.description"
+                                class="relative mt-2"
+                            >
+                                <div
+                                    class="bg-red-500 text-white text-xs rounded-lg py-2 px-3 relative shadow-lg"
+                                >
+                                    <div class="flex items-center gap-2">
+                                        <svg
+                                            class="w-4 h-4 flex-shrink-0"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                        >
+                                            <path
+                                                d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"
+                                            ></path>
+                                            <line
+                                                x1="12"
+                                                y1="9"
+                                                x2="12"
+                                                y2="13"
+                                            ></line>
+                                            <line
+                                                x1="12"
+                                                y1="17"
+                                                x2="12.01"
+                                                y2="17"
+                                            ></line>
+                                        </svg>
+                                        <span>
+                                            <span
+                                                v-for="err in validationErrors.description"
+                                                :key="err"
+                                            >
+                                                {{ err }}<br />
+                                            </span>
+                                        </span>
+                                    </div>
+                                    <div
+                                        class="absolute -top-1 left-4 w-2 h-2 bg-red-500 rotate-45"
+                                    ></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <!-- Tombol simpan dan batal -->
@@ -455,8 +592,8 @@
 
 <script setup>
 // Impor modul dan komponen yang diperlukan
-import axios from "axios";
-import { ref, watch, Suspense } from "vue";
+import * as ApplicationAPI from "../api/ApplicationAPI";
+import { ref, watch, Suspense, onMounted } from "vue";
 import Layout from "./Layout.vue";
 import Table from "../components/TableApp.vue";
 import Search from "../components/Search.vue";
@@ -517,7 +654,8 @@ const notification = ref({
 // Mengawasi perubahan data dan memperbarui variabel applications
 watch(data, (newData) => {
     if (newData) {
-        applications.value = newData.data.applications;
+        applications.value = newData.applications ||
+            newData.data?.applications || { data: [] };
     }
 });
 
@@ -585,72 +723,105 @@ const form = useForm({
 });
 
 // Fungsi untuk menghapus aplikasi banyak
-function deleteApp() {
-    fetch("/api/applications/delete", {
-        method: "DELETE",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRF-TOKEN": pageInertia.props.csrf_token,
-        },
-        body: JSON.stringify({ ids: form.ids }),
-    })
-        .then((response) => response.json())
-        .then((data) => {
-            if (data.success) {
-                checked.value = [];
-                form.ids = [];
-                showDeleteModal.value = false;
-                refreshData();
-                notification.value = {
-                    show: true,
-                    type: "success",
-                    message: "Berhasil!",
-                    description: data.message,
-                };
-            } else {
-                notification.value = {
-                    show: true,
-                    type: "danger",
-                    message: "Gagal!",
-                    description: data.message || "Terjadi kesalahan.",
-                };
-            }
-        })
-        .catch((error) => {
+async function deleteApp() {
+    try {
+        const response = await ApplicationAPI.deleteApplications(form.ids);
+        if (response.data.success) {
+            checked.value = [];
+            form.ids = [];
+            selectedIdsCount.value = 0;
+            showDeleteModal.value = false;
+            await refreshData();
+            notification.value = {
+                show: true,
+                type: "success",
+                message: "Berhasil!",
+                description: response.data.message,
+            };
+        } else {
             notification.value = {
                 show: true,
                 type: "danger",
                 message: "Gagal!",
-                description: error.message || "Terjadi kesalahan.",
+                description: response.data.message || "Terjadi kesalahan.",
             };
-        });
+        }
+    } catch (error) {
+        notification.value = {
+            show: true,
+            type: "danger",
+            message: "Gagal!",
+            description:
+                error.response?.data?.message ||
+                error.message ||
+                "Terjadi kesalahan.",
+        };
+    }
 }
+
+// Fungsi untuk menambah aplikasi baru
+const addApplication = async (event) => {
+    event.preventDefault();
+    validationErrors.value = {};
+    try {
+        const response = await ApplicationAPI.createApplication({
+            name: appName.value,
+            description: appDescription.value,
+            pic_name: appPicName.value,
+            _token: pageInertia.props.csrf_token,
+        });
+        appName.value = "";
+        appDescription.value = "";
+        appPicName.value = "";
+        showAddModal.value = false;
+        refreshData();
+        notification.value = {
+            show: true,
+            type: "success",
+            message: "Berhasil!",
+            description: response.data.message,
+        };
+    } catch (error) {
+        if (error.response?.status === 422) {
+            validationErrors.value = error.response.data.errors;
+        } else {
+            notification.value = {
+                show: true,
+                type: "danger",
+                message: "Gagal!",
+                description:
+                    error.response?.data?.message || "Terjadi kesalahan.",
+            };
+        }
+    }
+};
 
 // Fungsi untuk menyegarkan data aplikasi
 function refreshData() {
-    const { data } = useFetch(
-        `${baseUrl}/api/applications?orderBy=${orderBy.value}&orderDirection=${orderDirection.value}`,
-        { refetch: true }
-    )
-        .get()
-        .json();
-    watch(data, (newData) => {
-        if (newData) {
-            applications.value = newData.data.applications;
-        } else {
+    ApplicationAPI.fetchApplications({
+        search: search.value,
+        page: applications.value.current_page || 1,
+        orderBy: orderBy.value,
+        orderDirection: orderDirection.value,
+    })
+        .then((response) => {
+            applications.value = response.data.applications ||
+                response.data.data?.applications || { data: [] };
+        })
+        .catch(() => {
             notification.value = {
                 show: true,
                 type: "danger",
                 message: "Gagal Memuat Data!",
                 description: "Terjadi kesalahan saat menyegarkan data.",
             };
-        }
-    });
+        });
 }
 
 //Fungsi untuk checkbox
 function handleCheckbox(selectedIds) {
-    form.ids = selectedIds;
+    form.ids = [...selectedIds];
+    selectedIdsCount.value = form.ids.length;
 }
 
 // Fungsi untuk menangani perubahan checkbox
@@ -686,40 +857,18 @@ watch(appPicName, (newAppPicName) => {
     Addform.pic_name = newAppPicName;
 });
 
-// Fungsi untuk menambah aplikasi baru
-const addApplication = async (event) => {
-    event.preventDefault();
-    validationErrors.value = {};
-    try {
-        const response = await axios.post("/application", {
-            name: appName.value,
-            description: appDescription.value,
-            pic_name: appPicName.value,
-            _token: pageInertia.props.csrf_token,
-        });
-        appName.value = "";
-        appDescription.value = "";
-        appPicName.value = "";
-        showAddModal.value = false;
-        refreshData();
-        notification.value = {
-            show: true,
-            type: "success",
-            message: "Berhasil!",
-            description: response.data.message,
-        };
-    } catch (error) {
-        if (error.response?.status === 422) {
-            validationErrors.value = error.response.data.errors;
-        } else {
-            notification.value = {
-                show: true,
-                type: "danger",
-                message: "Gagal!",
-                description:
-                    error.response?.data?.message || "Terjadi kesalahan.",
-            };
-        }
+// Bersihkan data-page pada elemen
+onMounted(() => {
+    const appDiv = document.getElementById("app");
+    if (appDiv) {
+        appDiv.removeAttribute("data-page");
     }
-};
+});
+
+// Fungsi untuk membersihkan pesan kesalahan validasi
+function clearValidationError(field) {
+    if (validationErrors.value[field]) {
+        validationErrors.value[field] = "";
+    }
+}
 </script>

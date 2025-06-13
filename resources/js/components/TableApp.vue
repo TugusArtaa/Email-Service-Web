@@ -66,7 +66,7 @@
             <tr
                 v-for="(item, index) in data.data"
                 :key="item.id"
-                v-if="!fetch"
+                v-if="!isFetching"
                 class="hover:bg-gray-50"
             >
                 <!-- input checkbox -->
@@ -603,11 +603,12 @@
 // Impor modul dan komponen yang diperlukan
 import { ref, watch } from "vue";
 import { defineProps, computed } from "vue";
-import { onClickOutside, useFetch } from "@vueuse/core";
+import { onClickOutside } from "@vueuse/core";
 import { useForm, usePage } from "@inertiajs/vue3";
 import NotificationToast from "../components/NotificationToast.vue";
 import { Tippy } from "vue-tippy";
 import "tippy.js/dist/tippy.css";
+import * as ApplicationAPI from "../api/ApplicationAPI";
 
 // Mendefinisikan properti komponen
 const props = defineProps({
@@ -687,61 +688,52 @@ watch(deleteOne, (newValue) => {
 });
 
 // Fungsi Hapus Aplikasi
-function deleteApp() {
-    fetch("/api/applications/delete", {
-        method: "DELETE",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRF-TOKEN": pageInertia.props.csrf_token,
-        },
-        body: JSON.stringify({ ids: form.ids }),
-    })
-        .then((response) => response.json())
-        .then((data) => {
-            if (data.success) {
-                emit("refresh");
-                showDeleteModal.value = false;
-                notification.value = {
-                    show: true,
-                    type: "success",
-                    message: "Berhasil!",
-                    description: data.message,
-                };
-            } else {
-                notification.value = {
-                    show: true,
-                    type: "danger",
-                    message: "Gagal!",
-                    description: data.message || "Terjadi kesalahan.",
-                };
-            }
-        })
-        .catch((error) => {
+async function deleteApp() {
+    try {
+        const response = await ApplicationAPI.deleteApplications(form.ids);
+        if (response.data.success) {
+            emit("refresh");
+            showDeleteModal.value = false;
+            notification.value = {
+                show: true,
+                type: "success",
+                message: "Berhasil!",
+                description: response.data.message,
+            };
+        } else {
             notification.value = {
                 show: true,
                 type: "danger",
                 message: "Gagal!",
-                description: error.message || "Terjadi kesalahan.",
+                description: response.data.message || "Terjadi kesalahan.",
             };
-        });
+        }
+    } catch (error) {
+        notification.value = {
+            show: true,
+            type: "danger",
+            message: "Gagal!",
+            description:
+                error.response?.data?.message ||
+                error.message ||
+                "Terjadi kesalahan.",
+        };
+    }
 }
 
-// URL dasar untuk permintaan API
-const baseUrl = import.meta.env.VITE_APP_URL;
-
 // Fungsi untuk mendapatkan detail aplikasi
-function getDetail(id) {
+async function getDetail(id) {
     detailFetch.value = false;
     application.value = {};
-    const fetchData = useFetch(`${baseUrl}/api/applications/${id}`)
-        .get()
-        .json();
-    watch(fetchData.data, (newData) => {
-        if (newData) {
-            application.value = newData.data.application;
-            detailFetch.value = true;
-        }
-    });
+    try {
+        // Ambil detail aplikasi langsung dari endpoint detail
+        const response = await ApplicationAPI.fetchApplicationDetail(id);
+        application.value =
+            response.data.application || response.data.data || {};
+        detailFetch.value = true;
+    } catch {
+        detailFetch.value = false;
+    }
 }
 
 // Inisialisasi form untuk regenerasi kunci
@@ -846,7 +838,6 @@ async function changeStatus() {
             };
         }
     } catch (error) {
-        // Tampilkan notifikasi error
         notification.value = {
             show: true,
             type: "danger",

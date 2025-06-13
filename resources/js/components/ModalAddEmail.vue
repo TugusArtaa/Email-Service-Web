@@ -1,6 +1,6 @@
 <template>
     <div>
-        <!-- Background overlay untuk modal -->
+        <!-- Background untuk modal -->
         <div
             @click="emit('close')"
             class="fixed top-0 left-0 right-0 z-50 flex items-center justify-center w-full max-h-full p-4 overflow-x-hidden overflow-y-auto bg-black bg-opacity-60 backdrop-blur-sm md:inset-0"
@@ -64,8 +64,15 @@
                         />
                     </svg>
                     <span>
-                        Terjadi kesalahan. Harap edit baris dengan latar
-                        belakang merah untuk mengetahui detail kesalahan.
+                        <!-- Tampilkan semua error dari errorMessage -->
+                        <template
+                            v-for="(errs, key) in errorMessage"
+                            :key="key"
+                        >
+                            <span v-for="err in errs" :key="err">
+                                {{ err }}<br />
+                            </span>
+                        </template>
                     </span>
                 </div>
 
@@ -89,7 +96,18 @@
                             d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"
                         />
                     </svg>
-                    <span>{{ invalidKey }}</span>
+                    <span>
+                        <!-- Tampilkan error secret key sesuai service -->
+                        {{
+                            invalidKey === "Secret key tidak valid"
+                                ? "Secret key tidak valid"
+                                : invalidKey === "Status aplikasi disabled"
+                                ? "Status aplikasi disabled"
+                                : invalidKey === "Secret key wajib diisi"
+                                ? "Secret key wajib diisi"
+                                : invalidKey
+                        }}
+                    </span>
                 </div>
 
                 <!-- Tabel Daftar Email -->
@@ -192,59 +210,86 @@
                             v-model="email.subject"
                             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                             placeholder="Contoh"
-                            required
                         />
-                        <div
-                            v-if="
-                                detailErrors['mail.' + emailIndex + '.subject']
-                            "
-                        >
-                            <p
-                                v-for="subjectErr in detailErrors[
-                                    'mail.' + emailIndex + '.subject'
-                                ]"
-                                class="text-sm text-red-700"
-                            >
-                                {{
-                                    subjectErr.replace(
-                                        `mail.${emailIndex}.`,
-                                        ""
-                                    )
-                                }}
-                            </p>
-                        </div>
                     </div>
                     <div>
                         <label
                             for="first_name"
                             class="block mb-2 text-sm font-medium text-gray-900"
-                            >Kepada</label
                         >
+                            Kepada <span class="text-red-500">*</span>
+                        </label>
                         <input
                             type="email"
                             id="first_name"
                             v-model="email.to"
+                            @focus="clearError('mail.' + emailIndex + '.to')"
                             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                             placeholder="nama@contoh.com"
-                            required
                         />
-                        <div v-if="detailErrors['mail.' + emailIndex + '.to']">
-                            <p
-                                v-for="toErr in detailErrors[
-                                    'mail.' + emailIndex + '.to'
-                                ]"
-                                class="text-sm text-red-700"
+                        <div
+                            v-if="detailErrors['mail.' + emailIndex + '.to']"
+                            class="relative mt-2"
+                        >
+                            <div
+                                class="bg-red-500 text-white text-xs rounded-lg py-2 px-3 relative shadow-lg"
                             >
-                                {{ toErr.replace(`mail.${emailIndex}.`, "") }}
-                            </p>
+                                <div class="flex items-center gap-2">
+                                    <svg
+                                        class="w-4 h-4 flex-shrink-0"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="2"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                    >
+                                        <path
+                                            d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"
+                                        ></path>
+                                        <line
+                                            x1="12"
+                                            y1="9"
+                                            x2="12"
+                                            y2="13"
+                                        ></line>
+                                        <line
+                                            x1="12"
+                                            y1="17"
+                                            x2="12.01"
+                                            y2="17"
+                                        ></line>
+                                    </svg>
+                                    <span>
+                                        <span
+                                            v-for="toErr in detailErrors[
+                                                'mail.' + emailIndex + '.to'
+                                            ]"
+                                            :key="toErr"
+                                        >
+                                            {{
+                                                toErr.replace(
+                                                    `mail.${emailIndex}.`,
+                                                    ""
+                                                )
+                                            }}<br />
+                                        </span>
+                                    </span>
+                                </div>
+                                <div
+                                    class="absolute -top-1 left-4 w-2 h-2 bg-red-500 rotate-45"
+                                ></div>
+                            </div>
                         </div>
                     </div>
                     <div>
                         <label
                             for="countries"
                             class="block mb-2 text-sm font-medium text-gray-900"
-                            >Pilih Prioritas</label
                         >
+                            Pilih Prioritas <span class="text-red-500">*</span>
+                        </label>
                         <select
                             id="countries"
                             v-model="email.priority"
@@ -258,40 +303,118 @@
                             v-if="
                                 detailErrors['mail.' + emailIndex + '.priority']
                             "
+                            class="relative mt-2"
                         >
-                            <p
-                                v-for="priorityErr in detailErrors[
-                                    'mail.' + emailIndex + '.priority'
-                                ]"
-                                class="text-sm text-red-700"
+                            <div
+                                class="bg-red-500 text-white text-xs rounded-lg py-2 px-3 relative shadow-lg"
                             >
-                                {{
-                                    priorityErr.replace(
-                                        `mail.${emailIndex}.`,
-                                        ""
-                                    )
-                                }}
-                            </p>
+                                <div class="flex items-center gap-2">
+                                    <svg
+                                        class="w-4 h-4 flex-shrink-0"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="2"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                    >
+                                        <path
+                                            d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"
+                                        ></path>
+                                        <line
+                                            x1="12"
+                                            y1="9"
+                                            x2="12"
+                                            y2="13"
+                                        ></line>
+                                        <line
+                                            x1="12"
+                                            y1="17"
+                                            x2="12.01"
+                                            y2="17"
+                                        ></line>
+                                    </svg>
+                                    <span>
+                                        <span
+                                            v-for="priorityErr in detailErrors[
+                                                'mail.' +
+                                                    emailIndex +
+                                                    '.priority'
+                                            ]"
+                                            :key="priorityErr"
+                                        >
+                                            {{
+                                                priorityErr.replace(
+                                                    `mail.${emailIndex}.`,
+                                                    ""
+                                                )
+                                            }}<br />
+                                        </span>
+                                    </span>
+                                </div>
+                                <div
+                                    class="absolute -top-1 left-4 w-2 h-2 bg-red-500 rotate-45"
+                                ></div>
+                            </div>
                         </div>
                     </div>
                     <div>
                         <label
                             for="secret"
                             class="block mb-2 text-sm font-medium text-gray-900"
-                            >Secret key</label
                         >
+                            Secret key <span class="text-red-500">*</span>
+                        </label>
                         <input
                             type="text"
                             id="secret"
                             v-model="emails.secret"
+                            @focus="clearError('secret')"
                             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                             placeholder="Masukkan Secret key"
                             required
                         />
-                        <div v-if="invalidKey && formModal">
-                            <p class="text-sm text-red-700">
-                                {{ invalidKey }}
-                            </p>
+                        <div
+                            v-if="invalidKey && formModal"
+                            class="relative mt-2"
+                        >
+                            <div
+                                class="bg-red-500 text-white text-xs rounded-lg py-2 px-3 relative shadow-lg"
+                            >
+                                <div class="flex items-center gap-2">
+                                    <svg
+                                        class="w-4 h-4 flex-shrink-0"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="2"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                    >
+                                        <path
+                                            d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"
+                                        ></path>
+                                        <line
+                                            x1="12"
+                                            y1="9"
+                                            x2="12"
+                                            y2="13"
+                                        ></line>
+                                        <line
+                                            x1="12"
+                                            y1="17"
+                                            x2="12.01"
+                                            y2="17"
+                                        ></line>
+                                    </svg>
+                                    <span>{{ invalidKey }}</span>
+                                </div>
+                                <div
+                                    class="absolute -top-1 left-4 w-2 h-2 bg-red-500 rotate-45"
+                                ></div>
+                            </div>
                         </div>
                     </div>
                     <div>
@@ -310,6 +433,14 @@
                                     <input
                                         type="text"
                                         v-model="email.attachment[index]"
+                                        @focus="
+                                            clearError(
+                                                'mail.' +
+                                                    emailIndex +
+                                                    '.attachment.' +
+                                                    index
+                                            )
+                                        "
                                         class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                                         placeholder="Lampiran URL..."
                                         required
@@ -323,23 +454,63 @@
                                                     index
                                             ]
                                         "
+                                        class="relative mt-2"
                                     >
-                                        <p
-                                            v-for="attachmentErr in detailErrors[
-                                                'mail.' +
-                                                    emailIndex +
-                                                    '.attachment.' +
-                                                    index
-                                            ]"
-                                            class="text-sm text-red-700"
+                                        <div
+                                            class="bg-red-500 text-white text-xs rounded-lg py-2 px-3 relative shadow-lg"
                                         >
-                                            {{
-                                                attachmentErr.replace(
-                                                    `mail.${emailIndex}.`,
-                                                    ""
-                                                )
-                                            }}
-                                        </p>
+                                            <div
+                                                class="flex items-center gap-2"
+                                            >
+                                                <svg
+                                                    class="w-4 h-4 flex-shrink-0"
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    viewBox="0 0 24 24"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    stroke-width="2"
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                >
+                                                    <path
+                                                        d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"
+                                                    ></path>
+                                                    <line
+                                                        x1="12"
+                                                        y1="9"
+                                                        x2="12"
+                                                        y2="13"
+                                                    ></line>
+                                                    <line
+                                                        x1="12"
+                                                        y1="17"
+                                                        x2="12.01"
+                                                        y2="17"
+                                                    ></line>
+                                                </svg>
+                                                <span>
+                                                    <span
+                                                        v-for="attachmentErr in detailErrors[
+                                                            'mail.' +
+                                                                emailIndex +
+                                                                '.attachment.' +
+                                                                index
+                                                        ]"
+                                                        :key="attachmentErr"
+                                                    >
+                                                        {{
+                                                            attachmentErr.replace(
+                                                                `mail.${emailIndex}.`,
+                                                                ""
+                                                            )
+                                                        }}<br />
+                                                    </span>
+                                                </span>
+                                            </div>
+                                            <div
+                                                class="absolute -top-1 left-4 w-2 h-2 bg-red-500 rotate-45"
+                                            ></div>
+                                        </div>
                                     </div>
                                 </div>
                                 <button
@@ -369,8 +540,20 @@
                             <button
                                 type="button"
                                 @click="addAttachment"
-                                class="text-blue-600 hover:text-blue-800"
+                                class="flex items-center justify-center gap-2 text-blue-500 border border-gray-300 bg-blue-50/70 hover:bg-blue-100/50 hover:text-blue-700 font-semibold rounded-lg px-4 py-2 mt-2 transition-all duration-150 shadow-sm w-full"
                             >
+                                <svg
+                                    class="w-4 h-4"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                </svg>
                                 Tambah Lampiran
                             </button>
                         </div>
@@ -446,7 +629,7 @@
 // Import modul dan library yang diperlukan
 import { ref, onMounted, watch } from "vue";
 import { vAutoAnimate } from "@formkit/auto-animate";
-import axios from "axios";
+import * as IntegrasiAPI from "../api/IntegrasiAPI";
 
 // Base URL untuk API
 const baseUrl = import.meta.env.VITE_APP_URL;
@@ -496,20 +679,24 @@ watch(
     { deep: true }
 );
 
+// Fungsi untuk menghapus error ketika input diklik/difocus
+function clearError(field) {
+    if (detailErrors.value[field]) {
+        detailErrors.value[field] = "";
+    }
+    if (field === "secret" && invalidKey.value) {
+        invalidKey.value = "";
+    }
+}
+
 // Fungsi untuk mengirim email
 async function handleSubmit() {
     if (!validateBeforeSubmit()) {
         return;
     }
-    
     invalidKey.value = "";
     try {
-        const response = await axios.post(
-            `${baseUrl}/api/email-queue/send`,
-            emails.value
-        );
-        
-        // Emit notification untuk success
+        const response = await IntegrasiAPI.retrySendEmail(emails.value);
         emit("notification", "success", "Berhasil!", response.data.message);
         emit("close");
     } catch (error) {
@@ -518,17 +705,14 @@ async function handleSubmit() {
             error.response.data &&
             error.response.data.errors
         ) {
-            // Error validasi dari Laravel validator
             errorMessage.value = error.response.data.errors;
         } else if (error.response && error.response.data) {
-            // Error server lainnya (termasuk secret key disabled)
             if (error.response.status === 422) {
-                // Tampilkan error di invalidKey untuk ditampilkan di form
-                invalidKey.value = error.response.data.error || error.response.data.message;
-                // Tidak emit notification - error ditampilkan di form
+                invalidKey.value =
+                    error.response.data.error || error.response.data.message;
             } else {
-                // Error server lainnya (500, dll) - tampilkan notification
-                invalidKey.value = error.response.data.error || error.response.data.message;
+                invalidKey.value =
+                    error.response.data.error || error.response.data.message;
                 emit(
                     "notification",
                     "danger",
@@ -537,7 +721,6 @@ async function handleSubmit() {
                 );
             }
         } else {
-            // Error jaringan atau tidak diketahui
             errorMessage.value = {
                 general: ["Terjadi kesalahan yang tidak diketahui"],
             };
@@ -555,13 +738,23 @@ async function handleSubmit() {
 function validateEmail() {
     let isValid = true;
     const tempErrors = {};
+    const priorityList = ["low", "medium", "high"];
+
+    // Validasi secret key
+    if (!emails.value.secret) {
+        invalidKey.value = "Secret key wajib diisi";
+        isValid = false;
+    } else {
+        invalidKey.value = "";
+    }
+
     // Validasi alamat email penerima
     if (!email.value.to) {
         if (!tempErrors[`mail.${emailIndex.value}.to`]) {
             tempErrors[`mail.${emailIndex.value}.to`] = [];
         }
         tempErrors[`mail.${emailIndex.value}.to`].push(
-            "Alamat email penerima wajib diisi"
+            'Email penerima ("kepada") wajib diisi'
         );
         isValid = false;
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.to)) {
@@ -569,26 +762,37 @@ function validateEmail() {
             tempErrors[`mail.${emailIndex.value}.to`] = [];
         }
         tempErrors[`mail.${emailIndex.value}.to`].push(
-            "Format email tidak valid"
+            'Format email tidak valid untuk kolom "kepada"'
         );
         isValid = false;
     }
+
     // Validasi prioritas
-    if (!email.value.priority) {
+    if (!email.value.priority || !priorityList.includes(email.value.priority)) {
         if (!tempErrors[`mail.${emailIndex.value}.priority`]) {
             tempErrors[`mail.${emailIndex.value}.priority`] = [];
         }
         tempErrors[`mail.${emailIndex.value}.priority`].push(
-            "Prioritas wajib dipilih"
+            "Prioritas wajib diisi dan harus salah satu dari: low, medium, high"
         );
         isValid = false;
     }
-    // Validasi secret key sebelum menambahkan email
-    if (!emails.value.secret) {
-        invalidKey.value = "Secret key wajib diisi";
-        isValid = false;
-    } else {
-        invalidKey.value = "";
+
+    // Validasi attachment (jika ada)
+    if (email.value.attachment && email.value.attachment.length > 0) {
+        for (let i = 0; i < email.value.attachment.length; i++) {
+            const url = email.value.attachment[i];
+            if (url && !/^https?:\/\/[^\s$.?#].[^\s]*$/.test(url)) {
+                if (!tempErrors[`mail.${emailIndex.value}.attachment.${i}`]) {
+                    tempErrors[`mail.${emailIndex.value}.attachment.${i}`] = [];
+                }
+                tempErrors[`mail.${emailIndex.value}.attachment.${i}`].push(
+                    "Setiap attachment harus berupa URL yang valid."
+                );
+                isValid = false;
+                break;
+            }
+        }
     }
 
     detailErrors.value = tempErrors;
@@ -671,10 +875,7 @@ function removeAttachment(index) {
 
 // Fungsi untuk validasi sebelum mengirim email
 function validateBeforeSubmit() {
-    if (!emails.value.secret) {
-        invalidKey.value = "Secret key wajib diisi";
-        return false;
-    }
+    // Cek jika belum ada email yang ditambahkan
     if (emails.value.mail.length === 0) {
         invalidKey.value = "Tambahkan minimal satu email";
         return false;

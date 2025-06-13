@@ -24,8 +24,12 @@ class ApplicationRequest extends FormRequest
     public function messages()
     {
         return [
+            'name.required' => 'Nama aplikasi wajib diisi.',
             'name.unique' => 'Nama aplikasi sudah terdaftar.',
+            'name.max' => 'Nama aplikasi maksimal 255 karakter.',
             'description.required' => 'Deskripsi aplikasi wajib diisi.',
+            'description.string' => 'Deskripsi aplikasi harus berupa teks.',
+            'pic_name.required' => 'Nama PIC wajib diisi.',
         ];
     }
 

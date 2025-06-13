@@ -37,6 +37,7 @@ class EmailLogService
                     ->orWhereHas('application', function ($appQuery) use ($search) {
                         $appQuery->where('name', 'like', '%' . $search . '%');
                     })
+                    ->orWhereRaw("LOWER(JSON_UNQUOTE(JSON_EXTRACT(request, '$.subject'))) LIKE ?", ['%' . strtolower($search) . '%'])
                     ->orWhere('request', 'like', '%' . $search . '%');
             });
         }

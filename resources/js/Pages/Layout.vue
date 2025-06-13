@@ -273,7 +273,7 @@
                         !isSidebarOpen && 'lg:p-3',
                     ]"
                 >
-                    <form @submit.prevent="submit">
+                    <form @submit.prevent="showLogoutModal = true">
                         <input
                             type="hidden"
                             name="_token"
@@ -482,7 +482,7 @@
                                 </div>
                                 <div class="py-1">
                                     <button
-                                        @click="submit"
+                                        @click="showLogoutModal = true"
                                         class="flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 w-full"
                                     >
                                         <svg
@@ -527,6 +527,117 @@
                 </div>
             </main>
         </div>
+
+        <!-- Modal Konfirmasi Logout -->
+        <div
+            tabindex="-1"
+            v-show="showLogoutModal"
+            class="overflow-y-auto bg-black bg-opacity-60 backdrop-blur-sm flex overflow-x-hidden fixed top-0 right-0 left-0 bottom-0 z-50 justify-center items-center w-full md:inset-0"
+        >
+            <div class="relative w-full max-w-sm max-h-full p-2">
+                <div
+                    class="relative bg-white rounded-xl shadow-lg"
+                    ref="logoutModal"
+                >
+                    <!-- Tombol tutup modal -->
+                    <button
+                        @click="showLogoutModal = false"
+                        type="button"
+                        class="absolute top-3 right-3 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-full text-base w-8 h-8 flex justify-center items-center transition"
+                    >
+                        <svg
+                            class="w-4 h-4"
+                            aria-hidden="true"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 20 20"
+                        >
+                            <path
+                                stroke="currentColor"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M6 6l8 8M6 14L14 6"
+                            />
+                        </svg>
+                        <span class="sr-only">Tutup modal</span>
+                    </button>
+                    <div class="p-5 text-center md:p-6">
+                        <!-- Ikon -->
+                        <div class="flex justify-center mb-4">
+                            <div
+                                class="bg-red-100 rounded-full p-2 inline-flex"
+                            >
+                                <svg
+                                    class="w-10 h-10 text-red-600"
+                                    aria-hidden="true"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 48 48"
+                                >
+                                    <path
+                                        stroke="currentColor"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="3"
+                                        d="M32 32l8-8m0 0l-8-8m8 8H12m12 8v2a4 4 0 01-4 4h-4a4 4 0 01-4-4V12a4 4 0 014-4h4a4 4 0 014 4v2"
+                                    />
+                                </svg>
+                            </div>
+                        </div>
+                        <!-- Judul -->
+                        <h2 class="mb-1 text-lg font-bold text-gray-800">
+                            Konfirmasi Logout
+                        </h2>
+                        <!-- Deskripsi -->
+                        <p class="mb-4 text-sm text-gray-600">
+                            Anda akan keluar dari dashboard S-MEBB.<br />
+                            Apakah Anda yakin ingin logout?
+                        </p>
+                        <!-- Tombol konfirmasi -->
+                        <button
+                            @click="submitLogout"
+                            type="button"
+                            class="text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-semibold rounded-lg text-sm inline-flex items-center px-5 py-2 text-center transition"
+                            :disabled="logoutLoading"
+                        >
+                            <svg
+                                v-if="logoutLoading"
+                                aria-hidden="true"
+                                class="w-4 h-4 mr-2 text-white animate-spin"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                            >
+                                <circle
+                                    class="opacity-25"
+                                    cx="12"
+                                    cy="12"
+                                    r="10"
+                                    stroke="currentColor"
+                                    stroke-width="4"
+                                ></circle>
+                                <path
+                                    class="opacity-75"
+                                    fill="currentColor"
+                                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                                ></path>
+                            </svg>
+                            <span v-if="!logoutLoading">Ya, Logout</span>
+                            <span v-else>Memproses...</span>
+                        </button>
+                        <!-- Tombol batal -->
+                        <button
+                            @click="showLogoutModal = false"
+                            type="button"
+                            class="py-2 px-5 ml-2 text-sm font-semibold text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-300 hover:bg-gray-100 hover:text-gray-950 focus:z-10 focus:ring-4 focus:ring-gray-100 transition"
+                            :disabled="logoutLoading"
+                        >
+                            Batal
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -540,6 +651,11 @@ const showAdminMenu = ref(false);
 // State untuk menampilkan atau menyembunyikan sidebar
 const isSidebarOpen = ref(true);
 
+// State untuk modal konfirmasi logout
+const showLogoutModal = ref(false);
+// State loading untuk tombol logout
+const logoutLoading = ref(false);
+
 // Mengambil data halaman dan pengguna dari Inertia.js
 const page = usePage();
 const user = page.props.auth.user;
@@ -552,6 +668,18 @@ const form = useForm({
 // Fungsi untuk mengirimkan form logout
 function submit() {
     form.post("/logout");
+}
+
+// Fungsi untuk logout asli (dipanggil dari modal)
+function submitLogout() {
+    if (logoutLoading.value) return;
+    logoutLoading.value = true;
+    form.post("/logout", {
+        onFinish: () => {
+            logoutLoading.value = false;
+            showLogoutModal.value = false;
+        },
+    });
 }
 
 // Menghitung path URL saat ini

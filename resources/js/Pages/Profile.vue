@@ -141,16 +141,58 @@
                                 id="name"
                                 v-model="form.name"
                                 type="text"
+                                @focus="clearProfileError('name')"
                                 class="pl-10 focus:ring-green-500 focus:border-green-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-lg py-2"
                                 placeholder="Masukkan nama lengkap Anda"
                             />
                         </div>
-                        <p
-                            v-if="form.errors.name"
-                            class="mt-1 text-sm text-red-600"
-                        >
-                            {{ form.errors.name }}
-                        </p>
+                        <div v-if="form.errors.name" class="relative mt-2">
+                            <div
+                                class="bg-red-500 text-white text-xs rounded-lg py-2 px-3 relative shadow-lg"
+                            >
+                                <div class="flex items-center gap-2">
+                                    <svg
+                                        class="w-4 h-4 flex-shrink-0"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="2"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                    >
+                                        <path
+                                            d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"
+                                        ></path>
+                                        <line
+                                            x1="12"
+                                            y1="9"
+                                            x2="12"
+                                            y2="13"
+                                        ></line>
+                                        <line
+                                            x1="12"
+                                            y1="17"
+                                            x2="12.01"
+                                            y2="17"
+                                        ></line>
+                                    </svg>
+                                    <span>
+                                        <span
+                                            v-for="err in [].concat(
+                                                form.errors.name
+                                            )"
+                                            :key="err"
+                                        >
+                                            {{ err }}<br />
+                                        </span>
+                                    </span>
+                                </div>
+                                <div
+                                    class="absolute -top-1 left-4 w-2 h-2 bg-red-500 rotate-45"
+                                ></div>
+                            </div>
+                        </div>
                     </div>
                     <div class="mb-4">
                         <label
@@ -180,17 +222,59 @@
                             <input
                                 id="email"
                                 v-model="form.email"
-                                type="email"
+                                type="text"
+                                @focus="clearProfileError('email')"
                                 class="pl-10 focus:ring-green-500 focus:border-green-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-lg py-2"
                                 placeholder="Masukkan email Anda"
                             />
                         </div>
-                        <p
-                            v-if="form.errors.email"
-                            class="mt-1 text-sm text-red-600"
-                        >
-                            {{ form.errors.email }}
-                        </p>
+                        <div v-if="form.errors.email" class="relative mt-2">
+                            <div
+                                class="bg-red-500 text-white text-xs rounded-lg py-2 px-3 relative shadow-lg"
+                            >
+                                <div class="flex items-center gap-2">
+                                    <svg
+                                        class="w-4 h-4 flex-shrink-0"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="2"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                    >
+                                        <path
+                                            d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"
+                                        ></path>
+                                        <line
+                                            x1="12"
+                                            y1="9"
+                                            x2="12"
+                                            y2="13"
+                                        ></line>
+                                        <line
+                                            x1="12"
+                                            y1="17"
+                                            x2="12.01"
+                                            y2="17"
+                                        ></line>
+                                    </svg>
+                                    <span>
+                                        <span
+                                            v-for="err in [].concat(
+                                                form.errors.email
+                                            )"
+                                            :key="err"
+                                        >
+                                            {{ err }}<br />
+                                        </span>
+                                    </span>
+                                </div>
+                                <div
+                                    class="absolute -top-1 left-4 w-2 h-2 bg-red-500 rotate-45"
+                                ></div>
+                            </div>
+                        </div>
                     </div>
                     <div class="flex justify-end">
                         <button
@@ -289,19 +373,108 @@
                                 </svg>
                             </div>
                             <input
+                                :type="
+                                    showCurrentPassword ? 'text' : 'password'
+                                "
                                 id="current_password"
                                 v-model="passwordForm.current_password"
-                                type="password"
-                                class="pl-10 focus:ring-green-500 focus:border-green-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-lg py-2"
-                                placeholder="Masukkan kata sandi saat ini"
+                                @focus="clearPasswordError('current_password')"
+                                class="pl-10 pr-10 focus:ring-green-500 focus:border-green-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-lg py-2"
+                                placeholder="Masukkan password saat ini"
                             />
+                            <button
+                                type="button"
+                                @click="
+                                    showCurrentPassword = !showCurrentPassword
+                                "
+                                class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-500"
+                                tabindex="-1"
+                            >
+                                <svg
+                                    v-if="showCurrentPassword"
+                                    class="w-5 h-5"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                >
+                                    <path
+                                        d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
+                                    ></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                                <svg
+                                    v-else
+                                    class="w-5 h-5"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                >
+                                    <path
+                                        d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+                                    ></path>
+                                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                                </svg>
+                            </button>
                         </div>
-                        <p
+                        <div
                             v-if="passwordForm.errors.current_password"
-                            class="mt-1 text-sm text-red-600"
+                            class="relative mt-2"
                         >
-                            {{ passwordForm.errors.current_password }}
-                        </p>
+                            <div
+                                class="bg-red-500 text-white text-xs rounded-lg py-2 px-3 relative shadow-lg"
+                            >
+                                <div class="flex items-center gap-2">
+                                    <svg
+                                        class="w-4 h-4 flex-shrink-0"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="2"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                    >
+                                        <path
+                                            d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"
+                                        ></path>
+                                        <line
+                                            x1="12"
+                                            y1="9"
+                                            x2="12"
+                                            y2="13"
+                                        ></line>
+                                        <line
+                                            x1="12"
+                                            y1="17"
+                                            x2="12.01"
+                                            y2="17"
+                                        ></line>
+                                    </svg>
+                                    <span>
+                                        <span
+                                            v-for="err in [].concat(
+                                                passwordForm.errors
+                                                    .current_password
+                                            )"
+                                            :key="err"
+                                        >
+                                            {{ err }}<br />
+                                        </span>
+                                    </span>
+                                </div>
+                                <div
+                                    class="absolute -top-1 left-4 w-2 h-2 bg-red-500 rotate-45"
+                                ></div>
+                            </div>
+                        </div>
                     </div>
                     <!-- Password baru -->
                     <div class="mb-4">
@@ -330,19 +503,103 @@
                                 </svg>
                             </div>
                             <input
+                                :type="showNewPassword ? 'text' : 'password'"
                                 id="new_password"
                                 v-model="passwordForm.new_password"
-                                type="password"
-                                class="pl-10 focus:ring-green-500 focus:border-green-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-lg py-2"
-                                placeholder="Masukkan kata sandi baru"
+                                @focus="clearPasswordError('new_password')"
+                                class="pl-10 pr-10 focus:ring-green-500 focus:border-green-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-lg py-2"
+                                placeholder="Masukkan password baru"
                             />
+                            <button
+                                type="button"
+                                @click="showNewPassword = !showNewPassword"
+                                class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-500"
+                                tabindex="-1"
+                            >
+                                <svg
+                                    v-if="showNewPassword"
+                                    class="w-5 h-5"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                >
+                                    <path
+                                        d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
+                                    ></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                                <svg
+                                    v-else
+                                    class="w-5 h-5"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                >
+                                    <path
+                                        d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+                                    ></path>
+                                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                                </svg>
+                            </button>
                         </div>
-                        <p
+                        <div
                             v-if="passwordForm.errors.new_password"
-                            class="mt-1 text-sm text-red-600"
+                            class="relative mt-2"
                         >
-                            {{ passwordForm.errors.new_password }}
-                        </p>
+                            <div
+                                class="bg-red-500 text-white text-xs rounded-lg py-2 px-3 relative shadow-lg"
+                            >
+                                <div class="flex items-center gap-2">
+                                    <svg
+                                        class="w-4 h-4 flex-shrink-0"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="2"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                    >
+                                        <path
+                                            d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"
+                                        ></path>
+                                        <line
+                                            x1="12"
+                                            y1="9"
+                                            x2="12"
+                                            y2="13"
+                                        ></line>
+                                        <line
+                                            x1="12"
+                                            y1="17"
+                                            x2="12.01"
+                                            y2="17"
+                                        ></line>
+                                    </svg>
+                                    <span>
+                                        <span
+                                            v-for="err in [].concat(
+                                                passwordForm.errors.new_password
+                                            )"
+                                            :key="err"
+                                        >
+                                            {{ err }}<br />
+                                        </span>
+                                    </span>
+                                </div>
+                                <div
+                                    class="absolute -top-1 left-4 w-2 h-2 bg-red-500 rotate-45"
+                                ></div>
+                            </div>
+                        </div>
                     </div>
                     <!-- Konfirmasi Password yang baru -->
                     <div class="mb-4">
@@ -371,12 +628,111 @@
                                 </svg>
                             </div>
                             <input
+                                :type="
+                                    showConfirmPassword ? 'text' : 'password'
+                                "
                                 id="new_password_confirmation"
                                 v-model="passwordForm.new_password_confirmation"
-                                type="password"
-                                class="pl-10 focus:ring-green-500 focus:border-green-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-lg py-2"
+                                @focus="
+                                    clearPasswordError(
+                                        'new_password_confirmation'
+                                    )
+                                "
+                                class="pl-10 pr-10 focus:ring-green-500 focus:border-green-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-lg py-2"
                                 placeholder="Konfirmasi password baru"
                             />
+                            <button
+                                type="button"
+                                @click="
+                                    showConfirmPassword = !showConfirmPassword
+                                "
+                                class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-500"
+                                tabindex="-1"
+                            >
+                                <svg
+                                    v-if="showConfirmPassword"
+                                    class="w-5 h-5"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                >
+                                    <path
+                                        d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
+                                    ></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                                <svg
+                                    v-else
+                                    class="w-5 h-5"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                >
+                                    <path
+                                        d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+                                    ></path>
+                                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                                </svg>
+                            </button>
+                        </div>
+                        <div
+                            v-if="passwordForm.errors.new_password_confirmation"
+                            class="relative mt-2"
+                        >
+                            <div
+                                class="bg-red-500 text-white text-xs rounded-lg py-2 px-3 relative shadow-lg"
+                            >
+                                <div class="flex items-center gap-2">
+                                    <svg
+                                        class="w-4 h-4 flex-shrink-0"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="2"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                    >
+                                        <path
+                                            d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"
+                                        ></path>
+                                        <line
+                                            x1="12"
+                                            y1="9"
+                                            x2="12"
+                                            y2="13"
+                                        ></line>
+                                        <line
+                                            x1="12"
+                                            y1="17"
+                                            x2="12.01"
+                                            y2="17"
+                                        ></line>
+                                    </svg>
+                                    <span>
+                                        <span
+                                            v-for="err in [].concat(
+                                                passwordForm.errors
+                                                    .new_password_confirmation
+                                            )"
+                                            :key="err"
+                                        >
+                                            {{ err }}<br />
+                                        </span>
+                                    </span>
+                                </div>
+                                <div
+                                    class="absolute -top-1 left-4 w-2 h-2 bg-red-500 rotate-45"
+                                ></div>
+                            </div>
                         </div>
                     </div>
                     <div class="flex justify-end">
@@ -433,10 +789,11 @@
 <script setup>
 // Mengimpor fungsi dan komponen yang diperlukan
 import { Head } from "@inertiajs/vue3";
-import { reactive } from "vue";
+import { reactive, onMounted, ref } from "vue";
 import { useForm, usePage } from "@inertiajs/vue3";
 import Layout from "./Layout.vue";
 import NotificationToast from "../components/NotificationToast.vue";
+import * as ProfileAPI from "../api/ProfileAPI";
 
 // Mendapatkan data pengguna dari properti halaman
 const page = usePage();
@@ -456,56 +813,96 @@ const form = useForm({
     email: user.email,
 });
 
-// Form untuk memperbarui profil pengguna
 const passwordForm = useForm({
     current_password: "",
     new_password: "",
     new_password_confirmation: "",
 });
 
-// Form untuk memperbarui password pengguna
-const updateProfile = () => {
-    form.put("/profile", {
-        preserveScroll: true,
-        onSuccess: (data) => {
-            notification.show = true;
-            notification.type = "success";
-            notification.message = "Berhasil!";
-            notification.description = "Profil berhasil diperbarui.";
-        },
-        onError: (errors) => {
+// UpdateProfile
+const updateProfile = async () => {
+    form.clearErrors();
+    try {
+        const response = await ProfileAPI.updateProfile({
+            name: form.name,
+            email: form.email,
+        });
+        // Update user data pada halaman setelah berhasil update profil
+        if (response?.data?.user) {
+            user.name = response.data.user.name;
+            user.email = response.data.user.email;
+        }
+        notification.show = true;
+        notification.type = "success";
+        notification.message = "Berhasil!";
+        notification.description = "Profil berhasil diperbarui.";
+    } catch (error) {
+        // Tangani error validasi dari backend
+        if (error.response?.status === 422 && error.response?.data?.errors) {
+            form.setError(error.response.data.errors);
+        } else {
             notification.show = true;
             notification.type = "danger";
             notification.message = "Gagal!";
             notification.description =
-                errors.name || errors.email || "Terjadi kesalahan.";
-        },
-    });
+                error.response?.data?.message || "Terjadi kesalahan.";
+        }
+    }
 };
 
-// Fungsi untuk memperbarui password pengguna
-const updatePassword = () => {
-    passwordForm.put("/profile/password", {
-        preserveScroll: true,
-        onSuccess: (data) => {
-            passwordForm.reset();
-            notification.show = true;
-            notification.type = "success";
-            notification.message = "Berhasil!";
-            notification.description = "Password berhasil diperbarui.";
-        },
-        onError: (errors) => {
+// UpdatePassword
+const updatePassword = async () => {
+    passwordForm.clearErrors();
+    try {
+        await ProfileAPI.updatePassword({
+            current_password: passwordForm.current_password,
+            new_password: passwordForm.new_password,
+            new_password_confirmation: passwordForm.new_password_confirmation,
+        });
+        passwordForm.reset();
+        notification.show = true;
+        notification.type = "success";
+        notification.message = "Berhasil!";
+        notification.description = "Password berhasil diperbarui.";
+    } catch (error) {
+        // Tangani error validasi dari backend
+        if (error.response?.status === 422 && error.response?.data?.errors) {
+            passwordForm.setError(error.response.data.errors);
+        } else {
             notification.show = true;
             notification.type = "danger";
             notification.message = "Gagal!";
             notification.description =
-                errors.current_password ||
-                errors.new_password ||
-                "Terjadi kesalahan.";
-        },
-    });
+                error.response?.data?.message || "Terjadi kesalahan.";
+        }
+    }
 };
 
 // State untuk mengelola tab aktif (e.g., "profile" atau "security")
 const activeTab = reactive({ current: "profile" });
+
+// Bersihkan data-page
+onMounted(() => {
+    const appDiv = document.getElementById("app");
+    if (appDiv) {
+        appDiv.removeAttribute("data-page");
+    }
+});
+
+function clearProfileError(field) {
+    if (form.errors[field]) {
+        form.errors[field] = "";
+    }
+}
+
+function clearPasswordError(field) {
+    if (passwordForm.errors[field]) {
+        passwordForm.errors[field] = "";
+    }
+}
+
+// State untuk show/hide password
+const showCurrentPassword = ref(false);
+const showNewPassword = ref(false);
+const showConfirmPassword = ref(false);
 </script>

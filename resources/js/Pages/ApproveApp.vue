@@ -227,26 +227,21 @@
 </template>
 
 <script setup>
-import { ref, watch } from "vue";
-import axios from "axios";
+import { ref, watch, onMounted } from "vue";
+import * as ApproveAPI from "../api/ApproveAPI";
 import Layout from "./Layout.vue";
 import TableApprove from "../components/TableApprove.vue";
 import TablePagination from "../components/TablePagination.vue";
 import { Head } from "@inertiajs/vue3";
-import { useFetch, onClickOutside, useStorage } from "@vueuse/core";
+import { onClickOutside, useStorage } from "@vueuse/core";
 import NotificationToast from "../components/NotificationToast.vue";
 
-// Mendefinisikan URL dasar untuk API
+// URL dasar untuk API
 const baseUrl = import.meta.env.VITE_APP_URL;
 
 // Menyimpan urutan dan arah urutan di local storage
 const orderBy = useStorage("orderBy", "created_at");
 const orderDirection = useStorage("orderDirection", "desc");
-
-// Mendefinisikan URL untuk permintaan data aplikasi approve
-const url = ref(
-    `${baseUrl}/api/applications/approve?orderBy=${orderBy.value}&orderDirection=${orderDirection.value}`
-);
 
 // Mendefinisikan variabel reaktif untuk menyimpan data aplikasi
 const applications = ref({ data: [] });
@@ -270,23 +265,50 @@ const notification = ref({
     description: "",
 });
 
-// Mengambil data dari API
-const { isFetching, data } = useFetch(url, { refetch: true }).get().json();
+const isFetching = ref(false);
 
-// Mengawasi perubahan data dan memperbarui variabel applications
-watch(data, (newData) => {
-    if (newData) {
-        applications.value = newData.data.applications;
+// Refactor: fetch data via API service
+async function fetchApproveApplications() {
+    isFetching.value = true;
+    try {
+        const response = await ApproveAPI.fetchApproveApplications({
+            orderBy: orderBy.value,
+            orderDirection: orderDirection.value,
+            search: search.value,
+            page: page.value,
+        });
+        applications.value = response.data.applications ||
+            response.data.data?.applications || { data: [] };
+    } catch (error) {
+        notification.value = {
+            show: true,
+            type: "danger",
+            message: "Gagal Memuat Data!",
+            description:
+                error.response?.data?.message ||
+                "Terjadi kesalahan saat menyegarkan data.",
+        };
+    } finally {
+        isFetching.value = false;
+    }
+}
+
+// Inisialisasi data saat komponen dimuat
+fetchApproveApplications();
+
+// Bersihkan data-page pada elemen #app setelah SPA ter-hydrate
+onMounted(() => {
+    const appDiv = document.getElementById("app");
+    if (appDiv) {
+        appDiv.removeAttribute("data-page");
     }
 });
 
 // Fungsi untuk menangani perubahan halaman
-const handlePageChange = (page) => {
-    if (page === applications.value.current_page) {
-        return;
-    }
-    url.value = `${baseUrl}/api/applications/approve?page=${page}&search=${search.value}&orderBy=${orderBy.value}&orderDirection=${orderDirection.value}`;
-    applications.value = { data: [] };
+const handlePageChange = (newPage) => {
+    if (newPage === applications.value.current_page) return;
+    page.value = newPage;
+    fetchApproveApplications();
 };
 
 // Menutup modal approve saat klik di luar modal
@@ -308,11 +330,8 @@ const openApproveModal = (application) => {
 // Fungsi untuk mengirim permintaan approve aplikasi
 const approveApplication = async () => {
     try {
-        const response = await axios.post(
-            `${baseUrl}/api/applications/approve-application`,
-            {
-                id: selectedApplication.value.id,
-            }
+        const response = await ApproveAPI.approveApplication(
+            selectedApplication.value.id
         );
         notification.value = {
             show: true,
@@ -321,13 +340,13 @@ const approveApplication = async () => {
             description: response.data.message,
         };
         showApproveModal.value = false;
-        refreshData();
+        fetchApproveApplications();
     } catch (error) {
         notification.value = {
             show: true,
             type: "danger",
             message: "Gagal!",
-            description: error.response.data.message || "Terjadi kesalahan",
+            description: error.response?.data?.message || "Terjadi kesalahan",
         };
     }
 };
@@ -341,12 +360,9 @@ const openRejectModal = (application) => {
 // Fungsi untuk mengirim permintaan reject aplikasi
 const rejectApplication = async () => {
     try {
-        const response = await axios.post(
-            `${baseUrl}/api/applications/application-status-change`,
-            {
-                id: selectedApplication.value.id,
-                status: "rejected",
-            }
+        const response = await ApproveAPI.changeApplicationStatus(
+            selectedApplication.value.id,
+            "rejected"
         );
         notification.value = {
             show: true,
@@ -355,32 +371,20 @@ const rejectApplication = async () => {
             description: response.data.message,
         };
         showRejectModal.value = false;
-        refreshData();
+        fetchApproveApplications();
     } catch (error) {
         notification.value = {
             show: true,
             type: "danger",
             message: "Gagal!",
-            description: error.response.data.message || "Terjadi kesalahan",
+            description: error.response?.data?.message || "Terjadi kesalahan",
         };
     }
 };
 
 // Fungsi untuk menyegarkan data aplikasi
-const refreshData = async () => {
-    try {
-        const response = await axios.get(url.value);
-        applications.value = response.data.data.applications;
-    } catch (error) {
-        notification.value = {
-            show: true,
-            type: "danger",
-            message: "Gagal Memuat Data!",
-            description:
-                error.response?.data?.message ||
-                "Terjadi kesalahan saat menyegarkan data.",
-        };
-    }
+const refreshData = () => {
+    fetchApproveApplications();
 };
 
 // Header tabel

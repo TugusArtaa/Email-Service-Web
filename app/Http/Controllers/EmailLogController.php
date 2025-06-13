@@ -39,10 +39,11 @@ class EmailLogController extends Controller
         $orderBy = $request->query('orderBy', 'desc');
         $emailLogs = $this->emailLogService->getEmailLogs(search: $search, orderBy: $orderBy);
 
-        return responseWithData(
-            $emailLogs->isEmpty() ? 'Log email tidak ditemukan' : 'Log email berhasil ditemukan',
-            ['emailLogs' => $emailLogs]
-        );
+        // Pastikan response API selalu dalam format JSON standar SPA/API
+        return response()->json([
+            'message' => $emailLogs->isEmpty() ? 'Log email tidak ditemukan' : 'Log email berhasil ditemukan',
+            'emailLogs' => $emailLogs,
+        ]);
     }
 
     // Function untuk delete log email berdasarkan ID yang dipilih
@@ -54,11 +55,14 @@ class EmailLogController extends Controller
 
         $ids = $request->input('ids');
         if (count($ids) === 0) {
-            return redirect()->back()->with('error', 'Tidak ada log email yang dipilih untuk dihapus.');
+            return response()->json([
+                'message' => 'Tidak ada log email yang dipilih untuk dihapus.',
+            ], 422);
         }
 
-        $ids = $request->input('ids');
         $this->emailLogService->deleteEmailLogsByIds($ids);
-        return redirect()->back()->with('success', 'Log email yang dipilih berhasil dihapus.');
+        return response()->json([
+            'message' => 'Log email yang dipilih berhasil dihapus.',
+        ]);
     }
 }

@@ -34,29 +34,42 @@ class EmailQueueService
         $emailLog = EmailLog::find($id);
 
         if (!$emailLog) {
-            return errorResponse('Data log email tidak ditemukan', 404);
+            // Kembalikan response JSON standar REST API
+            return response()->json([
+                'success' => false,
+                'message' => 'Data log email tidak ditemukan',
+            ], 404);
         }
 
         try {
             $emailData = json_decode($emailLog->request, true);
 
-
             if (json_last_error() !== JSON_ERROR_NONE) {
-                return validationError(['Format JSON pada data log email tidak valid.'], 422);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Format JSON pada data log email tidak valid.',
+                ], 422);
             }
 
-            return responseWithData('Data log email berhasil di ekstrak', [
-                'to' => $emailData['to'] ?? '',
-                'subject' => $emailData['subject'] ?? '',
-                'content' => $emailData['content'] ?? '',
-                'priority' => $emailData['priority'] ?? '',
-                'attachment' => $emailData['attachment'] ?? [],
-                'status' => $emailLog['status'] ?? '',
-                'error_message' => $emailLog['error_message'] ?? '',
-                'secret' => $emailData['secret'] ?? '',
+            return response()->json([
+                'success' => true,
+                'message' => 'Data log email berhasil di ekstrak',
+                'data' => [
+                    'to' => $emailData['to'] ?? '',
+                    'subject' => $emailData['subject'] ?? '',
+                    'content' => $emailData['content'] ?? '',
+                    'priority' => $emailData['priority'] ?? '',
+                    'attachment' => $emailData['attachment'] ?? [],
+                    'status' => $emailLog['status'] ?? '',
+                    'error_message' => $emailLog['error_message'] ?? '',
+                    'secret' => $emailData['secret'] ?? '',
+                ]
             ]);
         } catch (\Exception $e) {
-            return queueError('Terjadi kesalahan saat memproses data log email.');
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat memproses data log email.',
+            ], 500);
         }
     }
 

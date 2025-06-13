@@ -195,6 +195,9 @@
 
         <!-- Body/ isi Tabel -->
         <Table
+            :key="
+                logs.current_page + '-' + logs.total + '-' + logs.data?.length
+            "
             :thead="thead"
             :logs="logs"
             :fetch="fetchData"
@@ -414,7 +417,7 @@
 <script setup>
 // Import komponen dan library yang diperlukan
 import Layout from "./Layout.vue";
-import { ref, watch } from "vue";
+import { ref, watch, onMounted } from "vue";
 import Table from "../components/TableIntegrasi.vue";
 import Pagination from "../components/TablePagination.vue";
 import Search from "../components/Search.vue";
@@ -422,8 +425,8 @@ import AddModal from "../components/ModalAddEmail.vue";
 import ModalImportExcel from "../components/ModalImportExcel.vue";
 import NotificationToast from "../components/NotificationToast.vue";
 import { Head, useForm, usePage } from "@inertiajs/vue3";
-import { useFetch, onClickOutside, useStorage } from "@vueuse/core";
-import axios from "axios";
+import { onClickOutside, useStorage } from "@vueuse/core";
+import * as IntegrasiAPI from "../api/IntegrasiAPI";
 
 // State dan variabel reaktif
 const baseUrl = import.meta.env.VITE_APP_URL;
@@ -500,43 +503,47 @@ const handleSearch = (query) => {
 
 // Fungsi untuk menangani checkbox
 const handleCheckbox = (checked) => {
-    form.ids = checked;
+    // Sinkronkan form.ids dengan checked
+    form.ids = [...checked];
+    // Reset selectedIdsCount agar selalu sesuai dengan jumlah terpilih saat ini
+    selectedIdsCount.value = form.ids.length;
 };
 
 // Fungsi untuk memuat ulang data
-function refreshData(page = 1) {
+async function refreshData(page = 1) {
     currentPage.value = page;
-    const { data, isFetching } = useFetch(
-        `${baseUrl}/api/email-logs?orderBy=${orderBy.value}&search=${search.value}&page=${page}&date=${date.value}`,
-        { refetch: true }
-    )
-        .get()
-        .json();
-    watch(data, (newData) => {
-        if (newData) {
-            logs.value = [];
-            logs.value = newData.data.emailLogs;
-        }
-    });
-    watch(isFetching, (newIsFetching) => {
-        fetchData.value = newIsFetching;
-    });
+    fetchData.value = true;
+    try {
+        const response = await IntegrasiAPI.fetchEmailLogs({
+            orderBy: orderBy.value,
+            search: search.value,
+            page,
+            date: date.value,
+        });
+        logs.value = response.data.emailLogs;
+    } catch (err) {
+        notification.value = {
+            show: true,
+            type: "danger",
+            message: "Gagal!",
+            description: err.message || "Gagal memuat data!",
+        };
+    } finally {
+        fetchData.value = false;
+    }
 }
 
 // Fungsi untuk memuat ulang data tanpa loading
-function refreshDataWithoutFetchLoad() {
-    const { data } = useFetch(
-        `${baseUrl}/api/email-logs?orderBy=${orderBy.value}&search=${search.value}&page=${currentPage.value}`,
-        { refetch: true }
-    )
-        .get()
-        .json();
-    watch(data, (newData) => {
-        if (newData) {
-            logs.value = [];
-            logs.value = newData.data.emailLogs;
-        }
-    });
+async function refreshDataWithoutFetchLoad() {
+    try {
+        const response = await IntegrasiAPI.fetchEmailLogs({
+            orderBy: orderBy.value,
+            search: search.value,
+            page: currentPage.value,
+            date: date.value,
+        });
+        logs.value = response.data.emailLogs;
+    } catch (err) {}
 }
 
 // Interval untuk memuat ulang data setiap 2 detik
@@ -551,8 +558,9 @@ function handleRefresh() {
 
 // Fungsi untuk menghapus data yang dipilih
 function handleDeleteCheckbox() {
+    // Hitung ulang selectedIdsCount berdasarkan form.ids saat tombol delete diklik
+    selectedIdsCount.value = form.ids.length;
     if (form.ids.length > 0) {
-        selectedIdsCount.value = form.ids.length;
         showDeleteModal.value = true;
     } else {
         notification.value = {
@@ -565,29 +573,31 @@ function handleDeleteCheckbox() {
 }
 
 //Fungsi Delete Checkbox
-function confirmDelete() {
-    form.delete(`${baseUrl}/integrasi/delete`, {
-        onSuccess: (response) => {
-            notification.value = {
-                show: true,
-                type: "success",
-                message: "Berhasil!",
-                description: response.message || "Data berhasil dihapus!",
-            };
-            form.ids = [];
-            refreshData();
-            showDeleteModal.value = false;
-        },
-        onError: (error) => {
-            notification.value = {
-                show: true,
-                type: "danger",
-                message: "Gagal!",
-                description:
-                    error.response?.data?.message || "Gagal menghapus data!",
-            };
-        },
-    });
+async function confirmDelete() {
+    try {
+        await IntegrasiAPI.deleteEmailLogs(form.ids, baseUrl);
+        notification.value = {
+            show: true,
+            type: "success",
+            message: "Berhasil!",
+            description: "Data berhasil dihapus!",
+        };
+        // Reset checkbox state & counter setelah hapus
+        form.ids = [];
+        selectedIdsCount.value = 0;
+        await refreshData();
+        showDeleteModal.value = false;
+    } catch (error) {
+        notification.value = {
+            show: true,
+            type: "danger",
+            message: "Gagal!",
+            description:
+                error?.response?.data?.message ||
+                error.message ||
+                "Gagal menghapus data!",
+        };
+    }
 }
 
 //Untuk Notification
@@ -614,4 +624,12 @@ watch(error, (newError) => {
 
 // Inisialisasi data saat komponen dimuat
 refreshData();
+
+// Bersihkan data-page pada elemen
+onMounted(() => {
+    const appDiv = document.getElementById("app");
+    if (appDiv) {
+        appDiv.removeAttribute("data-page");
+    }
+});
 </script>

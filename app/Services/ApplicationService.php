@@ -18,7 +18,8 @@ class ApplicationService
         return Application::select('id', 'name', 'pic_name', 'created_at', 'status')
             ->where(function ($query) use ($search) {
                 $query->where('name', 'like', "%$search%")
-                    ->orWhere('pic_name', 'like', "%$search%");
+                    ->orWhere('pic_name', 'like', "%$search%")
+                    ->orWhere('status', 'like', "%$search%");
             })
             ->whereIn('status', ['enabled', 'disabled'])
             ->orderBy($orderBy, $orderDirection)
@@ -48,18 +49,15 @@ class ApplicationService
     //Function untuk return format response aplikasi
     public function formatApplicationResponse(Application $application, ?string $secretKey = null): array
     {
-        $response = [
-            'application' => [
-                'id' => $application->id,
-                'name' => $application->name,
-                'description' => $application->description,
-                'pic_name' => $application->pic_name,
-                'created_at' => $application->created_at,
-                'secret_key' => $application->secret_key
-            ]
+        // Ubah agar response langsung array aplikasi (bukan nested 'application')
+        return [
+            'id' => $application->id,
+            'name' => $application->name,
+            'description' => $application->description,
+            'pic_name' => $application->pic_name,
+            'created_at' => $application->created_at,
+            'secret_key' => $application->secret_key
         ];
-
-        return $response;
     }
 
     // Function untuk menghapus aplikasi berdasarkan ID

@@ -241,9 +241,9 @@
 </template>
 
 <script setup>
-// Import library Vue dan Axios
+// Import library Vue
 import { ref, watch } from "vue";
-import axios from "axios";
+import * as IntegrasiAPI from "../api/IntegrasiAPI";
 
 // Props untuk menerima data dari parent component
 const props = defineProps({
@@ -301,23 +301,11 @@ async function uploadFile() {
         error.value = "Silakan pilih file terlebih dahulu.";
         return;
     }
-
-    // Set loading state ke true
     isLoading.value = true;
-
     const formData = new FormData();
     formData.append("excel_file", selectedFile.value);
     try {
-        const response = await axios.post(
-            `${baseUrl}/api/email-queue/sendExcel`,
-            formData,
-            {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
-            }
-        );
-        // Emit notification success
+        const response = await IntegrasiAPI.uploadExcel(formData);
         emit("notification", "success", "Berhasil!", response.data.message);
         selectedFile.value = null;
         emit("close");
@@ -346,7 +334,6 @@ async function uploadFile() {
             );
         }
     } finally {
-        // Pastikan loading state diatur ke false setelah selesai, baik sukses maupun error
         isLoading.value = false;
     }
 }

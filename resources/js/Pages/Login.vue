@@ -95,19 +95,52 @@
                                     </svg>
                                 </div>
                                 <input
-                                    type="email"
+                                    type="text"
                                     id="email"
                                     v-model="form.email"
+                                    @focus="clearError('email')"
                                     class="pl-10 w-full rounded-lg border border-gray-300 bg-white py-3 px-4 text-sm text-gray-800 focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/20"
                                     placeholder="nama@contoh.com"
-                                    required
                                 />
                             </div>
-                            <div
-                                v-if="form.errors.email"
-                                class="text-sm text-red-500"
-                            >
-                                {{ form.errors.email }}
+                            <div v-if="form.errors.email" class="relative mt-2">
+                                <div
+                                    class="bg-red-500 text-white text-xs rounded-lg py-2 px-3 relative shadow-lg"
+                                >
+                                    <div class="flex items-center gap-2">
+                                        <svg
+                                            class="w-4 h-4 flex-shrink-0"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                        >
+                                            <path
+                                                d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"
+                                            ></path>
+                                            <line
+                                                x1="12"
+                                                y1="9"
+                                                x2="12"
+                                                y2="13"
+                                            ></line>
+                                            <line
+                                                x1="12"
+                                                y1="17"
+                                                x2="12.01"
+                                                y2="17"
+                                            ></line>
+                                        </svg>
+                                        <span>{{ form.errors.email }}</span>
+                                    </div>
+                                    <!-- Arrow pointing up -->
+                                    <div
+                                        class="absolute -top-1 left-4 w-2 h-2 bg-red-500 rotate-45"
+                                    ></div>
+                                </div>
                             </div>
                         </div>
 
@@ -150,9 +183,9 @@
                                     :type="showPassword ? 'text' : 'password'"
                                     id="password"
                                     v-model="form.password"
+                                    @focus="clearError('password')"
                                     class="pl-10 w-full rounded-lg border border-gray-300 bg-white py-3 px-4 text-sm text-gray-800 focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/20"
                                     placeholder="••••••••"
-                                    required
                                 />
                                 <button
                                     type="button"
@@ -200,9 +233,45 @@
                             </div>
                             <div
                                 v-if="form.errors.password"
-                                class="text-sm text-red-500"
+                                class="relative mt-2"
                             >
-                                {{ form.errors.password }}
+                                <div
+                                    class="bg-red-500 text-white text-xs rounded-lg py-2 px-3 relative shadow-lg"
+                                >
+                                    <div class="flex items-center gap-2">
+                                        <svg
+                                            class="w-4 h-4 flex-shrink-0"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                        >
+                                            <path
+                                                d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"
+                                            ></path>
+                                            <line
+                                                x1="12"
+                                                y1="9"
+                                                x2="12"
+                                                y2="13"
+                                            ></line>
+                                            <line
+                                                x1="12"
+                                                y1="17"
+                                                x2="12.01"
+                                                y2="17"
+                                            ></line>
+                                        </svg>
+                                        <span>{{ form.errors.password }}</span>
+                                    </div>
+                                    <!-- Arrow pointing up -->
+                                    <div
+                                        class="absolute -top-1 left-4 w-2 h-2 bg-red-500 rotate-45"
+                                    ></div>
+                                </div>
                             </div>
                         </div>
 
@@ -228,12 +297,36 @@
                         <button
                             type="submit"
                             class="w-full bg-green-600 hover:bg-green-700 focus:ring-4 focus:ring-green-300 text-white font-medium rounded-lg text-sm px-5 py-3 transition-all duration-200 shadow-lg shadow-green-500/20 hover:shadow-green-500/30 focus:outline-none"
+                            :disabled="loginLoading"
                         >
                             <span
                                 class="flex items-center justify-center gap-2"
                             >
-                                <span>Login</span>
                                 <svg
+                                    v-if="loginLoading"
+                                    class="w-5 h-5 animate-spin"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <circle
+                                        class="opacity-25"
+                                        cx="12"
+                                        cy="12"
+                                        r="10"
+                                        stroke="currentColor"
+                                        stroke-width="4"
+                                    ></circle>
+                                    <path
+                                        class="opacity-75"
+                                        fill="currentColor"
+                                        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                                    ></path>
+                                </svg>
+                                <span v-if="!loginLoading">Login</span>
+                                <span v-else>Memproses...</span>
+                                <svg
+                                    v-if="!loginLoading"
                                     class="w-5 h-5"
                                     xmlns="http://www.w3.org/2000/svg"
                                     viewBox="0 0 24 24"
@@ -315,6 +408,8 @@ const page = usePage();
 
 // Variabel reaktif untuk mengontrol visibilitas password
 const showPassword = ref(false);
+// State loading untuk tombol login
+const loginLoading = ref(false);
 
 // Membuat form menggunakan `useForm` dengan data awal
 const form = useForm({
@@ -324,19 +419,50 @@ const form = useForm({
     _token: page.props.csrf_token,
 });
 
+// Fungsi untuk menghapus error ketika input diklik/difocus
+function clearError(field) {
+    if (form.errors[field]) {
+        form.errors[field] = "";
+    }
+}
+
 // Fungsi untuk mengirimkan form ke endpoint `/login`
 function submit() {
+    // Reset error manual
+    form.errors.email = "";
+    form.errors.password = "";
+
+    let hasError = false;
+    if (!form.email) {
+        form.errors.email = "Email wajib diisi!";
+        hasError = true;
+    } else {
+        // Validasi format email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(form.email)) {
+            form.errors.email = "Format email tidak valid.";
+            hasError = true;
+        }
+    }
+    if (!form.password) {
+        form.errors.password = "Password wajib diisi!";
+        hasError = true;
+    }
+    if (hasError) return;
+
+    loginLoading.value = true;
     form.post("/login", {
         onSuccess: () => {
             if (form.remember) {
-                // Simpan email dan password ke localStorage
+                // Simpan hanya email ke localStorage
                 localStorage.setItem("remember_email", form.email);
-                localStorage.setItem("remember_password", form.password);
             } else {
-                // Hapus email dan password dari localStorage
+                // Hapus email dari localStorage
                 localStorage.removeItem("remember_email");
-                localStorage.removeItem("remember_password");
             }
+        },
+        onFinish: () => {
+            loginLoading.value = false;
         },
     });
 }
@@ -344,7 +470,8 @@ function submit() {
 // Saat halaman dimuat, isi form dengan data dari localStorage jika ada
 if (localStorage.getItem("remember_email")) {
     form.email = localStorage.getItem("remember_email");
-    form.password = localStorage.getItem("remember_password");
     form.remember = true;
+} else {
+    form.remember = false;
 }
 </script>

@@ -169,14 +169,14 @@ const props = defineProps({
 const emit = defineEmits(["approve", "reject"]);
 
 // Fungsi untuk membuka modal approve
-const openApproveModal = (application) => {
+function openApproveModal(application) {
     emit("approve", application);
-};
+}
 
 // Fungsi untuk membuka modal reject
-const openRejectModal = (application) => {
+function openRejectModal(application) {
     emit("reject", application);
-};
+}
 
 // Menghitung nomor yang diincrement berdasarkan data
 const incrementedNumbers = computed(() => {

@@ -37,8 +37,6 @@ Route::prefix('applications')->group(function () {
 
     // Route untuk delete aplikasi, approve aplikasi (registrasi dan regenerate secret), dan mengubah status aplikasi
     Route::delete('/delete', [ApplicationController::class, 'delete']);
-    Route::post('/approve-application', [ApplicationController::class, 'approveApplication']); 
-    Route::post('/application-status-change', [ApplicationController::class, 'handleApplicationStatusChange']);
-
+    Route::post('/approve-application', [ApplicationController::class, 'approveApplication']);
     Route::post('/application-status-change', [ApplicationController::class, 'handleApplicationStatusChange']);
 })->middleware('auth:sanctum');

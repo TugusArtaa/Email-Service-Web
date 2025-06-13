@@ -38,10 +38,10 @@ class ApplicationController extends Controller
         $orderDirection = $request->query('orderDirection', 'desc');
         $applications = $this->applicationService->getPaginatedApplications(search: $search, orderBy: $orderBy, orderDirection: $orderDirection);
 
-        return responseWithData(
-            $applications->isEmpty() ? 'Aplikasi tidak ditemukan' : 'Aplikasi berhasil ditemukan',
-            ['applications' => $applications]
-        );
+        return response()->json([
+            'message' => $applications->isEmpty() ? 'Aplikasi tidak ditemukan' : 'Aplikasi berhasil ditemukan',
+            'applications' => $applications
+        ]);
     }
 
     //Function untuk ambil data aplikasi yang perlu disetujui
@@ -52,10 +52,10 @@ class ApplicationController extends Controller
         $orderDirection = $request->query('orderDirection', 'desc');
         $applications = $this->applicationService->getPaginatedApprove(search: $search, orderBy: $orderBy, orderDirection: $orderDirection);
 
-        return responseWithData(
-            $applications->isEmpty() ? 'Aplikasi tidak ditemukan' : 'Aplikasi berhasil ditemukan',
-            ['applications' => $applications]
-        );
+        return response()->json([
+            'message' => $applications->isEmpty() ? 'Aplikasi tidak ditemukan' : 'Aplikasi berhasil ditemukan',
+            'applications' => $applications
+        ]);
     }
 
     //Function untuk menyimpan data aplikasi yang diregistrasi
@@ -74,10 +74,10 @@ class ApplicationController extends Controller
     //Function untuk menampilkan detail aplikasi berdasarkan id
     public function show(Application $application)
     {
-        return responseWithData(
-            'Detail aplikasi berhasil ditemukan',
-            $this->applicationService->formatApplicationResponse($application)
-        );
+        return response()->json([
+            'message' => 'Detail aplikasi berhasil ditemukan',
+            'application' => $this->applicationService->formatApplicationResponse($application)
+        ]);
     }
 
     //Function untuk menghapus aplikasi
