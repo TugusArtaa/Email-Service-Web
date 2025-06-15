@@ -19,7 +19,7 @@ export async function fetchApplications({
     if (orderDirection) params.append("orderDirection", orderDirection);
 
     // Request GET ke endpoint aplikasi
-    return axios.get(`${baseUrl}/api/applications?${params.toString()}`);
+    return axios.get(`${baseUrl}/applications?${params.toString()}`);
 }
 
 // Membuat aplikasi baru dengan data yang diberikan
@@ -29,12 +29,28 @@ export async function createApplication(data) {
 
 // Menghapus beberapa aplikasi berdasarkan array id
 export async function deleteApplications(ids) {
-    return axios.delete(`${baseUrl}/api/applications/delete`, {
+    return axios.delete(`${baseUrl}/applications/delete`, {
         data: { ids },
     });
 }
 
 // Mengambil detail aplikasi berdasarkan id
 export async function fetchApplicationDetail(id) {
-    return axios.get(`${baseUrl}/api/applications/${id}`);
+    return axios.get(`${baseUrl}/applications/${id}`);
+}
+
+// Regenerasi secret key aplikasi berdasarkan id
+export async function regenerateSecretKey(id) {
+    return axios.post(`${baseUrl}/applications/application-status-change`, {
+        id,
+        status: "ubah-secret-key",
+    });
+}
+
+// Mengubah status aplikasi (enabled/disabled) berdasarkan id
+export async function changeApplicationStatus(id, status) {
+    return axios.post(`${baseUrl}/applications/application-status-change`, {
+        id,
+        status,
+    });
 }

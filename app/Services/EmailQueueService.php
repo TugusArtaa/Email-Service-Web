@@ -153,6 +153,14 @@ class EmailQueueService
 
         $messages = [];
         foreach ($emails as $mail) {
+            // Validasi wajib
+            if (
+                !isset($mail['to']) || empty($mail['to']) ||
+                !isset($mail['priority']) || empty($mail['priority']) ||
+                !isset($secret) || empty($secret)
+            ) {
+                return ['error' => 'Field "to", "priority", dan "secret" wajib diisi.'];
+            }
             try {
                 $priority = $this->priorityMap[$mail['priority']] ?? 2;
                 $subject = $mail['subject'] ?? '';

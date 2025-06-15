@@ -1,9 +1,4 @@
 <template>
-    <!-- NotificationToast -->
-    <NotificationToast
-        :notification="notification"
-        @close="notification.show = false"
-    />
     <!-- Tabel data aplikasi -->
     <table class="w-full text-sm text-left text-gray-500 border rounded-2xl">
         <thead class="text-xs text-gray-700 uppercase border-b bg-gray-50">
@@ -605,7 +600,6 @@ import { ref, watch } from "vue";
 import { defineProps, computed } from "vue";
 import { onClickOutside } from "@vueuse/core";
 import { useForm, usePage } from "@inertiajs/vue3";
-import NotificationToast from "../components/NotificationToast.vue";
 import { Tippy } from "vue-tippy";
 import "tippy.js/dist/tippy.css";
 import * as ApplicationAPI from "../api/ApplicationAPI";
@@ -618,16 +612,8 @@ const props = defineProps({
     isFetching: Boolean,
 });
 
-// State untuk notifikasi toast
-const notification = ref({
-    show: false,
-    type: "",
-    message: "",
-    description: "",
-});
-
 // Mendefinisikan event yang akan diemit
-const emit = defineEmits(["checkbox", "refresh"]);
+const emit = defineEmits(["checkbox", "refresh", "showNotification"]);
 
 // Mendefinisikan variabel reaktif
 const checked = ref([]);
@@ -692,32 +678,32 @@ async function deleteApp() {
     try {
         const response = await ApplicationAPI.deleteApplications(form.ids);
         if (response.data.success) {
+            // Langsung refresh data
             emit("refresh");
             showDeleteModal.value = false;
-            notification.value = {
-                show: true,
+
+            // Emit notifikasi ke parent
+            emit("showNotification", {
                 type: "success",
                 message: "Berhasil!",
                 description: response.data.message,
-            };
+            });
         } else {
-            notification.value = {
-                show: true,
+            emit("showNotification", {
                 type: "danger",
                 message: "Gagal!",
                 description: response.data.message || "Terjadi kesalahan.",
-            };
+            });
         }
     } catch (error) {
-        notification.value = {
-            show: true,
+        emit("showNotification", {
             type: "danger",
             message: "Gagal!",
             description:
                 error.response?.data?.message ||
                 error.message ||
                 "Terjadi kesalahan.",
-        };
+        });
     }
 }
 
@@ -751,48 +737,37 @@ watch(keyId, (newValue) => {
 // Fungsi untuk meregenerasi kunci rahasia
 async function generateKey() {
     try {
-        const response = await fetch(
-            `/api/applications/application-status-change`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRF-TOKEN": pageInertia.props.csrf_token,
-                },
-                body: JSON.stringify({
-                    id: keyId.value,
-                    status: "ubah-secret-key",
-                }),
-            }
-        );
-        const data = await response.json();
-        if (data.success) {
+        const response = await ApplicationAPI.regenerateSecretKey(keyId.value);
+        if (response.data.success) {
+            // Langsung refresh data
             emit("refresh");
             showKeyModal.value = false;
-            notification.value = {
-                show: true,
+
+            // Emit notifikasi ke parent
+            emit("showNotification", {
                 type: "success",
                 message: "Berhasil!",
-                description: data.message,
-            };
+                description: response.data.message,
+            });
         } else {
             emit("refresh");
             showKeyModal.value = false;
-            notification.value = {
-                show: true,
+            emit("showNotification", {
                 type: "danger",
                 message: "Gagal!",
-                description: data.message || "Terjadi kesalahan.",
-            };
+                description: response.data.message || "Terjadi kesalahan.",
+            });
         }
     } catch (error) {
         showKeyModal.value = false;
-        notification.value = {
-            show: true,
+        emit("showNotification", {
             type: "danger",
             message: "Gagal!",
-            description: error.message || "Terjadi kesalahan.",
-        };
+            description:
+                error.response?.data?.message ||
+                error.message ||
+                "Terjadi kesalahan.",
+        });
     }
 }
 
@@ -808,42 +783,34 @@ async function changeStatus() {
     const newStatus =
         currentStatus.value === "enabled" ? "disabled" : "enabled";
     try {
-        const response = await fetch(
-            `/api/applications/application-status-change`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRF-TOKEN": pageInertia.props.csrf_token,
-                },
-                body: JSON.stringify({ id: statusId.value, status: newStatus }),
-            }
+        const response = await ApplicationAPI.changeApplicationStatus(
+            statusId.value,
+            newStatus
         );
-        const data = await response.json();
-        if (data.success) {
+        if (response.data.success) {
             emit("refresh");
             showStatusModal.value = false;
-            notification.value = {
-                show: true,
+            emit("showNotification", {
                 type: "success",
                 message: "Berhasil!",
-                description: data.message,
-            };
+                description: response.data.message,
+            });
         } else {
-            notification.value = {
-                show: true,
+            emit("showNotification", {
                 type: "danger",
                 message: "Gagal!",
-                description: data.message || "Terjadi kesalahan.",
-            };
+                description: response.data.message || "Terjadi kesalahan.",
+            });
         }
     } catch (error) {
-        notification.value = {
-            show: true,
+        emit("showNotification", {
             type: "danger",
             message: "Gagal!",
-            description: error.message || "Terjadi kesalahan.",
-        };
+            description:
+                error.response?.data?.message ||
+                error.message ||
+                "Terjadi kesalahan.",
+        });
     }
 }
 </script>

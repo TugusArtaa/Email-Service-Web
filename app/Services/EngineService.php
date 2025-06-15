@@ -9,17 +9,27 @@ class EngineService
     // Function untuk mengonsumsi pesan email dari RabbitMQ dan mengirim email
     public function sendEmail(array $data)
     {
-        if (empty($data['to'])) {
+        // Validasi data wajib
+        if (empty($data) || !is_array($data)) {
+            throw new \InvalidArgumentException("Data email tidak valid (null atau bukan array).");
+        }
+        if (!isset($data['to']) || empty($data['to'])) {
             throw new \InvalidArgumentException("Field 'to' harus diisi.");
         }
+        if (!isset($data['secret']) || empty($data['secret'])) {
+            throw new \InvalidArgumentException("Field 'secret' harus diisi.");
+        }
+        if (!isset($data['priority']) || empty($data['priority'])) {
+            throw new \InvalidArgumentException("Field 'priority' harus diisi.");
+        }
 
-        $subject = $data['subject'] ?? '';
-        $rawContent = $data['content'] ?? '';
+        $subject = isset($data['subject']) ? $data['subject'] : '';
+        $rawContent = isset($data['content']) ? $data['content'] : '';
         $content = $this->convertHtmlToPlainText($rawContent);
 
         // Download attachments terlebih dahulu
         $tempFiles = [];
-        if (!empty($data['attachment'])) {
+        if (!empty($data['attachment']) && is_array($data['attachment'])) {
             foreach ($data['attachment'] as $attachmentUrl) {
                 // Skip jika kosong
                 if ($attachmentUrl === null || $attachmentUrl === '') {

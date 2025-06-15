@@ -241,6 +241,7 @@
             :isFetching="isFetching"
             @checkbox="handleCheckbox"
             @refresh="refreshData"
+            @showNotification="showNotification"
         />
         <!-- Tabel footer -->
         <TablePagination
@@ -611,7 +612,7 @@ const orderDirection = useStorage("orderDirection", "desc");
 
 // Mendefinisikan URL untuk permintaan data aplikasi
 const url = ref(
-    `${baseUrl}/api/applications?orderBy=${orderBy.value}&orderDirection=${orderDirection.value}`
+    `${baseUrl}/applications?orderBy=${orderBy.value}&orderDirection=${orderDirection.value}`
 );
 
 // Mendefinisikan variabel reaktif untuk menyimpan data aplikasi
@@ -664,7 +665,7 @@ const handlePageChange = (page) => {
     if (page === applications.value.current_page) {
         return;
     }
-    url.value = `${baseUrl}/api/applications?page=${page}&search=${search.value}&orderBy=${orderBy.value}&orderDirection=${orderDirection.value}`;
+    url.value = `${baseUrl}/applications?page=${page}&search=${search.value}&orderBy=${orderBy.value}&orderDirection=${orderDirection.value}`;
     applications.value = { data: [] };
 };
 
@@ -673,7 +674,7 @@ const handleSearch = (query) => {
     if (query === search.value) {
         return;
     }
-    url.value = `${baseUrl}/api/applications?search=${query}&page=1&orderBy=${orderBy.value}&orderDirection=${orderDirection.value}&filterBy=name,pic_name`;
+    url.value = `${baseUrl}/applications?search=${query}&page=1&orderBy=${orderBy.value}&orderDirection=${orderDirection.value}&filterBy=name,pic_name`;
     search.value = query;
     applications.value = { data: [] };
 };
@@ -688,7 +689,7 @@ function order(newOrderBy, newOrderDirection) {
     }
     orderBy.value = newOrderBy;
     orderDirection.value = newOrderDirection;
-    url.value = `${baseUrl}/api/applications?page=${page}&search=${search.value}&orderBy=${newOrderBy}&orderDirection=${newOrderDirection}`;
+    url.value = `${baseUrl}/applications?page=${page}&search=${search.value}&orderBy=${newOrderBy}&orderDirection=${newOrderDirection}`;
     applications.value = { data: [] };
 }
 
@@ -864,6 +865,16 @@ onMounted(() => {
         appDiv.removeAttribute("data-page");
     }
 });
+
+// Fungsi untuk menampilkan notifikasi
+function showNotification(notificationData) {
+    notification.value = {
+        show: true,
+        type: notificationData.type,
+        message: notificationData.message,
+        description: notificationData.description,
+    };
+}
 
 // Fungsi untuk membersihkan pesan kesalahan validasi
 function clearValidationError(field) {

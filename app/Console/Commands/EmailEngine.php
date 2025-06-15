@@ -52,15 +52,28 @@ class EmailEngine extends Command
     // Function untuk memproses pesan email yang diterima dari RabbitMQ
     public function processEmail(AMQPMessage $msg)
     {
-        // Untuk memastikan bahwa pesan yang diterima adalah dalam format JSON valid
         try {
             $data = json_decode($msg->getBody(), true, 512, JSON_THROW_ON_ERROR);
+            if (!$data || !is_array($data)) {
+                $this->error("Data email dari queue kosong atau tidak valid.");
+                return;
+            }
         } catch (\JsonException $e) {
             $this->error("Malformed JSON: " . $e->getMessage());
             return;
         }
 
-        [$application, $error] = $this->validateApplication($data['secret'] ?? null);
+        $secret = isset($data['secret']) ? $data['secret'] : null;
+        $to = isset($data['to']) ? $data['to'] : null;
+        $priority = isset($data['priority']) ? $data['priority'] : null;
+
+        // Validasi wajib
+        if (empty($secret) || empty($to) || empty($priority)) {
+            $this->error("Field 'secret', 'to', dan 'priority' wajib diisi.");
+            return;
+        }
+
+        [$application, $error] = $this->validateApplication($secret);
         if ($error) {
             $this->error($error);
             return;
@@ -68,12 +81,15 @@ class EmailEngine extends Command
 
         // Untuk logika pengiriman email
         try {
+            if (!$to) {
+                throw new \Exception("Field 'to' tidak ditemukan pada data email.");
+            }
             $this->EngineService->sendEmail($data);
             $this->EmailLogService->updateLog($data, 'success', null, $application->id);
-            $this->info("Email sukses terkirim kepada: " . $data['to']);
+            $this->info("Email sukses terkirim kepada: " . $to);
         } catch (\Exception $e) {
             $this->EmailLogService->updateLog($data, 'failed', $e->getMessage(), $application->id);
-            $this->error("Gagal mengirim email kepada: " . $data['to'] . " - " . $e->getMessage());
+            $this->error("Gagal mengirim email kepada: " . ($to ?? '-') . " - " . $e->getMessage());
         }
     }
 }

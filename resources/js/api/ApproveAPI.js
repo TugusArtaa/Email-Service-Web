@@ -16,21 +16,19 @@ export async function fetchApproveApplications({
     if (orderDirection) params.append("orderDirection", orderDirection);
 
     // Request GET ke endpoint aplikasi yang menunggu persetujuan
-    return axios.get(
-        `${baseUrl}/api/applications/approve?${params.toString()}`
-    );
+    return axios.get(`${baseUrl}/applications/approve?${params.toString()}`);
 }
 
 // Melakukan approve aplikasi berdasarkan id
 export async function approveApplication(id) {
-    return axios.post(`${baseUrl}/api/applications/approve-application`, {
+    return axios.post(`${baseUrl}/applications/approve-application`, {
         id,
     });
 }
 
 // Mengubah status aplikasi (misal: reject atau status lain) berdasarkan id dan status baru
 export async function changeApplicationStatus(id, status) {
-    return axios.post(`${baseUrl}/api/applications/application-status-change`, {
+    return axios.post(`${baseUrl}/applications/application-status-change`, {
         id,
         status,
     });

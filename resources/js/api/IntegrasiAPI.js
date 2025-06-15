@@ -13,7 +13,7 @@ export async function fetchEmailLogs({ orderBy, search, page, date }) {
     if (page) params.append("page", page);
     if (date) params.append("date", date);
 
-    const url = `${baseUrl}/api/email-logs?${params.toString()}`;
+    const url = `${baseUrl}/email-logs?${params.toString()}`;
     // Request GET ke endpoint email logs
     return axios.get(url);
 }
@@ -26,7 +26,7 @@ export async function deleteEmailLogs(ids, baseUrlOverride = null) {
 
 // Mengekstrak log email berdasarkan id
 export async function extractEmailLog(id) {
-    return axios.post(`${baseUrl}/api/email-queue/extract`, { id });
+    return axios.post(`${baseUrl}/email-queue/extract`, { id });
 }
 
 // Mengirim ulang email berdasarkan formData yang diberikan
