@@ -991,11 +991,11 @@ const notification = ref({
 // Fungsi untuk menghapus log
 async function deleteLog() {
     form.ids = deleteOne.value;
+    showDeleteModal.value = false;
     try {
         await IntegrasiAPI.deleteEmailLogs(form.ids, baseUrl);
         emit("notification", "success", "Berhasil!", "Log berhasil dihapus.");
         emit("refresh");
-        showDeleteModal.value = false;
         form.reset();
     } catch (error) {
         emit(

@@ -320,7 +320,7 @@
                                     <path
                                         class="opacity-75"
                                         fill="currentColor"
-                                        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                                        d="M4 12a8 8 0 0 1 8-8v4a4 4 0 00-4 4H4z"
                                     ></path>
                                 </svg>
                                 <span v-if="!loginLoading">Login</span>
@@ -454,11 +454,13 @@ function submit() {
     form.post("/login", {
         onSuccess: () => {
             if (form.remember) {
-                // Simpan hanya email ke localStorage
+                // Simpan email dan password ke localStorage
                 localStorage.setItem("remember_email", form.email);
+                localStorage.setItem("remember_password", form.password);
             } else {
-                // Hapus email dari localStorage
+                // Hapus email dan password dari localStorage
                 localStorage.removeItem("remember_email");
+                localStorage.removeItem("remember_password");
             }
         },
         onFinish: () => {
@@ -471,7 +473,12 @@ function submit() {
 if (localStorage.getItem("remember_email")) {
     form.email = localStorage.getItem("remember_email");
     form.remember = true;
+    // Isi password juga jika ada
+    if (localStorage.getItem("remember_password")) {
+        form.password = localStorage.getItem("remember_password");
+    }
 } else {
     form.remember = false;
+    form.password = "";
 }
 </script>
