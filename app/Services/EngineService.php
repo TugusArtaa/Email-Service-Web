@@ -31,37 +31,68 @@ class EngineService
         $tempFiles = [];
         if (!empty($data['attachment']) && is_array($data['attachment'])) {
             foreach ($data['attachment'] as $attachmentUrl) {
-                // Skip jika kosong
                 if ($attachmentUrl === null || $attachmentUrl === '') {
                     continue;
                 }
-                // Validasi URL
                 if (!filter_var($attachmentUrl, FILTER_VALIDATE_URL)) {
                     foreach ($tempFiles as $file) {
                         @unlink($file['path']);
                     }
                     throw new \Exception("Attachment URL tidak valid: $attachmentUrl");
                 }
-                $tempPath = tempnam(sys_get_temp_dir(), 'mail_attach_');
-                try {
-                    $fileContents = @file_get_contents($attachmentUrl);
-                    if ($fileContents === false) {
-                        foreach ($tempFiles as $file) {
-                            @unlink($file['path']);
-                        }
-                        throw new \Exception("Gagal mengunduh attachment: $attachmentUrl");
-                    }
-                    file_put_contents($tempPath, $fileContents);
-                    $tempFiles[] = [
-                        'path' => $tempPath,
-                        'name' => basename(parse_url($attachmentUrl, PHP_URL_PATH))
-                    ];
-                } catch (\Exception $e) {
+
+                // Cek tipe konten dengan cURL
+                $ch = curl_init($attachmentUrl);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+                curl_setopt($ch, CURLOPT_HEADER, true);
+                curl_setopt($ch, CURLOPT_NOBODY, true);
+                $response = curl_exec($ch);
+                $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+                $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                curl_close($ch);
+
+                $allowedTypes = [
+                    'image/jpeg',
+                    'image/jpg',
+                    'image/png',
+                    'application/pdf',
+                    'application/msword', 
+                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 
+                    'application/vnd.ms-excel', 
+                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 
+                    'application/vnd.ms-powerpoint', 
+                    'application/vnd.openxmlformats-officedocument.presentationml.presentation', 
+                    'text/plain',
+                    'application/zip',
+                    'application/x-zip-compressed',
+                    'application/x-rar-compressed',
+                ];
+
+                // Validasi kode HTTP dan tipe konten
+                if ($httpCode !== 200 || !in_array($contentType, $allowedTypes)) {
                     foreach ($tempFiles as $file) {
                         @unlink($file['path']);
                     }
-                    throw new \Exception($e->getMessage());
+                    throw new \Exception("Attachment tidak valid atau bukan file yang diizinkan: $attachmentUrl (Content-Type: $contentType)");
                 }
+
+                // Unduh file attachment
+                $fileContents = @file_get_contents($attachmentUrl);
+                if ($fileContents === false) {
+                    foreach ($tempFiles as $file) {
+                        @unlink($file['path']);
+                    }
+                    throw new \Exception("Gagal mengunduh attachment: $attachmentUrl");
+                }
+
+                // Simpan file ke direktori sementara
+                $tempPath = tempnam(sys_get_temp_dir(), 'mail_attach_');
+                file_put_contents($tempPath, $fileContents);
+                $tempFiles[] = [
+                    'path' => $tempPath,
+                    'name' => basename(parse_url($attachmentUrl, PHP_URL_PATH))
+                ];
             }
         }
 

@@ -1,15 +1,38 @@
+# ============================== Filebeat inputs ===============================
 filebeat.inputs:
-  - type: log
-    enable: true
+  # Input ini menggantikan 'type: log' dengan 'type: filestream' yang lebih modern dan tangguh.
+  - type: filestream
+    # ID unik diperlukan untuk input filestream.
+    id: laravel-email-logs
+    enabled: true
     paths:
       - /var/log/Laravel/email-*.log
 
+    # Bagian ini adalah kunci optimasi:
+    # Filebeat akan langsung mem-parsing setiap baris log sebagai JSON.
+    parsers:
+      - ndjson:
+          # target: "" berarti field-field hasil parsing akan diletakkan di level atas (root) dokumen.
+          target: ""
+          # Jika ada baris yang bukan JSON, Filebeat akan menambahkan field [error][message]
+          # agar bisa ditangani di Logstash, bukan mengabaikannya.
+          add_error_key: true
+
+# ============================== Filebeat modules ==============================
+# Modul dinonaktifkan untuk konfigurasi kustom ini.
+filebeat.config.modules:
+  path: ${path.config}/modules.d/*.yml
+  reload.enabled: false
+
+# ================================== Outputs ===================================
+# Mengirim data yang sudah diparsing ke Logstash.
 output.logstash:
   hosts: ["logstash:5044"]
 
+# ================================== Logging ===================================
+# Konfigurasi logging Filebeat itu sendiri (tidak diubah dari milik Anda).
 logging.json: true
-logging.metrics.enable: false
-
+logging.metrics.enabled: false
 logging:
   files:
-    rotationeverybytes: 12582912
+    rotateeverybytes: 12582912

@@ -1,11 +1,16 @@
+# docker-compose.yml (Versi Final)
+
 name: email-log-manager
 
 networks:
     elk-network:
         driver: bridge
 
+# Deklarasi volume bernama di level atas.
+# Docker akan mengelola folder-folder ini untuk persistensi data.
 volumes:
     elastic-data-vl:
+    filebeat-data:
 
 services:
     elasticsearch:
@@ -35,7 +40,9 @@ services:
         container_name: logstash
         restart: always
         volumes:
-            - ./logstash/:/logstash_dir
+            # Mounting folder logstash sebagai read-only
+            - ./logstash/:/logstash_dir:ro
+        # Command ini sudah benar, memastikan Logstash memuat file konfigurasi Anda
         command: logstash -f /logstash_dir/logstash.conf
         depends_on:
             - elasticsearch
@@ -63,25 +70,31 @@ services:
     filebeat:
         image: elastic/filebeat:8.11.1
         container_name: filebeat
+        restart: always
         user: root
         volumes:
-            - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml
-            - ./storage/logs:/var/log/Laravel
-        environment:
-            - monitoring.enabled=true
+            # Mounting file konfigurasi Filebeat sebagai read-only
+            - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+            # Mounting folder log Laravel sebagai read-only
+            - ./storage/logs:/var/log/Laravel:ro
+            # Menggunakan volume bernama untuk menyimpan data registry Filebeat
+            - filebeat-data:/usr/share/filebeat/data/
         depends_on:
             - logstash
-            - elasticsearch
-        command: ["--strict.perms=false"]
+        # [INI PERBAIKAN UTAMA]
+        # Memperbaiki command agar Filebeat memuat file konfigurasi secara eksplisit
+        command:
+            - -e
+            - -c
+            - /usr/share/filebeat/filebeat.yml
+            - --strict.perms=false
         ulimits:
             memlock:
                 soft: -1
                 hard: -1
-        stdin_open: true
-        tty: true
         networks:
             - elk-network
-    
+
     rabbitmq:
         image: rabbitmq:3-management
         container_name: rabbitmq
