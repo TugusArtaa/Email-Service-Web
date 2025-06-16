@@ -23,13 +23,14 @@ class EngineService
             throw new \InvalidArgumentException("Field 'priority' harus diisi.");
         }
 
+        $data['attachment'] = is_array($data['attachment'] ?? null) ? $data['attachment'] : [];
         $subject = isset($data['subject']) ? $data['subject'] : '';
         $rawContent = isset($data['content']) ? $data['content'] : '';
         $content = $this->convertHtmlToPlainText($rawContent);
 
         // Download attachments terlebih dahulu
         $tempFiles = [];
-        if (!empty($data['attachment']) && is_array($data['attachment'])) {
+        if (!empty($data['attachment'])) {
             foreach ($data['attachment'] as $attachmentUrl) {
                 if ($attachmentUrl === null || $attachmentUrl === '') {
                     continue;
@@ -57,12 +58,12 @@ class EngineService
                     'image/jpg',
                     'image/png',
                     'application/pdf',
-                    'application/msword', 
-                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 
-                    'application/vnd.ms-excel', 
-                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 
-                    'application/vnd.ms-powerpoint', 
-                    'application/vnd.openxmlformats-officedocument.presentationml.presentation', 
+                    'application/msword',
+                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                    'application/vnd.ms-excel',
+                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                    'application/vnd.ms-powerpoint',
+                    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
                     'text/plain',
                     'application/zip',
                     'application/x-zip-compressed',
