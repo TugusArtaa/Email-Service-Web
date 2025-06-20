@@ -220,109 +220,221 @@
         <!-- Modal untuk opsi pengiriman -->
         <div
             v-show="showButtonsModal"
-            class="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center"
+            class="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center p-4"
             @click.self="showButtonsModal = false"
         >
             <div
-                class="w-full max-w-md transform transition-all duration-300 ease-in-out"
+                class="w-full max-w-2xl transform transition-all duration-300 ease-in-out"
                 :class="
                     showButtonsModal
                         ? 'scale-100 opacity-100'
                         : 'scale-95 opacity-0'
                 "
             >
-                <div class="bg-white rounded-xl shadow-2xl overflow-hidden">
+                <div class="bg-white rounded-2xl shadow-2xl overflow-hidden">
+                    <!-- Modal header -->
                     <div
-                        class="flex items-center justify-between p-5 bg-gradient-to-r from-emerald-500 to-teal-500"
+                        class="px-6 py-4 bg-gradient-to-r from-emerald-500 to-teal-500 relative overflow-hidden"
                     >
-                        <h3 class="text-xl font-bold text-white">
-                            Pilih Opsi Pengiriman
-                        </h3>
-                        <button
-                            @click="showButtonsModal = false"
-                            class="text-white/80 hover:text-white transition-colors focus:outline-none"
-                        >
-                            <svg
-                                class="w-6 h-6"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
+                        <div class="flex items-center justify-between relative">
+                            <div class="flex items-center space-x-3">
+                                <div
+                                    class="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center"
+                                >
+                                    <svg
+                                        class="w-6 h-6 text-white"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                                        />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-bold text-white">
+                                        Opsi Pengiriman
+                                    </h3>
+                                    <p class="text-white/80 text-sm">
+                                        Pilih metode pengiriman email
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                @click="showButtonsModal = false"
+                                class="text-white/80 hover:text-white hover:bg-white/20 p-2 rounded-xl transition-all duration-200 focus:outline-none"
                             >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M6 18L18 6M6 6l12 12"
-                                />
-                            </svg>
-                        </button>
+                                <svg
+                                    class="w-5 h-5"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12"
+                                    />
+                                </svg>
+                            </button>
+                        </div>
                     </div>
-                    <br />
+
+                    <!-- Modal body -->
                     <div class="p-6">
+                        <!-- Info section -->
+                        <div
+                            class="mb-4 p-4 bg-amber-50 rounded-xl border border-amber-200"
+                        >
+                            <div
+                                class="flex items-center justify-center space-x-2 text-sm text-gray-600"
+                            >
+                                <svg
+                                    class="w-4 h-4 text-gray-500"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                    />
+                                </svg>
+                                <span
+                                    >Pilih metode yang sesuai dengan kebutuhan
+                                    pengiriman Anda</span
+                                >
+                            </div>
+                        </div>
+
                         <div class="flex space-x-4">
+                            <!-- Email Baru Option -->
                             <button
                                 type="button"
                                 @click="
                                     addModal = true;
                                     showButtonsModal = false;
                                 "
-                                class="flex-1 flex flex-col items-center justify-center px-4 py-3 text-sm font-medium text-white bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all duration-200 shadow-md hover:shadow-lg focus:ring-4 focus:ring-green-300 focus:outline-none transform hover:-translate-y-0.5"
+                                class="flex-1 group relative overflow-hidden bg-gradient-to-br from-emerald-200 to-teal-200 border-2 border-emerald-200 hover:border-emerald-300 rounded-2xl p-3 text-center transition-all duration-300 transform hover:-translate-y-1 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-emerald-200"
                             >
-                                <svg
-                                    class="h-6 w-6 mb-2 text-white"
-                                    aria-hidden="true"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                >
-                                    <path
-                                        d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5c4.1.3 7.2 3.4 7.5 7.5z"
-                                    />
-                                </svg>
-                                Email Baru
+                                <div class="relative z-10 mt-4">
+                                    <div
+                                        class="w-14 h-14 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4 transform group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-lg"
+                                    >
+                                        <svg
+                                            class="w-10 h-10 text-white"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                        >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                                            />
+                                        </svg>
+                                    </div>
+                                    <h4
+                                        class="text-xl font-bold text-gray-900 mb-3 group-hover:text-emerald-700 transition-colors duration-300"
+                                    >
+                                        Email Baru
+                                    </h4>
+                                    <p
+                                        class="text-sm text-gray-600 leading-relaxed mb-2"
+                                    >
+                                        Kirim satu email secara manual
+                                    </p>
+
+                                    <!-- Feature badges -->
+                                    <div
+                                        class="flex justify-center space-x-2 mb-2"
+                                    >
+                                        <span
+                                            class="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full"
+                                            >Manual</span
+                                        >
+                                        <span
+                                            class="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full"
+                                            >Form</span
+                                        >
+                                    </div>
+                                </div>
                             </button>
+
+                            <!-- File Excel Option -->
                             <button
                                 type="button"
                                 @click="
                                     addExcel = true;
                                     showButtonsModal = false;
                                 "
-                                class="flex-1 flex flex-col items-center justify-center px-4 py-3 text-sm font-medium text-white bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all duration-200 shadow-md hover:shadow-lg focus:ring-4 focus:ring-blue-300 focus:outline-none transform hover:-translate-y-0.5"
+                                class="flex-1 group relative overflow-hidden bg-gradient-to-br from-emerald-200 to-teal-200 border-2 border-emerald-200 hover:border-emerald-300 rounded-2xl p-3 text-center transition-all duration-300 transform hover:-translate-y-1 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-emerald-200"
                             >
-                                <svg
-                                    class="h-6 w-6 mb-2 text-white"
-                                    aria-hidden="true"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                >
-                                    <path
-                                        d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
-                                    />
-                                    <polyline points="14 2 14 8 20 8" />
-                                    <line x1="8" y1="13" x2="16" y2="13" />
-                                    <line x1="8" y1="17" x2="16" y2="17" />
-                                    <line x1="10" y1="9" x2="14" y2="9" />
-                                </svg>
-                                File Excel
+                                <div class="relative z-10 mt-4">
+                                    <div
+                                        class="w-14 h-14 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4 transform group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-lg"
+                                    >
+                                        <svg
+                                            class="w-10 h-10 text-white"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                        >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                            />
+                                        </svg>
+                                    </div>
+                                    <h4
+                                        class="text-xl font-bold text-gray-900 mb-3 group-hover:text-emerald-700 transition-colors duration-300"
+                                    >
+                                        Import Excel
+                                    </h4>
+                                    <p
+                                        class="text-sm text-gray-600 leading-relaxed mb-2"
+                                    >
+                                        Unggah Excel untuk kirim massal
+                                    </p>
+
+                                    <!-- Feature badges -->
+                                    <div
+                                        class="flex justify-center space-x-2 mb-2"
+                                    >
+                                        <span
+                                            class="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full"
+                                            >Batch</span
+                                        >
+                                        <span
+                                            class="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full"
+                                            >Massal</span
+                                        >
+                                    </div>
+                                </div>
                             </button>
                         </div>
                     </div>
-                    <div class="px-6 py-4 bg-gray-50 text-right">
-                        <button
-                            @click="showButtonsModal = false"
-                            class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 focus:ring-4 focus:ring-gray-200 focus:outline-none transition-colors duration-200"
-                        >
-                            Batal
-                        </button>
+
+                    <!-- Footer -->
+                    <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
+                        <div class="flex justify-end">
+                            <button
+                                @click="showButtonsModal = false"
+                                class="px-6 py-3 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 hover:bg-gray-200 hover:border-gray-400 hover:shadow-md rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-gray-200"
+                            >
+                                Batal
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
