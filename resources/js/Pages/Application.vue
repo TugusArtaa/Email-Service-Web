@@ -332,260 +332,297 @@
         aria-hidden="true"
         class="overflow-y-auto bg-black bg-opacity-60 backdrop-blur-sm flex overflow-x-hidden fixed top-0 right-0 left-0 bottom-0 z-50 justify-center items-center w-full md:inset-0"
     >
-        <div class="relative w-full max-w-md max-h-full p-4">
-            <div class="relative bg-white rounded-lg shadow" ref="addModal">
+        <div class="relative w-full max-w-xl max-h-full p-4">
+            <div class="relative bg-white rounded-xl shadow" ref="addModal">
                 <!-- Modal header -->
                 <div
-                    class="flex items-center justify-between p-4 border-b rounded-t md:p-5 bg-gradient-to-r from-emerald-500 to-teal-500"
+                    class="flex items-center justify-between p-4 border-b rounded-t-xl md:p-5 bg-gradient-to-r from-emerald-500 to-teal-500"
                 >
-                    <!-- Judul modal -->
-                    <h3 class="text-xl font-bold text-white">
-                        Tambah Aplikasi
-                    </h3>
-                    <!-- Tombol close modal -->
+                    <div class="flex items-center space-x-3">
+                        <div
+                            class="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center"
+                        >
+                            <svg
+                                class="w-7 h-7 text-white"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 5v14m-7-7h14"
+                                />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold text-white">
+                                Form Tambah Aplikasi
+                            </h3>
+                            <p class="text-white/80 text-sm">
+                                Tambahkan aplikasi baru ke sistem
+                            </p>
+                        </div>
+                    </div>
                     <button
                         @click="showAddModal = false"
-                        type="button"
-                        class="text-white/80 hover:text-white transition-colors focus:outline-none"
-                        data-modal-toggle="crud-modal"
+                        class="text-white/80 hover:text-white hover:bg-white/20 p-2 rounded-xl transition-all duration-200 focus:outline-none"
                     >
                         <svg
-                            class="w-3 h-3"
-                            aria-hidden="true"
-                            xmlns="http://www.w3.org/2000/svg"
+                            class="w-6 h-6"
                             fill="none"
-                            viewBox="0 0 14 14"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
                         >
                             <path
-                                stroke="currentColor"
                                 stroke-linecap="round"
                                 stroke-linejoin="round"
                                 stroke-width="2"
-                                d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                                d="M6 18L18 6M6 6l12 12"
                             />
                         </svg>
-                        <span class="sr-only">Tutup modal</span>
                     </button>
                 </div>
                 <!-- Modal body -->
-                <form class="p-4 md:p-5" @submit.prevent="addApplication">
-                    <div class="grid grid-cols-2 gap-4 mb-4">
-                        <div class="col-span-2">
-                            <!-- Label Nama PIC -->
-                            <label
-                                for="pic_name"
-                                class="block mb-2 text-sm font-medium text-gray-900"
-                                >Nama PIC
-                                <span class="text-red-500">*</span></label
-                            >
-                            <!-- Input Nama PIC -->
-                            <input
-                                type="text"
-                                name="pic_name"
-                                v-model="appPicName"
-                                @focus="clearValidationError('pic_name')"
-                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
-                                placeholder="Ketik nama PIC"
-                            />
-                            <div
-                                v-if="validationErrors.pic_name"
-                                class="relative mt-2"
-                            >
-                                <div
-                                    class="bg-red-500 text-white text-xs rounded-lg py-2 px-3 relative shadow-lg"
+                <div class="p-8">
+                    <form @submit.prevent="addApplication">
+                        <div class="space-y-6">
+                            <div>
+                                <!-- Label Nama PIC -->
+                                <label
+                                    for="pic_name"
+                                    class="block mb-2 text-sm font-medium text-gray-900"
+                                    >Nama PIC
+                                    <span class="text-red-500">*</span></label
                                 >
-                                    <div class="flex items-center gap-2">
-                                        <svg
-                                            class="w-4 h-4 flex-shrink-0"
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            stroke-width="2"
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                        >
-                                            <path
-                                                d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"
-                                            ></path>
-                                            <line
-                                                x1="12"
-                                                y1="9"
-                                                x2="12"
-                                                y2="13"
-                                            ></line>
-                                            <line
-                                                x1="12"
-                                                y1="17"
-                                                x2="12.01"
-                                                y2="17"
-                                            ></line>
-                                        </svg>
-                                        <span>
-                                            <span
-                                                v-for="err in validationErrors.pic_name"
-                                                :key="err"
-                                            >
-                                                {{ err }}<br />
-                                            </span>
-                                        </span>
-                                    </div>
+                                <!-- Input Nama PIC -->
+                                <input
+                                    type="text"
+                                    name="pic_name"
+                                    v-model="appPicName"
+                                    @focus="clearValidationError('pic_name')"
+                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-emerald-500 focus:border-emerald-500 block w-full p-3 transition-colors duration-200"
+                                    placeholder="Ketik nama PIC"
+                                />
+                                <div
+                                    v-if="validationErrors.pic_name"
+                                    class="relative mt-2"
+                                >
                                     <div
-                                        class="absolute -top-1 left-4 w-2 h-2 bg-red-500 rotate-45"
-                                    ></div>
+                                        class="bg-red-500 text-white text-xs rounded-lg py-2 px-3 relative shadow-lg"
+                                    >
+                                        <div class="flex items-center gap-2">
+                                            <svg
+                                                class="w-4 h-4 flex-shrink-0"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                stroke-width="2"
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                            >
+                                                <path
+                                                    d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"
+                                                ></path>
+                                                <line
+                                                    x1="12"
+                                                    y1="9"
+                                                    x2="12"
+                                                    y2="13"
+                                                ></line>
+                                                <line
+                                                    x1="12"
+                                                    y1="17"
+                                                    x2="12.01"
+                                                    y2="17"
+                                                ></line>
+                                            </svg>
+                                            <span>
+                                                <span
+                                                    v-for="err in validationErrors.pic_name"
+                                                    :key="err"
+                                                >
+                                                    {{ err }}<br />
+                                                </span>
+                                            </span>
+                                        </div>
+                                        <div
+                                            class="absolute -top-1 left-4 w-2 h-2 bg-red-500 rotate-45"
+                                        ></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <!-- Label Nama Aplikasi -->
+                                <label
+                                    for="name"
+                                    class="block mb-2 text-sm font-medium text-gray-900"
+                                    >Nama Aplikasi
+                                    <span class="text-red-500">*</span>
+                                </label>
+                                <!-- Input Application name -->
+                                <input
+                                    type="text"
+                                    name="name"
+                                    v-model="appName"
+                                    @focus="clearValidationError('name')"
+                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-emerald-500 focus:border-emerald-500 block w-full p-3 transition-colors duration-200"
+                                    placeholder="Ketik nama aplikasi"
+                                />
+                                <div
+                                    v-if="validationErrors.name"
+                                    class="relative mt-2"
+                                >
+                                    <div
+                                        class="bg-red-500 text-white text-xs rounded-lg py-2 px-3 relative shadow-lg"
+                                    >
+                                        <div class="flex items-center gap-2">
+                                            <svg
+                                                class="w-4 h-4 flex-shrink-0"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                stroke-width="2"
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                            >
+                                                <path
+                                                    d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"
+                                                ></path>
+                                                <line
+                                                    x1="12"
+                                                    y1="9"
+                                                    x2="12"
+                                                    y2="13"
+                                                ></line>
+                                                <line
+                                                    x1="12"
+                                                    y1="17"
+                                                    x2="12.01"
+                                                    y2="17"
+                                                ></line>
+                                            </svg>
+                                            <span>
+                                                <span
+                                                    v-for="err in validationErrors.name"
+                                                    :key="err"
+                                                >
+                                                    {{ err }}<br />
+                                                </span>
+                                            </span>
+                                        </div>
+                                        <div
+                                            class="absolute -top-1 left-4 w-2 h-2 bg-red-500 rotate-45"
+                                        ></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <!-- Label Deskripsi Aplikasi -->
+                                <label
+                                    for="description"
+                                    class="block mb-2 text-sm font-medium text-gray-900"
+                                    >Deskripsi Aplikasi
+                                    <span class="text-red-500">*</span></label
+                                >
+                                <!-- Input Deskripsi Aplikasi -->
+                                <textarea
+                                    id="description"
+                                    rows="4"
+                                    v-model="appDescription"
+                                    @focus="clearValidationError('description')"
+                                    class="block p-3 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-emerald-500 focus:border-emerald-500 transition-colors duration-200 resize-none"
+                                    placeholder="Tulis deskripsi aplikasi di sini"
+                                ></textarea>
+                                <div
+                                    v-if="validationErrors.description"
+                                    class="relative mt-2"
+                                >
+                                    <div
+                                        class="bg-red-500 text-white text-xs rounded-lg py-2 px-3 relative shadow-lg"
+                                    >
+                                        <div class="flex items-center gap-2">
+                                            <svg
+                                                class="w-4 h-4 flex-shrink-0"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                stroke-width="2"
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                            >
+                                                <path
+                                                    d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"
+                                                ></path>
+                                                <line
+                                                    x1="12"
+                                                    y1="9"
+                                                    x2="12"
+                                                    y2="13"
+                                                ></line>
+                                                <line
+                                                    x1="12"
+                                                    y1="17"
+                                                    x2="12.01"
+                                                    y2="17"
+                                                ></line>
+                                            </svg>
+                                            <span>
+                                                <span
+                                                    v-for="err in validationErrors.description"
+                                                    :key="err"
+                                                >
+                                                    {{ err }}<br />
+                                                </span>
+                                            </span>
+                                        </div>
+                                        <div
+                                            class="absolute -top-1 left-4 w-2 h-2 bg-red-500 rotate-45"
+                                        ></div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-span-2">
-                            <!-- Label Nama Aplikasi -->
-                            <label
-                                for="name"
-                                class="block mb-2 text-sm font-medium text-gray-900"
-                                >Nama Aplikasi
-                                <span class="text-red-500">*</span>
-                            </label>
-                            <!-- Input Application name -->
-                            <input
-                                type="text"
-                                name="name"
-                                v-model="appName"
-                                @focus="clearValidationError('name')"
-                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
-                                placeholder="Ketik nama aplikasi"
-                            />
-                            <div
-                                v-if="validationErrors.name"
-                                class="relative mt-2"
-                            >
-                                <div
-                                    class="bg-red-500 text-white text-xs rounded-lg py-2 px-3 relative shadow-lg"
-                                >
-                                    <div class="flex items-center gap-2">
-                                        <svg
-                                            class="w-4 h-4 flex-shrink-0"
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            stroke-width="2"
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                        >
-                                            <path
-                                                d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"
-                                            ></path>
-                                            <line
-                                                x1="12"
-                                                y1="9"
-                                                x2="12"
-                                                y2="13"
-                                            ></line>
-                                            <line
-                                                x1="12"
-                                                y1="17"
-                                                x2="12.01"
-                                                y2="17"
-                                            ></line>
-                                        </svg>
-                                        <span>
-                                            <span
-                                                v-for="err in validationErrors.name"
-                                                :key="err"
-                                            >
-                                                {{ err }}<br />
-                                            </span>
-                                        </span>
-                                    </div>
-                                    <div
-                                        class="absolute -top-1 left-4 w-2 h-2 bg-red-500 rotate-45"
-                                    ></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-span-2">
-                            <!-- Label Deskripsi Aplikasi -->
-                            <label
-                                for="description"
-                                class="block mb-2 text-sm font-medium text-gray-900"
-                                >Deskripsi Aplikasi
-                                <span class="text-red-500">*</span></label
-                            >
-                            <!-- Input Deskripsi Aplikasi -->
-                            <textarea
-                                id="description"
-                                rows="4"
-                                v-model="appDescription"
-                                @focus="clearValidationError('description')"
-                                class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-                                placeholder="Tulis deskripsi aplikasi di sini"
-                            ></textarea>
-                            <div
-                                v-if="validationErrors.description"
-                                class="relative mt-2"
-                            >
-                                <div
-                                    class="bg-red-500 text-white text-xs rounded-lg py-2 px-3 relative shadow-lg"
-                                >
-                                    <div class="flex items-center gap-2">
-                                        <svg
-                                            class="w-4 h-4 flex-shrink-0"
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            stroke-width="2"
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                        >
-                                            <path
-                                                d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"
-                                            ></path>
-                                            <line
-                                                x1="12"
-                                                y1="9"
-                                                x2="12"
-                                                y2="13"
-                                            ></line>
-                                            <line
-                                                x1="12"
-                                                y1="17"
-                                                x2="12.01"
-                                                y2="17"
-                                            ></line>
-                                        </svg>
-                                        <span>
-                                            <span
-                                                v-for="err in validationErrors.description"
-                                                :key="err"
-                                            >
-                                                {{ err }}<br />
-                                            </span>
-                                        </span>
-                                    </div>
-                                    <div
-                                        class="absolute -top-1 left-4 w-2 h-2 bg-red-500 rotate-45"
-                                    ></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Tombol simpan dan batal -->
-                    <div class="flex justify-end space-x-3">
-                        <button
-                            type="button"
-                            @click="showAddModal = false"
-                            class="py-2.5 px-5 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors duration-300"
+
+                        <!-- Tombol simpan dan batal -->
+                        <div
+                            class="flex justify-end space-x-4 pt-8 border-t border-gray-200 mt-8"
                         >
-                            Batal
-                        </button>
-                        <button
-                            type="submit"
-                            class="py-2.5 px-5 text-sm font-medium text-white bg-emerald-500 hover:bg-emerald-600 focus:ring-4 focus:outline-none focus:ring-green-300 rounded-lg"
-                        >
-                            Tambah
-                        </button>
-                    </div>
-                </form>
+                            <button
+                                type="button"
+                                @click="showAddModal = false"
+                                class="px-6 py-3 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 hover:bg-gray-200 hover:border-gray-400 hover:shadow-md rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-gray-200"
+                            >
+                                Batal
+                            </button>
+                            <button
+                                type="submit"
+                                class="px-8 py-3 text-sm font-semibold text-white bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 rounded-xl transition-all duration-200 flex items-center space-x-2 focus:outline-none focus:ring-4 focus:ring-emerald-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                            >
+                                <svg
+                                    class="w-5 h-5"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M12 5v14m-7-7h14"
+                                    />
+                                </svg>
+                                <span>Tambah</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
