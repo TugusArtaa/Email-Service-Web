@@ -48,18 +48,31 @@ class ProfileController extends Controller
     // Function untuk mengupdate password pengguna
     public function updatePassword(Request $request)
     {
+        $user = $request->user();
+
         $validated = $request->validate([
             'current_password' => ['required', 'string'],
-            'new_password' => ['required', 'string', 'min:8'],
+            'new_password' => [
+                'required',
+                'string',
+                'min:8',
+                'max:12',
+                'regex:/[A-Z]/',
+                'regex:/[a-z]/',
+                'regex:/[0-9]/',
+                'regex:/[!@#$%^&*()_\-+=\[\]{};:\'",.<>\/?\\|`~]/',
+            ],
             'new_password_confirmation' => ['required', 'string'],
         ], [
             'current_password.required' => 'Password saat ini wajib diisi.',
             'new_password.required' => 'Password baru wajib diisi.',
-            'new_password.min' => 'Password baru minimal harus minimal 8 karakter.',
+            'new_password.min' => 'Password baru minimal harus 8 karakter.',
+            'new_password.max' => 'Password baru maksimal 12 karakter.',
+            'new_password.regex' => 'Password baru harus mengandung huruf besar, huruf kecil, angka, dan simbol khusus.',
             'new_password_confirmation.required' => 'Konfirmasi password baru wajib diisi.',
+        ], [
+            'new_password.regex' => 'Password baru harus mengandung huruf besar, huruf kecil, angka, dan simbol khusus.',
         ]);
-
-        $user = $request->user();
 
         // Cek password saat ini
         if (!Hash::check($validated['current_password'], $user->password)) {
@@ -108,6 +121,60 @@ class ProfileController extends Controller
                 'new_password_confirmation' => $message,
             ]);
         }
+
+        // Cek password tidak mengandung nama/email/username
+        $forbidden = [
+            strtolower($user->name),
+            strtolower($user->email),
+            strtolower(explode('@', $user->email)[0]),
+        ];
+        $newPasswordLower = strtolower($validated['new_password']);
+        foreach ($forbidden as $item) {
+            if ($item && strlen($item) >= 3 && strpos($newPasswordLower, $item) !== false) {
+                $message = 'Password baru tidak boleh mengandung nama, email, atau username Anda.';
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'errors' => [
+                            'new_password' => [$message],
+                        ],
+                    ], 422);
+                }
+                throw ValidationException::withMessages([
+                    'new_password' => $message,
+                ]);
+            }
+        }
+
+        // Cek password tidak menggunakan pola berulang sederhana
+        $commonPatterns = [
+            '12345678',
+            '123456789',
+            'password',
+            'qwerty',
+            '111111',
+            '123123',
+            'abc123',
+            'qwertyuiop'
+        ];
+        foreach ($commonPatterns as $pattern) {
+            if (stripos($newPasswordLower, $pattern) !== false) {
+                $message = 'Password baru terlalu mudah ditebak atau menggunakan pola berulang.';
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'errors' => [
+                            'new_password' => [$message],
+                        ],
+                    ], 422);
+                }
+                throw ValidationException::withMessages([
+                    'new_password' => $message,
+                ]);
+            }
+        }
+
+        $user = $request->user();
 
         $user->update([
             'password' => Hash::make($validated['new_password']),
