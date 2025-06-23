@@ -11,7 +11,7 @@
         <div class="flex items-center space-x-4">
             <div class="relative">
                 <img
-                    :src="'/bpd.png'"
+                    :src="'/PNB1.png'"
                     alt="Profile"
                     class="w-16 h-16 rounded-full border-2 border-green-100"
                 />

@@ -48,7 +48,7 @@
                                 'text-base font-bold whitespace-nowrap tracking-wide',
                                 isSidebarOpen ? 'block' : 'hidden',
                             ]"
-                            >S-MEBB DASHBOARD</span
+                            >S-MES DASHBOARD</span
                         >
                     </div>
                 </div>
@@ -366,7 +366,7 @@
                             <div
                                 class="text-xs text-gray-500 flex items-center gap-1"
                             >
-                                <span>S-MEBB</span>
+                                <span>S-MES</span>
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     class="h-3 w-3"
@@ -391,7 +391,7 @@
                                 <div class="relative">
                                     <img
                                         class="w-9 h-9 rounded-full object-cover border-2 border-green-500"
-                                        :src="'/bpd.png'"
+                                        :src="'/PNB1.png'"
                                         alt="User avatar"
                                     />
                                     <span
@@ -591,7 +591,7 @@
                         </h2>
                         <!-- Deskripsi -->
                         <p class="mb-4 text-sm text-gray-600">
-                            Anda akan keluar dari dashboard S-MEBB.<br />
+                            Anda akan keluar dari dashboard S-MES.<br />
                             Apakah Anda yakin ingin logout?
                         </p>
                         <!-- Tombol konfirmasi -->

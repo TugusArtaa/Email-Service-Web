@@ -1,7 +1,7 @@
 <template>
     <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
         <Head>
-            <title>Halaman Login - S-MEBB</title>
+            <title>Halaman Login - S-MES</title>
         </Head>
 
         <!-- Judul Header -->
@@ -16,7 +16,7 @@
                         alt="Logo SMEBB"
                     />
                     <div class="font-medium text-gray-800 text-sm">
-                        <span>S-MEBB DASHBOARD ADMIN</span>
+                        <span>S-MES DASHBOARD ADMIN</span>
                     </div>
                 </div>
             </div>
@@ -372,22 +372,24 @@
                         <div class="flex gap-4 items-center">
                             <img
                                 class="object-contain w-24 h-24"
-                                :src="'/bpd.png'"
-                                alt="BPD Logo"
+                                :src="'/PNB.png'"
+                                alt="PNB Logo"
                             />
                             <div class="text-white">
                                 <h1 class="text-5xl font-bold tracking-tight">
-                                    S-MEBB
+                                    S-MES
                                 </h1>
                                 <h2 class="text-lg italic mt-1 text-gray-200">
-                                    Service Mail Engine Bank BPD Bali
+                                    Service Mail Engine System
                                 </h2>
                             </div>
                         </div>
                         <div class="max-w-md mt-6">
                             <p class="text-gray-200 text-sm">
-                                Selamat datang di sistem manajemen mail engine
-                                BPD Bali. Silakan login untuk melanjutkan.
+                                Selamat datang di Service Mail Engine System,
+                                <br />di sini Anda dapat mengelola seluruh
+                                komunikasi email penting Anda dengan aman dan
+                                efisien.
                             </p>
                         </div>
                     </div>
