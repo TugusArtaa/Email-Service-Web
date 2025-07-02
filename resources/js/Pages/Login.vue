@@ -12,7 +12,7 @@
                 >
                     <img
                         class="w-9 h-9"
-                        :src="'/Logo_SMEBB.png'"
+                        :src="'/Logo_S-MES.png'"
                         alt="Logo SMEBB"
                     />
                     <div class="font-medium text-gray-800 text-sm">
@@ -372,8 +372,8 @@
                         <div class="flex gap-4 items-center">
                             <img
                                 class="object-contain w-24 h-24"
-                                :src="'/PNB.png'"
-                                alt="PNB Logo"
+                                :src="'/logo_smes.png'"
+                                alt="S-MES Logo"
                             />
                             <div class="text-white">
                                 <h1 class="text-5xl font-bold tracking-tight">

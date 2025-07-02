@@ -39,7 +39,7 @@
                 >
                     <div class="flex items-center gap-3">
                         <img
-                            :src="'/Logo_SMEBB.png'"
+                            :src="'/Logo_S-MES.png'"
                             alt="Logo"
                             class="w-9 h-9 object-contain"
                         />
@@ -391,7 +391,7 @@
                                 <div class="relative">
                                     <img
                                         class="w-9 h-9 rounded-full object-cover border-2 border-green-500"
-                                        :src="'/PNB1.png'"
+                                        :src="'/profil_smes.png'"
                                         alt="User avatar"
                                     />
                                     <span
