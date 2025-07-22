@@ -62,3 +62,57 @@ Sistem manajemen pengiriman email berbasis web dengan antrian prioritas mengguna
 -   Hanya aplikasi aktif yang dapat mengirim email.
 
 ---
+
+## 🖼️ Screenshot Hasil Website
+
+### 🔑 Login
+
+<table>
+  <tr>
+    <td><img src="public/screenshot/Logout-1.png" alt="Login 1" width="220" /></td>
+    <td><img src="public/screenshot/Logout-2.png" alt="Login 2" width="220" /></td>
+  </tr>
+</table>
+
+### 🎛️ Admin
+
+<table>
+  <tr>
+    <td><img src="public/screenshot/Admin-1.png" alt="Admin 1" width="220" /></td>
+    <td><img src="public/screenshot/Admin-2.png" alt="Admin 2" width="220" /></td>
+  </tr>
+  <tr>
+    <td><img src="public/screenshot/Admin-3.png" alt="Admin 3" width="220" /></td>
+    <td><img src="public/screenshot/Admin-4.png" alt="Admin 4" width="220" /></td>
+  </tr>
+  <tr>
+    <td><img src="public/screenshot/Admin-5.png" alt="Admin 5" width="220" /></td>
+    <td><img src="public/screenshot/Admin-6.png" alt="Admin 6" width="220" /></td>
+  </tr>
+  <tr>
+    <td><img src="public/screenshot/Admin-7.png" alt="Admin 7" width="220" /></td>
+    <td></td>
+  </tr>
+</table>
+
+### 🧑‍💼 Supervisor
+
+<table>
+  <tr>
+    <td><img src="public/screenshot/Supervisor-1.png" alt="Supervisor 1" width="220" /></td>
+    <td><img src="public/screenshot/Supervisor-2.png" alt="Supervisor 2" width="220" /></td>
+  </tr>
+  <tr>
+    <td><img src="public/screenshot/Supervisor-3.png" alt="Supervisor 3" width="220" /></td>
+    <td></td>
+  </tr>
+</table>
+
+### 👤 Profil
+
+<table>
+  <tr>
+    <td><img src="public/screenshot/Profil-1.png" alt="Profil 1" width="220" /></td>
+    <td><img src="public/screenshot/Profil-2.png" alt="Profil 2" width="220" /></td>
+  </tr>
+</table>
