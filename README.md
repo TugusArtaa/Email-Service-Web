@@ -2,7 +2,7 @@
 
 Sistem manajemen pengiriman email berbasis web dengan antrian prioritas menggunakan RabbitMQ, Laravel, dan Vue.js.
 
----
+> Dibuat saat PKL sebagai inovasi pengiriman email.
 
 ## 🚀 Fitur Utama
 
@@ -13,16 +13,12 @@ Sistem manajemen pengiriman email berbasis web dengan antrian prioritas mengguna
 -   **Retry & Error Handling**: Kirim ulang email yang gagal dengan mudah, lengkap dengan notifikasi error.
 -   **Dashboard Analitik**: Statistik visual pengiriman email, tingkat keberhasilan, dan kegagalan.
 
----
-
 ## 🛠️ Teknologi
 
 -   **Backend**: Laravel 10+, PHP 8+, RabbitMQ, MySQL/MariaDB
 -   **Frontend**: Vue 3, Inertia.js, TailwindCSS
 -   **Queue**: RabbitMQ (dengan dukungan prioritas)
 -   **Excel Import**: Maatwebsite/Laravel-Excel
-
----
 
 ## ⚙️ Arsitektur
 
@@ -35,8 +31,6 @@ Sistem manajemen pengiriman email berbasis web dengan antrian prioritas mengguna
 -   **Queue**: RabbitMQ untuk antrian email dengan prioritas.
 -   **Worker**: Konsumen queue yang mengirim email dan update status log.
 
----
-
 ## 📝 Cara Pakai
 
 -   **Login** sebagai user/supervisor.
@@ -45,23 +39,17 @@ Sistem manajemen pengiriman email berbasis web dengan antrian prioritas mengguna
 -   **Pantau status** di dashboard & log.
 -   **Kirim ulang** email yang gagal langsung dari log.
 
----
-
 ## 📊 Dashboard
 
 -   Statistik email terkirim/gagal/total.
 -   Grafik performa pengiriman.
 -   Ringkasan persentase keberhasilan.
 
----
-
 ## 🔒 Keamanan
 
 -   Setiap aplikasi memiliki secret key unik.
 -   Validasi input & file attachment.
 -   Hanya aplikasi aktif yang dapat mengirim email.
-
----
 
 ## 🖼️ Screenshot Hasil Website
 
